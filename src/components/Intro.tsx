@@ -13,6 +13,7 @@ export default function Intro() {
   }, [])
 
   const enter = () => {
+    window.scrollTo(0, 0)
     start()
     dismiss()
   }

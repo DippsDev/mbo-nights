@@ -27,6 +27,7 @@ body,
 
 html {
   background: var(--bg);
+  overflow-x: hidden;
 }
 
 body {
@@ -35,6 +36,7 @@ body {
   font-family: var(--font-ui);
   background: var(--bg);
   letter-spacing: 0.01em;
+  overflow-x: hidden;
 }
 
 body::before {
@@ -157,6 +159,7 @@ video {
 .hero {
   position: relative;
   min-height: 100svh;
+  min-height: 100dvh;
   display: grid;
   align-content: end;
   overflow: hidden;
@@ -695,17 +698,10 @@ video {
   .page-veil,
   .menu-overlay a,
   .highlight,
-  .hero-still,
   .atmosphere-still,
   .atmosphere::after {
     animation: none !important;
     transition: none !important;
-  }
-
-  .night-card video,
-  .hero video,
-  .atmosphere video {
-    display: none;
   }
 }
 
@@ -1096,6 +1092,20 @@ video {
   .hero .atmosphere-veil {
     opacity: 0.12;
   }
+
+  .atmosphere::after {
+    display: none;
+  }
+
+  .atmosphere-still {
+    animation: none;
+  }
+
+  .hero .atmosphere video,
+  .atmosphere video,
+  .atmosphere-still {
+    filter: saturate(0.95) contrast(1.02) brightness(1);
+  }
 }
 
 @media (max-width: 799px) {
@@ -1152,6 +1162,7 @@ video {
   .spotlight-hero {
     align-content: end;
     min-height: 100svh;
+    min-height: 100dvh;
   }
 
   .hero-copy {

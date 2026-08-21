@@ -28,7 +28,12 @@ export default function Layout() {
   }
 
   useEffect(() => {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+  }, [])
+
+  useEffect(() => {
     setOpen(false)
+    window.scrollTo(0, 0)
   }, [location.pathname])
 
   useEffect(() => {

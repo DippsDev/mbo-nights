@@ -1,60 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { reducedMotion } from '../lib/motion'
 
-const RATE = 0.88
+const RATE_DESKTOP = 0.88
 const CROSSFADE = 0.7
-const STILL_MS = 7200
 
-function usePlayable(clips: readonly string[]) {
-  const [ready, setReady] = useState<string[]>([])
-  const clipKey = clips.join('\n')
-
-  useEffect(() => {
-    const sources = clipKey.split('\n').filter(Boolean)
-    if (sources.length === 0) {
-      setReady([])
-      return
-    }
-    let cancelled = false
-    const nodes: HTMLVideoElement[] = []
-
-    Promise.all(
-      sources.map(
-        (src) =>
-          new Promise<string | null>((resolve) => {
-            const video = document.createElement('video')
-            nodes.push(video)
-            video.muted = true
-            video.preload = 'metadata'
-            video.playsInline = true
-            const finish = (ok: boolean) => {
-              video.onloadedmetadata = null
-              video.onerror = null
-              video.removeAttribute('src')
-              video.load()
-              resolve(ok ? src : null)
-            }
-            video.onloadedmetadata = () => finish(true)
-            video.onerror = () => finish(false)
-            video.src = src
-          }),
-      ),
-    ).then((found) => {
-      if (!cancelled) setReady(found.filter((src): src is string => Boolean(src)))
-    })
-
-    return () => {
-      cancelled = true
-      nodes.forEach((video) => {
-        video.onloadedmetadata = null
-        video.onerror = null
-        video.removeAttribute('src')
-        video.load()
-      })
-    }
-  }, [clipKey])
-
-  return ready
+function mobileFriendly() {
+  return window.matchMedia('(max-width: 799px), (pointer: coarse)').matches
 }
 
 export default function AtmosphereVideo({
@@ -64,74 +15,84 @@ export default function AtmosphereVideo({
   alt,
   cover = false,
   playing = true,
+  eager = false,
 }: {
-  poster: string
+  poster?: string
   clips: readonly string[]
   posters?: readonly string[]
   alt: string
   cover?: boolean
   playing?: boolean
+  eager?: boolean
 }) {
   const wrap = useRef<HTMLDivElement>(null)
-  const layers = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)]
+  const aRef = useRef<HTMLVideoElement>(null)
+  const bRef = useRef<HTMLVideoElement>(null)
   const cueing = useRef(false)
   const index = useRef(0)
-  const playable = usePlayable(clips)
-  const stills = useMemo(
-    () => (posters.length > 0 ? posters : [poster]),
-    [poster, posters],
-  )
-  const [inView, setInView] = useState(false)
+  const frontRef = useRef(0)
+  const [failed, setFailed] = useState<Record<string, true>>({})
+  const [inView, setInView] = useState(eager)
   const [front, setFront] = useState(0)
   const [live, setLive] = useState(false)
   const [still, setStill] = useState(0)
   const motionOff = reducedMotion()
+  const playable = useMemo(
+    () => clips.filter((src) => src && !failed[src]),
+    [clips, failed],
+  )
+  const stills = useMemo(
+    () => (posters.length > 0 ? posters : poster ? [poster] : []),
+    [poster, posters],
+  )
   const useVideo = playable.length > 0 && !motionOff
-  const active = playing && inView
+  const active = playing && (eager || inView)
+
+  useEffect(() => {
+    frontRef.current = front
+  }, [front])
 
   useEffect(() => {
     const el = wrap.current
-    if (!el) return
+    if (!el || eager) return
     const io = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting && entry.intersectionRatio >= 0.18),
-      { threshold: [0, 0.18, 0.4] },
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.05, rootMargin: '80px' },
     )
     io.observe(el)
     return () => io.disconnect()
-  }, [])
+  }, [eager])
 
   useEffect(() => {
     if (useVideo || !playing || stills.length < 2 || motionOff) return
     const id = window.setInterval(() => {
       setStill((n) => (n + 1) % stills.length)
-    }, STILL_MS)
+    }, 7200)
     return () => window.clearInterval(id)
   }, [useVideo, playing, stills.length, motionOff])
 
   useEffect(() => {
-    if (!useVideo) {
-      setLive(false)
-      layers.forEach((layer) => layer.current?.pause())
-      return
-    }
+    const a = aRef.current
+    if (!useVideo || !a || !playable[0]) return
 
-    const a = layers[0].current
-    const b = layers[1].current
-    if (!a) return
-
-    const arm = (video: HTMLVideoElement, src: string) => {
-      if (video.getAttribute('src') !== src) video.src = src
-      video.loop = playable.length === 1
+    const rate = mobileFriendly() ? 1 : RATE_DESKTOP
+    const arm = (video: HTMLVideoElement, src: string, loop: boolean) => {
       video.muted = true
+      video.defaultMuted = true
       video.playsInline = true
-      video.playbackRate = RATE
+      video.setAttribute('playsinline', '')
+      video.setAttribute('webkit-playsinline', '')
+      video.loop = loop
+      video.playbackRate = rate
+      if (video.getAttribute('src') !== src) video.src = src
     }
 
-    arm(a, playable[0])
-    if (b && playable[1]) arm(b, playable[1])
+    arm(a, playable[0], playable.length === 1)
+    if (bRef.current && playable[1]) arm(bRef.current, playable[1], false)
     index.current = 0
     cueing.current = false
     setFront(0)
+    frontRef.current = 0
 
     const onPlay = () => setLive(true)
     a.addEventListener('playing', onPlay)
@@ -139,20 +100,36 @@ export default function AtmosphereVideo({
   }, [useVideo, playable])
 
   useEffect(() => {
-    const a = layers[front].current
-    const b = layers[front ^ 1].current
-    if (!useVideo || !a) return
+    const layer = front === 0 ? aRef.current : bRef.current
+    const other = front === 0 ? bRef.current : aRef.current
+    if (!useVideo || !layer) return
 
     if (!active) {
-      a.pause()
-      b?.pause()
+      layer.pause()
+      other?.pause()
       return
     }
 
-    a.muted = true
-    a.playbackRate = RATE
-    void a.play().catch(() => undefined)
+    layer.muted = true
+    layer.playbackRate = mobileFriendly() ? 1 : RATE_DESKTOP
+    void layer.play().catch(() => undefined)
   }, [active, front, useVideo])
+
+  useEffect(() => {
+    const kick = () => {
+      if (!playing) return
+      const layer = frontRef.current === 0 ? aRef.current : bRef.current
+      if (!layer) return
+      layer.muted = true
+      void layer.play().catch(() => undefined)
+    }
+    window.addEventListener('pointerdown', kick, true)
+    window.addEventListener('touchstart', kick, { capture: true, passive: true })
+    return () => {
+      window.removeEventListener('pointerdown', kick, true)
+      window.removeEventListener('touchstart', kick, true)
+    }
+  }, [playing])
 
   const cueNext = (from: HTMLVideoElement) => {
     if (playable.length < 2 || cueing.current) return
@@ -161,8 +138,8 @@ export default function AtmosphereVideo({
 
     cueing.current = true
     const next = (index.current + 1) % playable.length
-    const hidden = front ^ 1
-    const other = layers[hidden].current
+    const hidden = frontRef.current ^ 1
+    const other = hidden === 0 ? aRef.current : bRef.current
     if (!other) {
       cueing.current = false
       return
@@ -171,13 +148,19 @@ export default function AtmosphereVideo({
     other.src = playable[next]
     other.loop = false
     other.muted = true
-    other.playbackRate = RATE
+    other.playbackRate = mobileFriendly() ? 1 : RATE_DESKTOP
     void other.play().catch(() => undefined)
     index.current = next
+    frontRef.current = hidden
     setFront(hidden)
     window.setTimeout(() => {
       cueing.current = false
     }, CROSSFADE * 1000 + 80)
+  }
+
+  const onError = (src: string) => {
+    if (!src) return
+    setFailed((prev) => (prev[src] ? prev : { ...prev, [src]: true }))
   }
 
   return (
@@ -193,18 +176,34 @@ export default function AtmosphereVideo({
           alt={i === still ? alt : ''}
         />
       ))}
-      {useVideo &&
-        [0, 1].map((layer) => (
+      {useVideo && (
+        <>
           <video
-            key={layer}
-            ref={layers[layer]}
-            className={layer === front ? 'on' : ''}
+            ref={aRef}
+            className={front === 0 ? 'on' : ''}
             muted
             playsInline
+            autoPlay={eager}
             preload="auto"
+            loop={playable.length === 1}
+            src={playable[0]}
             onTimeUpdate={(event) => cueNext(event.currentTarget)}
+            onError={() => onError(playable[0])}
           />
-        ))}
+          {playable.length > 1 && (
+            <video
+              ref={bRef}
+              className={front === 1 ? 'on' : ''}
+              muted
+              playsInline
+              preload="auto"
+              src={playable[1]}
+              onTimeUpdate={(event) => cueNext(event.currentTarget)}
+              onError={() => playable[1] && onError(playable[1])}
+            />
+          )}
+        </>
+      )}
       <span className="atmosphere-veil" aria-hidden />
     </div>
   )

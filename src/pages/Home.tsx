@@ -4,10 +4,9 @@ import {
   CAPABILITIES,
   PLACEHOLDER_KICKER,
   PLACEHOLDER_SHORT,
-  SHOWREEL,
+  SHOWREEL_CLIPS,
   artists,
   nextOpenNight,
-  showreelClips,
 } from '../data'
 import AtmosphereVideo from '../components/AtmosphereVideo'
 import HighlightReel from '../components/HighlightReel'
@@ -20,7 +19,6 @@ export default function Home() {
   const { on, toggle } = useSound()
   const hero = useRef<HTMLElement>(null)
   const [playing, setPlaying] = useState(true)
-  const reel = showreelClips()
 
   useEffect(() => {
     const el = hero.current
@@ -99,12 +97,11 @@ export default function Home() {
     <main className="page home-immerse">
       <section className="hero spotlight-hero" ref={hero}>
         <AtmosphereVideo
-          poster={SHOWREEL[0]}
-          posters={SHOWREEL}
-          clips={reel}
+          clips={SHOWREEL_CLIPS}
           alt=""
           cover
           playing={playing}
+          eager
         />
         <div className="spotlight-hole" aria-hidden />
         <div className="hero-copy">

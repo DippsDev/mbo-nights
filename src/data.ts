@@ -63,10 +63,9 @@ export function placeholder(
   bg = '111111',
   fg = 'd6ff4b',
 ) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">
     <rect fill="#${bg}" width="${w}" height="${h}"/>
-    <text x="50%" y="46%" text-anchor="middle" fill="#${fg}" font-family="Arial,sans-serif" font-size="${Math.round(Math.min(w, h) / 16)}" letter-spacing="4">${label}</text>
-    <text x="50%" y="56%" text-anchor="middle" fill="#9a948a" font-family="Arial,sans-serif" font-size="${Math.round(Math.min(w, h) / 32)}">${w} × ${h}</text>
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#${fg}" font-family="Arial,sans-serif" font-size="${Math.round(Math.min(w, h) / 22)}" letter-spacing="6">${label}</text>
   </svg>`
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
