@@ -4,7 +4,6 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { artistsFor, getVenue, nights, type Night } from '../data'
 import { isNarrow, reducedMotion } from '../lib/motion'
-import AtmosphereVideo from './AtmosphereVideo'
 
 export default function HighlightReel() {
   const wrap = useRef<HTMLElement>(null)
@@ -76,7 +75,7 @@ function HighlightSlide({ night }: { night: Night }) {
 
   return (
     <article className="highlight">
-      <AtmosphereVideo poster={night.image} clips={night.clips} alt={night.title} cover />
+      <img src={night.image} alt={night.title} />
       <div className="highlight-copy">
         <p className="kicker">
           {venue?.type} · {venue?.city}

@@ -176,31 +176,6 @@ video {
   object-fit: cover;
 }
 
-.persistent-hero-bed {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 0;
-  height: 100svh;
-  height: 100dvh;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.persistent-hero-bed video,
-.persistent-hero-bed .atmosphere-still {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.persistent-hero-bed:not(.is-home) {
-  opacity: 0;
-}
-
 .hero::after {
   content: '';
   position: absolute;
@@ -367,7 +342,7 @@ video {
   background: var(--bg-2);
 }
 
-.night-card .atmosphere,
+.night-card img,
 .product-card img,
 .artist-card img,
 .venue-card img {
@@ -378,7 +353,7 @@ video {
   transition: transform 0.7s ease;
 }
 
-.night-card:hover .atmosphere,
+.night-card:hover img,
 .product-card:hover img,
 .artist-card:hover img,
 .venue-card:hover img {
@@ -692,7 +667,7 @@ video {
     min-height: 70vh;
   }
 
-  .night-card .atmosphere,
+  .night-card img,
   .product-card img,
   .artist-card img,
   .venue-card img {
@@ -723,7 +698,7 @@ video {
   .marquee-track,
   .lineup li,
   .night-card img,
-  .night-card .atmosphere,
+  .night-card img,
   .product-card img,
   .artist-card img,
   .venue-card img,
@@ -1116,63 +1091,9 @@ video {
   .spotlight-hole {
     display: none;
   }
-
-  .atmosphere::after {
-    display: none;
-  }
-
-  .atmosphere-still {
-    animation: none;
-  }
-
-  .atmosphere video,
-  .atmosphere-still {
-    filter: none;
-  }
-
-  .hero-bed video,
-  .hero-bed .atmosphere-still {
-    opacity: 1;
-    filter: none;
-    transition: none;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-  }
 }
 
-/* Phones: full-bleed hero bed. */
 @media (max-width: 599px) {
-  .hero.spotlight-hero {
-    background: transparent;
-  }
-
-  .persistent-hero-bed,
-  .persistent-hero-bed.cover {
-    inset: auto 0 auto 0;
-    top: 0;
-    width: 100%;
-    height: 100svh;
-    height: 100dvh;
-    max-height: none;
-    aspect-ratio: auto;
-  }
-
-  .persistent-hero-bed video,
-  .persistent-hero-bed .atmosphere-still {
-    object-fit: cover;
-    object-position: center;
-  }
-
-  .persistent-hero-bed .atmosphere-veil,
-  .persistent-hero-bed::after {
-    display: none;
-  }
-
-  .hero .atmosphere-veil {
-    opacity: 0;
-  }
-
   .hero::after {
     background: linear-gradient(
       to top,
@@ -1184,29 +1105,8 @@ video {
   }
 }
 
-/* iPad / tablet: full-bleed hero, type that stays on screen. */
+/* iPad / tablet: type that stays on screen. */
 @media (min-width: 600px) and (max-width: 1199px) {
-  .persistent-hero-bed,
-  .persistent-hero-bed.cover {
-    inset: auto 0 auto 0;
-    top: 0;
-    width: 100%;
-    height: 100svh;
-    height: 100dvh;
-    max-height: none;
-    aspect-ratio: auto;
-  }
-
-  .persistent-hero-bed video,
-  .persistent-hero-bed .atmosphere-still {
-    object-fit: cover;
-    object-position: center;
-  }
-
-  .persistent-hero-bed .atmosphere-veil {
-    display: none;
-  }
-
   .hero::after {
     background: linear-gradient(
       to top,
@@ -1378,7 +1278,7 @@ video {
 
   .night-card img,
   .night-card video,
-  .night-card .atmosphere,
+  .night-card img,
   .product-card img,
   .artist-card img,
   .venue-card img,

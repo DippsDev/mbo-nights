@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useState, type MouseEvent } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useCart } from '../cart'
-import { SHOWREEL_CLIPS, nextOpenNight } from '../data'
-import { HeroBedProvider } from '../heroBed'
+import { nextOpenNight } from '../data'
 import { reducedMotion } from '../lib/motion'
 import { useSound } from '../sound'
-import AtmosphereVideo from './AtmosphereVideo'
 import Cursor from './Cursor'
 import Intro from './Intro'
 import Menu from './Menu'
@@ -18,9 +16,7 @@ export default function Layout() {
   const home = location.pathname === '/'
   const [open, setOpen] = useState(false)
   const [atTop, setAtTop] = useState(true)
-  const [bedOn, setBedOn] = useState(true)
   const close = useCallback(() => setOpen(false), [])
-  const toggleBed = useCallback(() => setBedOn((v) => !v), [])
 
   const goHomeTop = (event: MouseEvent<HTMLAnchorElement>) => {
     close()
@@ -52,17 +48,9 @@ export default function Layout() {
   }, [location.pathname])
 
   return (
-    <HeroBedProvider playing={bedOn} toggle={toggleBed}>
+    <>
       <Intro />
       <Cursor />
-      <AtmosphereVideo
-        className={`hero-bed persistent-hero-bed${home ? ' is-home' : ''}`}
-        clips={SHOWREEL_CLIPS}
-        alt=""
-        cover
-        playing={bedOn}
-        eager
-      />
       <header
         className={`site-nav${atTop ? ' at-top' : ''}${home ? '' : ' over-content'}`}
       >
@@ -104,6 +92,6 @@ export default function Layout() {
           </Link>
         )}
       </footer>
-    </HeroBedProvider>
+    </>
   )
 }

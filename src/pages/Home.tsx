@@ -8,7 +8,6 @@ import {
   nextOpenNight,
 } from '../data'
 import HighlightReel from '../components/HighlightReel'
-import { useHeroBed } from '../heroBed'
 import { finePointer, isNarrow, reducedMotion } from '../lib/motion'
 import { useSound } from '../sound'
 import { gsap } from 'gsap'
@@ -16,7 +15,6 @@ import { gsap } from 'gsap'
 export default function Home() {
   const next = nextOpenNight()
   const { on, toggle } = useSound()
-  const { toggle: toggleBed } = useHeroBed()
   const hero = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -104,13 +102,6 @@ export default function Home() {
           </h1>
           <p className="serif hero-lede">Placeholder text</p>
           <div className="hero-meta">
-            <button
-              className="btn ghost"
-              type="button"
-              onClick={toggleBed}
-            >
-              Showreel
-            </button>
             <button className="btn ghost" type="button" data-sound-toggle onPointerDown={toggle}>
               {on ? 'Mute' : 'Sound on'}
             </button>

@@ -73,7 +73,7 @@ export function placeholder(
 export const HERO_IMAGE = placeholder('HERO IMAGE', 1920, 1080)
 
 /** Hero background reel. */
-export const SHOWREEL_CLIPS: string[] = ['/video/DippsDevMp4.mp4']
+export const SHOWREEL_CLIPS: string[] = []
 
 export const CAPABILITIES = [
   {
