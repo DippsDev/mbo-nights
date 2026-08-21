@@ -1,15 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   CAPABILITIES,
   PLACEHOLDER_KICKER,
   PLACEHOLDER_SHORT,
-  SHOWREEL_CLIPS,
   artists,
   nextOpenNight,
 } from '../data'
-import AtmosphereVideo from '../components/AtmosphereVideo'
 import HighlightReel from '../components/HighlightReel'
+import { useHeroBed } from '../heroBed'
 import { finePointer, isNarrow, reducedMotion } from '../lib/motion'
 import { useSound } from '../sound'
 import { gsap } from 'gsap'
@@ -17,8 +16,8 @@ import { gsap } from 'gsap'
 export default function Home() {
   const next = nextOpenNight()
   const { on, toggle } = useSound()
+  const { playing, toggle: toggleBed } = useHeroBed()
   const hero = useRef<HTMLElement>(null)
-  const [playing, setPlaying] = useState(true)
 
   useEffect(() => {
     const el = hero.current
@@ -96,14 +95,6 @@ export default function Home() {
   return (
     <main className="page home-immerse">
       <section className="hero spotlight-hero" ref={hero}>
-        <AtmosphereVideo
-          className="hero-bed"
-          clips={SHOWREEL_CLIPS}
-          alt=""
-          cover
-          playing={playing}
-          eager
-        />
         <div className="spotlight-hole" aria-hidden />
         <div className="hero-copy">
           <p className="kicker">{PLACEHOLDER_KICKER}</p>
@@ -116,7 +107,7 @@ export default function Home() {
             <button
               className="btn ghost"
               type="button"
-              onClick={() => setPlaying((v) => !v)}
+              onClick={toggleBed}
             >
               Showreel
             </button>

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState, type MouseEvent } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useCart } from '../cart'
+import { SHOWREEL_CLIPS, nextOpenNight } from '../data'
+import { HeroBedProvider } from '../heroBed'
 import { reducedMotion } from '../lib/motion'
 import { useSound } from '../sound'
-import { nextOpenNight } from '../data'
+import AtmosphereVideo from './AtmosphereVideo'
 import Cursor from './Cursor'
 import Intro from './Intro'
 import Menu from './Menu'
@@ -13,9 +15,12 @@ export default function Layout() {
   const { on, toggle } = useSound()
   const next = nextOpenNight()
   const location = useLocation()
+  const home = location.pathname === '/'
   const [open, setOpen] = useState(false)
   const [atTop, setAtTop] = useState(true)
+  const [bedOn, setBedOn] = useState(true)
   const close = useCallback(() => setOpen(false), [])
+  const toggleBed = useCallback(() => setBedOn((v) => !v), [])
 
   const goHomeTop = (event: MouseEvent<HTMLAnchorElement>) => {
     close()
@@ -47,11 +52,19 @@ export default function Layout() {
   }, [location.pathname])
 
   return (
-    <>
+    <HeroBedProvider playing={bedOn} toggle={toggleBed}>
       <Intro />
       <Cursor />
+      <AtmosphereVideo
+        className={`hero-bed persistent-hero-bed${home ? ' is-home' : ''}`}
+        clips={SHOWREEL_CLIPS}
+        alt=""
+        cover
+        playing={bedOn}
+        eager
+      />
       <header
-        className={`site-nav${atTop ? ' at-top' : ''}${location.pathname === '/' ? '' : ' over-content'}`}
+        className={`site-nav${atTop ? ' at-top' : ''}${home ? '' : ' over-content'}`}
       >
         <Link className="logo" to="/" onClick={goHomeTop}>
           MBO
@@ -79,7 +92,7 @@ export default function Layout() {
         </div>
       </header>
       <Menu open={open} onClose={close} />
-      {location.pathname !== '/' && <div className="nav-spacer" aria-hidden />}
+      {home ? null : <div className="nav-spacer" aria-hidden />}
       <div className="page-veil" key={location.pathname}>
         <Outlet />
       </div>
@@ -91,6 +104,6 @@ export default function Layout() {
           </Link>
         )}
       </footer>
-    </>
+    </HeroBedProvider>
   )
 }

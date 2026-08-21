@@ -23,6 +23,7 @@ html,
 body,
 #root {
   min-height: 100%;
+  position: relative;
 }
 
 html {
@@ -173,6 +174,31 @@ video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.persistent-hero-bed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.persistent-hero-bed video,
+.persistent-hero-bed .atmosphere-still {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.persistent-hero-bed:not(.is-home) {
+  opacity: 0;
 }
 
 .hero::after {
@@ -1104,8 +1130,8 @@ video {
     filter: none;
   }
 
-  .hero .hero-bed video,
-  .hero .hero-bed .atmosphere-still {
+  .hero-bed video,
+  .hero-bed .atmosphere-still {
     opacity: 1;
     filter: none;
     transition: none;
@@ -1118,19 +1144,19 @@ video {
 /* Phones only: keep the clip in its native 3:2 frame. */
 @media (max-width: 599px) {
   .hero.spotlight-hero {
-    background: #050505;
+    background: transparent;
   }
 
-  .hero .hero-bed,
-  .hero .hero-bed.cover {
+  .persistent-hero-bed,
+  .persistent-hero-bed.cover {
     inset: auto 0 auto 0;
     top: calc(var(--nav-h) + env(safe-area-inset-top) + 0.4rem);
     height: auto;
     aspect-ratio: 3 / 2;
   }
 
-  .hero .hero-bed .atmosphere-veil,
-  .hero .hero-bed::after {
+  .persistent-hero-bed .atmosphere-veil,
+  .persistent-hero-bed::after {
     display: none;
   }
 
@@ -1151,24 +1177,24 @@ video {
 
 /* iPad / tablet: full-bleed hero, type that stays on screen. */
 @media (min-width: 600px) and (max-width: 1199px) {
-  .hero .hero-bed,
-  .hero .hero-bed.cover,
-  .hero .atmosphere {
-    inset: 0;
+  .persistent-hero-bed,
+  .persistent-hero-bed.cover {
+    inset: auto 0 auto 0;
     top: 0;
     width: 100%;
-    height: 100%;
+    height: 100svh;
+    height: 100dvh;
     max-height: none;
     aspect-ratio: auto;
   }
 
-  .hero .hero-bed video,
-  .hero .hero-bed .atmosphere-still {
+  .persistent-hero-bed video,
+  .persistent-hero-bed .atmosphere-still {
     object-fit: cover;
     object-position: center;
   }
 
-  .hero .hero-bed .atmosphere-veil {
+  .persistent-hero-bed .atmosphere-veil {
     display: none;
   }
 
