@@ -26,13 +26,17 @@ const FADE_RESUME = 2.4
 
 class Bed {
   file: HTMLAudioElement
+  wanted = true
   private fileFade = 0
+  private fading = false
 
   constructor(file: HTMLAudioElement) {
     this.file = file
     this.file.loop = true
     this.file.preload = 'auto'
+    this.file.playsInline = true
     this.file.setAttribute('playsinline', '')
+    this.file.setAttribute('webkit-playsinline', '')
     this.file.volume = 0
   }
 
@@ -41,6 +45,7 @@ class Bed {
   }
 
   tryAutoplay() {
+    this.wanted = true
     void this.file
       .play()
       .then(() => this.fadeFile(FILE_VOL, FADE_IN))
@@ -49,23 +54,33 @@ class Bed {
 
   /** Call only from a click / tap / key handler. Starts immediately, no await. */
   play(seconds = FADE_IN) {
+    this.wanted = true
     void this.file.play().catch(() => undefined)
     this.fadeFile(FILE_VOL, seconds)
   }
 
   mute() {
+    this.wanted = false
     this.fadeFile(0, FADE_OUT, () => {
+      if (this.wanted) return
       this.file.pause()
-      this.file.currentTime = 0
     })
   }
 
-  duck() {
-    this.fadeFile(0, 0.28)
+  keepPlaying() {
+    if (!this.wanted) return
+    if (this.file.ended) this.file.currentTime = 0
+    if (this.file.paused || this.file.ended) {
+      void this.file.play().catch(() => undefined)
+    }
+    if (!this.fading && this.file.volume < FILE_VOL * 0.2) {
+      this.fadeFile(FILE_VOL, FADE_RESUME)
+    }
   }
 
   private fadeFile(to: number, seconds: number, done?: () => void) {
     cancelAnimationFrame(this.fileFade)
+    this.fading = true
     const el = this.file
     const from = el.volume
     const start = performance.now()
@@ -75,7 +90,10 @@ class Bed {
       const eased = t * t * (3 - 2 * t)
       el.volume = Math.min(1, Math.max(0, from + (to - from) * eased))
       if (t < 1) this.fileFade = requestAnimationFrame(step)
-      else done?.()
+      else {
+        this.fading = false
+        done?.()
+      }
     }
     this.fileFade = requestAnimationFrame(step)
   }
@@ -102,11 +120,10 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   }, [ensure])
 
   const toggle = useCallback(() => {
-    const engine = ensure()
-    if (onRef.current && engine?.live()) {
+    if (onRef.current) {
       onRef.current = false
       setOn(false)
-      engine.mute()
+      ensure()?.mute()
       setLive(false)
       return
     }
@@ -126,38 +143,48 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       setLive(true)
     }
 
-    const onVisible = () => {
+    const syncLive = () => setLive(engine.live())
+
+    const resume = () => {
       if (!onRef.current) return
-      if (document.hidden) {
-        engine.duck()
-        return
-      }
-      engine.play(FADE_RESUME)
+      engine.keepPlaying()
       setLive(engine.live())
     }
 
-    const syncLive = () => setLive(engine.live())
-
-    const onPageShow = () => {
-      if (onRef.current) engine.tryAutoplay()
+    const onEnded = () => {
+      if (!onRef.current) return
+      engine.file.currentTime = 0
+      engine.keepPlaying()
     }
 
     window.addEventListener('pointerdown', kick, true)
     window.addEventListener('keydown', kick, true)
     window.addEventListener('touchstart', kick, { capture: true, passive: true })
-    window.addEventListener('pageshow', onPageShow)
-    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('pageshow', resume)
+    window.addEventListener('focus', resume)
+    document.addEventListener('visibilitychange', resume)
     engine.file.addEventListener('playing', syncLive)
-    engine.file.addEventListener('pause', syncLive)
+    engine.file.addEventListener('pause', resume)
+    engine.file.addEventListener('ended', onEnded)
+    engine.file.addEventListener('stalled', resume)
+    engine.file.addEventListener('suspend', resume)
+    engine.file.addEventListener('error', resume)
+    const watchdog = window.setInterval(resume, 1500)
 
     return () => {
       window.removeEventListener('pointerdown', kick, true)
       window.removeEventListener('keydown', kick, true)
       window.removeEventListener('touchstart', kick, true)
-      window.removeEventListener('pageshow', onPageShow)
-      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('pageshow', resume)
+      window.removeEventListener('focus', resume)
+      document.removeEventListener('visibilitychange', resume)
       engine.file.removeEventListener('playing', syncLive)
-      engine.file.removeEventListener('pause', syncLive)
+      engine.file.removeEventListener('pause', resume)
+      engine.file.removeEventListener('ended', onEnded)
+      engine.file.removeEventListener('stalled', resume)
+      engine.file.removeEventListener('suspend', resume)
+      engine.file.removeEventListener('error', resume)
+      window.clearInterval(watchdog)
     }
   }, [ensure])
 
@@ -165,7 +192,14 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
   return (
     <SoundContext.Provider value={value}>
-      <audio ref={fileRef} className="sound-bed" src={TRACK} loop playsInline preload="auto" />
+      <audio
+        ref={fileRef}
+        className="sound-bed"
+        src={TRACK}
+        loop
+        playsInline
+        preload="auto"
+      />
       {children}
     </SoundContext.Provider>
   )
