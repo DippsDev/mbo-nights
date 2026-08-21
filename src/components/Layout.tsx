@@ -1,0 +1,77 @@
+import { useCallback, useEffect, useState } from 'react'
+import { Link, Outlet, useLocation } from 'react-router-dom'
+import { useCart } from '../cart'
+import { useSound } from '../sound'
+import { nextOpenNight } from '../data'
+import Cursor from './Cursor'
+import Intro from './Intro'
+import Menu from './Menu'
+
+export default function Layout() {
+  const { count } = useCart()
+  const { on, toggle } = useSound()
+  const next = nextOpenNight()
+  const location = useLocation()
+  const [open, setOpen] = useState(false)
+  const [atTop, setAtTop] = useState(true)
+  const close = useCallback(() => setOpen(false), [])
+
+  useEffect(() => {
+    setOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    const onScroll = () => setAtTop(window.scrollY < 12)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [location.pathname])
+
+  return (
+    <>
+      <Intro />
+      <Cursor />
+      <header
+        className={`site-nav${atTop ? ' at-top' : ''}${location.pathname === '/' ? '' : ' over-content'}`}
+      >
+        <Link className="logo" to="/">
+          MBO
+        </Link>
+        <div className="nav-end">
+          <button
+            className="menu-toggle"
+            type="button"
+            data-sound-toggle
+            onPointerDown={toggle}
+          >
+            {on ? 'Mute' : 'Sound'}
+          </button>
+          <Link className="bag-link" to="/bag">
+            Bag {count > 0 && <span>{count}</span>}
+          </Link>
+          <button
+            className="menu-toggle"
+            type="button"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? 'Close' : 'Menu'}
+          </button>
+        </div>
+      </header>
+      <Menu open={open} onClose={close} />
+      {location.pathname !== '/' && <div className="nav-spacer" aria-hidden />}
+      <div className="page-veil" key={location.pathname}>
+        <Outlet />
+      </div>
+      <footer className="site-foot">
+        <span>Placeholder footer text</span>
+        {next && (
+          <Link to={`/events/${next.id}`}>
+            Next: {next.title} · {next.date}
+          </Link>
+        )}
+      </footer>
+    </>
+  )
+}
