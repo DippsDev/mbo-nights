@@ -18,28 +18,15 @@ type SoundContextValue = {
 
 const SoundContext = createContext<SoundContextValue | null>(null)
 
-const TRACK = '/audio/bed.wav'
+const TRACK = '/audio/DippsDev.mp3'
 const FILE_VOL = 0.38
-const AMBIENT_VOL = 0.2
 const FADE_IN = 7
 const FADE_OUT = 1.2
 const FADE_RESUME = 2.4
 
-function createAudioContext() {
-  const C =
-    window.AudioContext ||
-    (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
-  return C ? new C() : null
-}
-
 class Bed {
   file: HTMLAudioElement
-  private ctx: AudioContext | null = null
-  private master: GainNode | null = null
-  private nodes = false
-  private fadeFrame = 0
   private fileFade = 0
-  mode: 'file' | 'ambient' | null = null
 
   constructor(file: HTMLAudioElement) {
     this.file = file
@@ -50,55 +37,20 @@ class Bed {
   }
 
   live() {
-    if (this.mode === 'file') return !this.file.paused
-    if (this.mode === 'ambient') return this.ctx?.state === 'running'
-    return false
+    return !this.file.paused
   }
 
   tryAutoplay() {
     void this.file
       .play()
-      .then(() => {
-        if (this.mode === 'ambient') {
-          this.file.pause()
-          return
-        }
-        this.mode = 'file'
-        this.fadeFile(FILE_VOL, FADE_IN)
-      })
+      .then(() => this.fadeFile(FILE_VOL, FADE_IN))
       .catch(() => undefined)
   }
 
   /** Call only from a click / tap / key handler. Starts immediately, no await. */
   play(seconds = FADE_IN) {
-    if (this.mode === 'file') {
-      void this.file.play().catch(() => this.unlock(seconds))
-      this.fadeFile(FILE_VOL, seconds)
-      return
-    }
-    this.unlock(seconds)
-  }
-
-  unlock(seconds = FADE_IN) {
-    if (this.mode === 'file') {
-      void this.file.play().catch(() => undefined)
-      this.fadeFile(FILE_VOL, seconds)
-      return
-    }
-
-    const ctx = this.ctx ?? createAudioContext()
-    if (!ctx) return
-    this.ctx = ctx
-    void ctx.resume()
-    if (!this.master) {
-      this.master = ctx.createGain()
-      this.master.gain.value = 0
-      this.master.connect(ctx.destination)
-    }
-    if (!this.nodes) this.connectDrone(ctx, this.master)
-    this.mode = 'ambient'
-    this.file.pause()
-    this.fadeAmbient(AMBIENT_VOL, seconds)
+    void this.file.play().catch(() => undefined)
+    this.fadeFile(FILE_VOL, seconds)
   }
 
   mute() {
@@ -106,33 +58,10 @@ class Bed {
       this.file.pause()
       this.file.currentTime = 0
     })
-    this.fadeAmbient(0, FADE_OUT, () => {
-      void this.ctx?.suspend()
-    })
   }
 
   duck() {
-    if (this.mode === 'file') this.fadeFile(0, 0.28)
-    else this.fadeAmbient(0, 0.28)
-  }
-
-  private connectDrone(ctx: AudioContext, master: GainNode) {
-    this.nodes = true
-    ;[
-      [220, 0.45],
-      [277.18, 0.28],
-      [329.63, 0.22],
-      [440, 0.12],
-    ].forEach(([hz, gain]) => {
-      const osc = ctx.createOscillator()
-      const g = ctx.createGain()
-      osc.type = 'sine'
-      osc.frequency.value = hz
-      g.gain.value = gain
-      osc.connect(g)
-      g.connect(master)
-      osc.start()
-    })
+    this.fadeFile(0, 0.28)
   }
 
   private fadeFile(to: number, seconds: number, done?: () => void) {
@@ -149,29 +78,6 @@ class Bed {
       else done?.()
     }
     this.fileFade = requestAnimationFrame(step)
-  }
-
-  private fadeAmbient(to: number, seconds: number, done?: () => void) {
-    const ctx = this.ctx
-    const master = this.master
-    if (!ctx || !master) {
-      done?.()
-      return
-    }
-    cancelAnimationFrame(this.fadeFrame)
-    const from = master.gain.value
-    const t0 = ctx.currentTime
-    master.gain.cancelScheduledValues(t0)
-    master.gain.setValueAtTime(from, t0)
-    master.gain.linearRampToValueAtTime(to, t0 + seconds)
-    if (!done) return
-    const start = performance.now()
-    const dur = Math.max(40, seconds * 1000)
-    const wait = (now: number) => {
-      if (now - start < dur) this.fadeFrame = requestAnimationFrame(wait)
-      else done()
-    }
-    this.fadeFrame = requestAnimationFrame(wait)
   }
 }
 
@@ -226,8 +132,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         engine.duck()
         return
       }
-      if (engine.mode) engine.play(FADE_RESUME)
-      else engine.tryAutoplay()
+      engine.play(FADE_RESUME)
       setLive(engine.live())
     }
 
