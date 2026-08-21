@@ -16,7 +16,7 @@ import { gsap } from 'gsap'
 export default function Home() {
   const next = nextOpenNight()
   const { on, toggle } = useSound()
-  const { playing, toggle: toggleBed } = useHeroBed()
+  const { toggle: toggleBed } = useHeroBed()
   const hero = useRef<HTMLElement>(null)
 
   useEffect(() => {
