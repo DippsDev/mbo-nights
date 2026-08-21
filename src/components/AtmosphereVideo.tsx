@@ -16,6 +16,7 @@ export default function AtmosphereVideo({
   cover = false,
   playing = true,
   eager = false,
+  className = '',
 }: {
   poster?: string
   clips: readonly string[]
@@ -24,6 +25,7 @@ export default function AtmosphereVideo({
   cover?: boolean
   playing?: boolean
   eager?: boolean
+  className?: string
 }) {
   const wrap = useRef<HTMLDivElement>(null)
   const aRef = useRef<HTMLVideoElement>(null)
@@ -166,7 +168,7 @@ export default function AtmosphereVideo({
   return (
     <div
       ref={wrap}
-      className={`atmosphere${cover ? ' cover' : ''}${live ? ' is-live' : ''}`}
+      className={`atmosphere${cover ? ' cover' : ''}${live ? ' is-live' : ''}${className ? ` ${className}` : ''}`}
     >
       {stills.map((src, i) => (
         <img
@@ -187,6 +189,8 @@ export default function AtmosphereVideo({
             preload="auto"
             loop={playable.length === 1}
             src={playable[0]}
+            disablePictureInPicture
+            controlsList="nodownload nofullscreen noremoteplayback"
             onTimeUpdate={(event) => cueNext(event.currentTarget)}
             onError={() => onError(playable[0])}
           />

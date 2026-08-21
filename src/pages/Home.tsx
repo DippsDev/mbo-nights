@@ -97,6 +97,7 @@ export default function Home() {
     <main className="page home-immerse">
       <section className="hero spotlight-hero" ref={hero}>
         <AtmosphereVideo
+          className="hero-bed"
           clips={SHOWREEL_CLIPS}
           alt=""
           cover
