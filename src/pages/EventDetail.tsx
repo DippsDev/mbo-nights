@@ -7,6 +7,7 @@ import {
   getVenue,
   merchForNight,
 } from '../data'
+import AtmosphereVideo from '../components/AtmosphereVideo'
 
 export default function EventDetail() {
   const { id } = useParams()
@@ -42,7 +43,7 @@ export default function EventDetail() {
     <main className="page">
       <div className="event-layout">
         <div className="media-frame">
-          <img src={night.image} alt={night.title} />
+          <AtmosphereVideo poster={night.image} clips={night.clips} alt={night.title} />
         </div>
         <div className="page-hero">
           <p className="kicker">

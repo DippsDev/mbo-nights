@@ -163,13 +163,13 @@ video {
 }
 
 .hero video,
-.hero .hero-still {
+.hero .hero-still,
+.hero .atmosphere {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(0.8) contrast(1.08);
 }
 
 .hero::after {
@@ -331,8 +331,7 @@ video {
   background: var(--bg-2);
 }
 
-.night-card img,
-.night-card video,
+.night-card .atmosphere,
 .product-card img,
 .artist-card img,
 .venue-card img {
@@ -343,22 +342,11 @@ video {
   transition: transform 0.7s ease;
 }
 
-.night-card:hover img,
+.night-card:hover .atmosphere,
 .product-card:hover img,
 .artist-card:hover img,
 .venue-card:hover img {
   transform: scale(1.04);
-}
-
-.night-card video {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-
-.night-card:hover video {
-  opacity: 1;
 }
 
 .card-meta {
@@ -489,11 +477,94 @@ video {
 }
 
 .media-frame img,
-.media-frame video {
+.media-frame video,
+.media-frame .atmosphere {
   width: 100%;
   height: 72vw;
   max-height: 560px;
   object-fit: cover;
+}
+
+.atmosphere {
+  position: relative;
+  overflow: hidden;
+  background: #070707;
+  isolation: isolate;
+}
+
+.atmosphere.cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+}
+
+.atmosphere-still,
+.atmosphere video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  filter: saturate(0.72) contrast(1.14) brightness(0.78);
+  transition: opacity 0.9s ease;
+}
+
+.atmosphere-still.on,
+.atmosphere video.on {
+  opacity: 1;
+}
+
+.atmosphere-still {
+  animation: atmosphereDrift 22s ease-in-out infinite alternate;
+}
+
+.atmosphere.is-live .atmosphere-still {
+  opacity: 0;
+  animation: none;
+}
+
+.atmosphere-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(to top, rgba(7, 7, 7, 0.78) 0%, rgba(7, 7, 7, 0.12) 46%, rgba(7, 7, 7, 0.42) 100%),
+    radial-gradient(ellipse at center, transparent 28%, rgba(7, 7, 7, 0.5) 100%);
+}
+
+.atmosphere::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url('/noise.png');
+  background-size: 180px 180px;
+  animation: atmosphereGrain 0.45s steps(2) infinite;
+}
+
+@keyframes atmosphereDrift {
+  from {
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.2) translate3d(-2.4%, 1.6%, 0);
+  }
+}
+
+@keyframes atmosphereGrain {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-3%, 2%, 0);
+  }
 }
 
 .about-block {
@@ -585,8 +656,7 @@ video {
     min-height: 70vh;
   }
 
-  .night-card img,
-  .night-card video,
+  .night-card .atmosphere,
   .product-card img,
   .artist-card img,
   .venue-card img {
@@ -605,7 +675,8 @@ video {
   }
 
   .media-frame img,
-  .media-frame video {
+  .media-frame video,
+  .media-frame .atmosphere {
     height: 100%;
     min-height: calc(100svh - var(--nav-h) - 1px);
     max-height: none;
@@ -616,6 +687,7 @@ video {
   .marquee-track,
   .lineup li,
   .night-card img,
+  .night-card .atmosphere,
   .product-card img,
   .artist-card img,
   .venue-card img,
@@ -623,13 +695,16 @@ video {
   .page-veil,
   .menu-overlay a,
   .highlight,
-  .hero-still {
+  .hero-still,
+  .atmosphere-still,
+  .atmosphere::after {
     animation: none !important;
     transition: none !important;
   }
 
   .night-card video,
-  .hero video {
+  .hero video,
+  .atmosphere video {
     display: none;
   }
 }
@@ -791,14 +866,21 @@ video {
   align-content: center;
 }
 
-.spotlight-hero .hero-still {
-  opacity: 0;
-  transition: opacity 0.9s ease;
-  filter: none;
+.hero .atmosphere {
+  z-index: 0;
 }
 
-.spotlight-hero .hero-still.on {
-  opacity: 1;
+.hero .atmosphere-veil {
+  opacity: 0.28;
+}
+
+.highlight .atmosphere-veil {
+  opacity: 0.4;
+}
+
+.spotlight-hero .hero-still,
+.spotlight-hero .atmosphere-still {
+  transition: opacity 0.9s ease;
 }
 
 .spotlight-hole {
@@ -871,7 +953,8 @@ video {
   z-index: 3;
 }
 
-.highlight img {
+.highlight img,
+.highlight .atmosphere {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -996,6 +1079,23 @@ video {
   .cursor-ring {
     display: none;
   }
+
+  .spotlight-hole {
+    display: none;
+  }
+
+  .hero::after {
+    background: linear-gradient(
+      to top,
+      #070707 0%,
+      rgba(7, 7, 7, 0.42) 26%,
+      transparent 58%
+    );
+  }
+
+  .hero .atmosphere-veil {
+    opacity: 0.12;
+  }
 }
 
 @media (max-width: 799px) {
@@ -1108,11 +1208,13 @@ video {
 
   .night-card img,
   .night-card video,
+  .night-card .atmosphere,
   .product-card img,
   .artist-card img,
   .venue-card img,
   .media-frame img,
-  .media-frame video {
+  .media-frame video,
+  .media-frame .atmosphere {
     height: min(68vw, 280px);
     max-height: none;
   }

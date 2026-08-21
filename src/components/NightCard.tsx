@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { artistsFor, getVenue, type Night } from '../data'
+import AtmosphereVideo from './AtmosphereVideo'
 
 export default function NightCard({ night }: { night: Night }) {
   const venue = getVenue(night.venueId)
@@ -9,7 +10,7 @@ export default function NightCard({ night }: { night: Night }) {
 
   return (
     <Link className="night-card" to={`/events/${night.id}`}>
-      <img src={night.image} alt={night.title} />
+      <AtmosphereVideo poster={night.image} clips={night.clips} alt={night.title} />
       <div className="card-meta">
         <span className={`tag ${night.soldOut ? 'sold' : venue?.type === 'restaurant' ? 'copper' : ''}`}>
           {night.soldOut ? 'Sold out' : venue?.type ?? 'Venue type'}

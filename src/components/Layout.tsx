@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type MouseEvent } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useCart } from '../cart'
+import { reducedMotion } from '../lib/motion'
 import { useSound } from '../sound'
 import { nextOpenNight } from '../data'
 import Cursor from './Cursor'
@@ -15,6 +16,16 @@ export default function Layout() {
   const [open, setOpen] = useState(false)
   const [atTop, setAtTop] = useState(true)
   const close = useCallback(() => setOpen(false), [])
+
+  const goHomeTop = (event: MouseEvent<HTMLAnchorElement>) => {
+    close()
+    if (location.pathname === '/') event.preventDefault()
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: reducedMotion() ? 'auto' : 'smooth',
+    })
+  }
 
   useEffect(() => {
     setOpen(false)
@@ -37,7 +48,7 @@ export default function Layout() {
       <header
         className={`site-nav${atTop ? ' at-top' : ''}${location.pathname === '/' ? '' : ' over-content'}`}
       >
-        <Link className="logo" to="/">
+        <Link className="logo" to="/" onClick={goHomeTop}>
           MBO
         </Link>
         <div className="nav-end">

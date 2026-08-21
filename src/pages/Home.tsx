@@ -7,7 +7,9 @@ import {
   SHOWREEL,
   artists,
   nextOpenNight,
+  showreelClips,
 } from '../data'
+import AtmosphereVideo from '../components/AtmosphereVideo'
 import HighlightReel from '../components/HighlightReel'
 import { finePointer, isNarrow, reducedMotion } from '../lib/motion'
 import { useSound } from '../sound'
@@ -17,16 +19,8 @@ export default function Home() {
   const next = nextOpenNight()
   const { on, toggle } = useSound()
   const hero = useRef<HTMLElement>(null)
-  const [frame, setFrame] = useState(0)
   const [playing, setPlaying] = useState(true)
-
-  useEffect(() => {
-    if (!playing || reducedMotion()) return
-    const id = window.setInterval(() => {
-      setFrame((n) => (n + 1) % SHOWREEL.length)
-    }, 2400)
-    return () => window.clearInterval(id)
-  }, [playing])
+  const reel = showreelClips()
 
   useEffect(() => {
     const el = hero.current
@@ -104,14 +98,14 @@ export default function Home() {
   return (
     <main className="page home-immerse">
       <section className="hero spotlight-hero" ref={hero}>
-        {SHOWREEL.map((src, i) => (
-          <img
-            key={src}
-            className={`hero-still ${i === frame ? 'on' : ''}`}
-            src={src}
-            alt=""
-          />
-        ))}
+        <AtmosphereVideo
+          poster={SHOWREEL[0]}
+          posters={SHOWREEL}
+          clips={reel}
+          alt=""
+          cover
+          playing={playing}
+        />
         <div className="spotlight-hole" aria-hidden />
         <div className="hero-copy">
           <p className="kicker">{PLACEHOLDER_KICKER}</p>

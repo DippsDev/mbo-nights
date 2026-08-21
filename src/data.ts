@@ -32,6 +32,8 @@ export type Night = {
   date: string
   time: string
   image: string
+  /** Artist music-video cuts and MBO event footage. Drop files in public/video then add paths. */
+  clips: string[]
   soldOut?: boolean
   teaser: string
   tiers: TicketTier[]
@@ -71,12 +73,8 @@ export function placeholder(
 
 export const HERO_IMAGE = placeholder('HERO IMAGE', 1920, 1080)
 
-export const SHOWREEL = [
-  placeholder('SHOWREEL 01', 1920, 1080),
-  placeholder('SHOWREEL 02', 1920, 1080, '161616', 'f3eee6'),
-  placeholder('SHOWREEL 03', 1920, 1080, '0d0d0d', 'c9a27a'),
-  placeholder('SHOWREEL 04', 1920, 1080, '141414', 'd6ff4b'),
-]
+/** Hero background reel. */
+export const SHOWREEL_CLIPS: string[] = ['/video/DippsDevMp4.mp4']
 
 export const CAPABILITIES = [
   {
@@ -184,6 +182,7 @@ export const nights: Night[] = [
     date: 'DD MMM YYYY',
     time: '00:00',
     image: placeholder('EVENT IMAGE 01', 1800, 1200),
+    clips: ['/video/nights/night-01-artist.mp4', '/video/nights/night-01-event.mp4'],
     teaser: PLACEHOLDER_SHORT,
     tiers: [
       { id: 'a', name: 'Ticket type A', price: 0, remaining: 12 },
@@ -198,6 +197,7 @@ export const nights: Night[] = [
     date: 'DD MMM YYYY',
     time: '00:00',
     image: placeholder('EVENT IMAGE 02', 1800, 1200, '161616', 'f3eee6'),
+    clips: ['/video/nights/night-02-artist.mp4', '/video/nights/night-02-event.mp4'],
     teaser: PLACEHOLDER_SHORT,
     tiers: [
       { id: 'a', name: 'Ticket type A', price: 0, remaining: 180 },
@@ -275,4 +275,11 @@ export function merchForNight(nightId: string) {
 
 export function nextOpenNight() {
   return nights.find((n) => !n.soldOut)
+}
+
+export const SHOWREEL = nights.map((night) => night.image)
+
+export function showreelClips() {
+  const fromNights = nights.flatMap((night) => night.clips)
+  return SHOWREEL_CLIPS.length > 0 ? SHOWREEL_CLIPS : fromNights
 }
