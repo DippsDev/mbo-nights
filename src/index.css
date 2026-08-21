@@ -23,6 +23,9 @@ html,
 body,
 #root {
   min-height: 100%;
+}
+
+#root {
   position: relative;
 }
 
@@ -698,7 +701,6 @@ video {
   .marquee-track,
   .lineup li,
   .night-card img,
-  .night-card img,
   .product-card img,
   .artist-card img,
   .venue-card img,
@@ -1078,9 +1080,13 @@ video {
   }
 }
 
-@media (pointer: coarse) {
+@media (pointer: coarse), (hover: none), (max-width: 1199px) {
   .cursor-dot,
   .cursor-ring {
+    display: none;
+  }
+
+  body::before {
     display: none;
   }
 
@@ -1090,6 +1096,31 @@ video {
 
   .spotlight-hole {
     display: none;
+  }
+
+  .marquee-track {
+    animation: none;
+    will-change: auto;
+    transform: none;
+  }
+
+  .highlight {
+    will-change: auto;
+    transform: none;
+  }
+
+  .capability img {
+    will-change: auto;
+  }
+
+  .sticky-buy {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  html,
+  body {
+    overflow-x: clip;
   }
 }
 
@@ -1115,6 +1146,27 @@ video {
       rgba(7, 7, 7, 0.12) 52%,
       transparent 72%
     );
+  }
+
+  .highlights {
+    height: auto;
+    overflow: visible;
+  }
+
+  .highlights-stack {
+    display: grid;
+    height: auto;
+  }
+
+  .highlight {
+    position: relative;
+    min-height: 72svh;
+    will-change: auto;
+    transform: none;
+  }
+
+  .highlights-progress {
+    display: none;
   }
 
   .display.xl {
@@ -1278,7 +1330,6 @@ video {
 
   .night-card img,
   .night-card video,
-  .night-card img,
   .product-card img,
   .artist-card img,
   .venue-card img,

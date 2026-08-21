@@ -16,3 +16,11 @@ export function finePointer() {
 export function isNarrow() {
   return window.matchMedia('(max-width: 799px)').matches
 }
+
+/** Skip heavy scroll effects on phones, tablets, and reduced-motion. */
+export function cheapMotion() {
+  return (
+    reducedMotion() ||
+    window.matchMedia('(pointer: coarse), (hover: none), (max-width: 1199px)').matches
+  )
+}

@@ -8,7 +8,7 @@ import {
   nextOpenNight,
 } from '../data'
 import HighlightReel from '../components/HighlightReel'
-import { finePointer, isNarrow, reducedMotion } from '../lib/motion'
+import { finePointer, cheapMotion } from '../lib/motion'
 import { useSound } from '../sound'
 import { gsap } from 'gsap'
 
@@ -31,7 +31,7 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    if (reducedMotion() || isNarrow()) return
+    if (cheapMotion()) return
 
     const ctx = gsap.context(() => {
       gsap.to('.hero-copy', {

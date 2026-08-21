@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { artistsFor, getVenue, nights, type Night } from '../data'
-import { isNarrow, reducedMotion } from '../lib/motion'
+import { cheapMotion } from '../lib/motion'
 
 export default function HighlightReel() {
   const wrap = useRef<HTMLElement>(null)
@@ -12,7 +12,7 @@ export default function HighlightReel() {
 
   useEffect(() => {
     const section = wrap.current
-    if (!section || reducedMotion() || isNarrow()) return
+    if (!section || cheapMotion()) return
 
     const panels = gsap.utils.toArray<HTMLElement>('.highlight', section)
     const first = panels[0]
