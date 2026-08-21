@@ -3,9 +3,7 @@ import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { artistsFor, getVenue, nights, type Night } from '../data'
-import { reducedMotion } from '../lib/motion'
-
-gsap.registerPlugin(ScrollTrigger)
+import { isNarrow, reducedMotion } from '../lib/motion'
 
 export default function HighlightReel() {
   const wrap = useRef<HTMLElement>(null)
@@ -14,7 +12,7 @@ export default function HighlightReel() {
 
   useEffect(() => {
     const section = wrap.current
-    if (!section || reducedMotion()) return
+    if (!section || reducedMotion() || isNarrow()) return
 
     const panels = gsap.utils.toArray<HTMLElement>('.highlight', section)
     const first = panels[0]
@@ -22,50 +20,34 @@ export default function HighlightReel() {
     if (!first || !second) return
 
     const ctx = gsap.context(() => {
+      gsap.set(second, { yPercent: 100 })
+
       const tl = gsap.timeline({
-        defaults: { ease: 'none' },
+        defaults: { ease: 'none', force3D: true },
         scrollTrigger: {
           trigger: section,
           pin: true,
-          scrub: 0.7,
+          scrub: true,
           anticipatePin: 1,
-          end: () => `+=${Math.round(window.innerHeight * (window.innerWidth < 800 ? 1.25 : 1.7))}`,
+          invalidateOnRefresh: true,
+          end: () => `+=${Math.round(window.innerHeight * 1.45)}`,
           onUpdate: (self) => {
             if (bar.current) bar.current.style.transform = `scaleX(${self.progress})`
           },
         },
       })
 
-      tl.to(
-        first,
-        {
-          scale: 1.18,
-          opacity: 0,
-          filter: 'blur(10px)',
-        },
-        0,
-      )
-      tl.to(first.querySelector('.highlight-copy'), { y: -36, opacity: 0 }, 0)
-      tl.fromTo(
-        second,
-        { clipPath: 'inset(100% 0% 0% 0%)', scale: 1.06 },
-        { clipPath: 'inset(0% 0% 0% 0%)', scale: 1 },
-        0.12,
-      )
-      tl.from(
-        second.querySelector('.highlight-copy'),
-        { y: 72, opacity: 0 },
-        0.28,
-      )
+      tl.to(first, { scale: 1.08, opacity: 0.35 }, 0)
+      tl.to(first.querySelector('.highlight-copy'), { y: -24, opacity: 0 }, 0)
+      tl.to(second, { yPercent: 0 }, 0.08)
+      tl.from(second.querySelector('.highlight-copy'), { y: 40, opacity: 0 }, 0.22)
     }, section)
 
     const refresh = () => ScrollTrigger.refresh()
     window.addEventListener('orientationchange', refresh)
-    window.visualViewport?.addEventListener('resize', refresh)
 
     return () => {
       window.removeEventListener('orientationchange', refresh)
-      window.visualViewport?.removeEventListener('resize', refresh)
       ctx.revert()
     }
   }, [slides.length])

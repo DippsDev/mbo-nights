@@ -14,26 +14,34 @@ export default function Cursor() {
     let rx = 0
     let ry = 0
     let frame = 0
+    let moving = false
 
-    const move = (e: PointerEvent) => {
-      x = e.clientX
-      y = e.clientY
-      if (dot.current) {
-        dot.current.style.transform = `translate(${x}px, ${y}px)`
-      }
+    const place = (el: HTMLDivElement | null, px: number, py: number) => {
+      if (el) el.style.transform = `translate3d(${px}px, ${py}px, 0)`
     }
 
     const tick = () => {
-      rx += (x - rx) * 0.18
-      ry += (y - ry) * 0.18
-      if (ring.current) {
-        ring.current.style.transform = `translate(${rx}px, ${ry}px)`
+      rx += (x - rx) * 0.2
+      ry += (y - ry) * 0.2
+      place(ring.current, rx, ry)
+      if (Math.abs(x - rx) < 0.15 && Math.abs(y - ry) < 0.15) {
+        moving = false
+        return
       }
       frame = requestAnimationFrame(tick)
     }
 
-    window.addEventListener('pointermove', move)
-    frame = requestAnimationFrame(tick)
+    const move = (e: PointerEvent) => {
+      x = e.clientX
+      y = e.clientY
+      place(dot.current, x, y)
+      if (!moving) {
+        moving = true
+        frame = requestAnimationFrame(tick)
+      }
+    }
+
+    window.addEventListener('pointermove', move, { passive: true })
 
     return () => {
       document.documentElement.classList.remove('has-cursor')

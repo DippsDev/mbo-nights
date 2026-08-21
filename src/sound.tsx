@@ -214,10 +214,10 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     if (onRef.current) engine.tryAutoplay()
 
     const kick = (event: Event) => {
-      if (!onRef.current) return
+      if (!onRef.current || engine.live()) return
       if (event.target instanceof Element && event.target.closest('[data-sound-toggle]')) return
-      engine.play(engine.live() ? FADE_RESUME : FADE_IN)
-      setLive(engine.live())
+      engine.play(FADE_IN)
+      setLive(true)
     }
 
     const onVisible = () => {
@@ -232,7 +232,6 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     }
 
     const syncLive = () => setLive(engine.live())
-    const id = window.setInterval(syncLive, 400)
 
     const onPageShow = () => {
       if (onRef.current) engine.tryAutoplay()
@@ -247,7 +246,6 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     engine.file.addEventListener('pause', syncLive)
 
     return () => {
-      window.clearInterval(id)
       window.removeEventListener('pointerdown', kick, true)
       window.removeEventListener('keydown', kick, true)
       window.removeEventListener('touchstart', kick, true)

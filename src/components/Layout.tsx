@@ -21,7 +21,10 @@ export default function Layout() {
   }, [location.pathname])
 
   useEffect(() => {
-    const onScroll = () => setAtTop(window.scrollY < 12)
+    const onScroll = () => {
+      const top = window.scrollY < 12
+      setAtTop((prev) => (prev === top ? prev : top))
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)

@@ -12,9 +12,6 @@ import HighlightReel from '../components/HighlightReel'
 import { finePointer, isNarrow, reducedMotion } from '../lib/motion'
 import { useSound } from '../sound'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-gsap.registerPlugin(ScrollTrigger)
 
 export default function Home() {
   const next = nextOpenNight()
@@ -45,72 +42,58 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    if (reducedMotion()) return
+    if (reducedMotion() || isNarrow()) return
 
     const ctx = gsap.context(() => {
-      if (!isNarrow()) {
-        gsap.to('.hero-copy', {
-          yPercent: -12,
-          clipPath: 'inset(0% 0% 100% 0%)',
-          ease: 'none',
-          scrollTrigger: {
-            trigger: '.spotlight-hero',
-            start: 'top top',
-            end: 'bottom top',
-            scrub: true,
-          },
-        })
-      }
+      gsap.to('.hero-copy', {
+        yPercent: -8,
+        opacity: 0.35,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.spotlight-hero',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        },
+      })
 
       gsap.utils.toArray<HTMLElement>('.capability').forEach((el) => {
         const img = el.querySelector('img')
         const copy = el.querySelector('div')
-        if (!isNarrow()) {
-          gsap.fromTo(
-            el,
-            { clipPath: 'inset(0% 100% 0% 0%)' },
-            {
-              clipPath: 'inset(0% 0% 0% 0%)',
-              ease: 'none',
-              scrollTrigger: {
-                trigger: el,
-                start: 'top 88%',
-                end: 'top 38%',
-                scrub: 0.6,
-              },
-            },
-          )
-        }
         if (img) {
           gsap.fromTo(
             img,
-            { yPercent: isNarrow() ? 8 : -12, scale: 1.08 },
+            { yPercent: -8, scale: 1.06 },
             {
               yPercent: 0,
               scale: 1,
               ease: 'none',
+              force3D: true,
               scrollTrigger: {
                 trigger: el,
-                start: 'top 90%',
-                end: 'top 20%',
-                scrub: 0.6,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true,
               },
             },
           )
         }
         if (copy) {
-          gsap.from(copy, {
-            y: isNarrow() ? 28 : 0,
-            x: isNarrow() ? 0 : 48,
-            opacity: 0,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: el,
-              start: 'top 78%',
-              end: 'top 42%',
-              scrub: 0.6,
+          gsap.fromTo(
+            copy,
+            { y: 32, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 82%',
+                end: 'top 48%',
+                scrub: true,
+              },
             },
-          })
+          )
         }
       })
     })
