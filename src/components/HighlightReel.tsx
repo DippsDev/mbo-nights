@@ -8,39 +8,43 @@ import { cheapMotion } from '../lib/motion'
 export default function HighlightReel() {
   const wrap = useRef<HTMLElement>(null)
   const bar = useRef<HTMLSpanElement>(null)
-  const slides = nights.slice(0, 2)
+  const slides = nights
 
   useEffect(() => {
     const section = wrap.current
     if (!section || cheapMotion()) return
 
     const panels = gsap.utils.toArray<HTMLElement>('.highlight', section)
-    const first = panels[0]
-    const second = panels[1]
-    if (!first || !second) return
+    if (panels.length < 2) return
 
     const ctx = gsap.context(() => {
-      gsap.set(second, { yPercent: 100 })
+      gsap.set(panels.slice(1), { yPercent: 100 })
 
       const tl = gsap.timeline({
-        defaults: { ease: 'none', force3D: true },
+        defaults: { ease: 'none', force3D: true, duration: 1 },
         scrollTrigger: {
           trigger: section,
           pin: true,
           scrub: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
-          end: () => `+=${Math.round(window.innerHeight * 1.45)}`,
+          end: () => `+=${Math.round(window.innerHeight * 0.9 * (panels.length - 1))}`,
           onUpdate: (self) => {
             if (bar.current) bar.current.style.transform = `scaleX(${self.progress})`
           },
         },
       })
 
-      tl.to(first, { scale: 1.08, opacity: 0.35 }, 0)
-      tl.to(first.querySelector('.highlight-copy'), { y: -24, opacity: 0 }, 0)
-      tl.to(second, { yPercent: 0 }, 0.08)
-      tl.from(second.querySelector('.highlight-copy'), { y: 40, opacity: 0 }, 0.22)
+      panels.forEach((panel, i) => {
+        if (i === 0) return
+        const prev = panels[i - 1]
+        const at = i - 1
+        tl.to(prev, { scale: 1.08, opacity: 0.35 }, at)
+        tl.to(prev.querySelector('.highlight-copy'), { y: -24, opacity: 0 }, at)
+        tl.to(panel, { yPercent: 0 }, at)
+        const copy = panel.querySelector('.highlight-copy')
+        if (copy) tl.from(copy, { y: 40, opacity: 0, duration: 0.8 }, at + 0.15)
+      })
     }, section)
 
     const refresh = () => ScrollTrigger.refresh()

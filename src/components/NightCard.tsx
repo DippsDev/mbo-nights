@@ -14,9 +14,9 @@ export default function NightCard({ night }: { night: Night }) {
         <span className={`tag ${night.soldOut ? 'sold' : venue?.type === 'restaurant' ? 'copper' : ''}`}>
           {night.soldOut ? 'Sold out' : venue?.type ?? 'Venue type'}
         </span>
-        <h3 className="display md">{names}</h3>
+        <h3 className="display md">{night.title}</h3>
         <p>
-          {night.date} · {venue?.name} · {night.time}
+          {names} · {night.date} · {venue?.name} · {night.time}
         </p>
       </div>
     </Link>

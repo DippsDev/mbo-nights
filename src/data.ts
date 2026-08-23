@@ -65,7 +65,7 @@ export function placeholder(
 ) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">
     <rect fill="#${bg}" width="${w}" height="${h}"/>
-    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#${fg}" font-family="Arial,sans-serif" font-size="${Math.round(Math.min(w, h) / 22)}" letter-spacing="6">${label}</text>
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#${fg}" font-family="Arial,sans-serif" font-size="${Math.round(Math.min(w, h) / 32)}" letter-spacing="3">${label}</text>
   </svg>`
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
@@ -88,6 +88,13 @@ export const CAPABILITIES = [
     title: 'Section title 02',
     to: '/artists',
     image: placeholder('CAPABILITY 02', 1600, 1000, '161616', 'f3eee6'),
+    blurb: PLACEHOLDER_BODY,
+  },
+  {
+    id: '03',
+    title: 'Section title 03',
+    to: '/venues',
+    image: placeholder('CAPABILITY 03', 1600, 1000),
     blurb: PLACEHOLDER_BODY,
   },
 ] as const
@@ -201,6 +208,36 @@ export const nights: Night[] = [
     tiers: [
       { id: 'a', name: 'Ticket type A', price: 0, remaining: 180 },
       { id: 'b', name: 'Ticket type B', price: 0, remaining: 40 },
+    ],
+  },
+  {
+    id: 'night-03',
+    title: 'Event title 03',
+    artistIds: ['artist-03'],
+    venueId: 'venue-03',
+    date: 'DD MMM YYYY',
+    time: '00:00',
+    image: placeholder('EVENT IMAGE 03', 1800, 1200),
+    clips: ['/video/nights/night-03-artist.mp4', '/video/nights/night-03-event.mp4'],
+    teaser: PLACEHOLDER_SHORT,
+    tiers: [
+      { id: 'a', name: 'Ticket type A', price: 0, remaining: 80 },
+      { id: 'b', name: 'Ticket type B', price: 0, remaining: 24 },
+    ],
+  },
+  {
+    id: 'night-04',
+    title: 'Event title 04',
+    artistIds: ['artist-04'],
+    venueId: 'venue-04',
+    date: 'DD MMM YYYY',
+    time: '00:00',
+    image: placeholder('EVENT IMAGE 04', 1800, 1200, '161616', 'c9a27a'),
+    clips: ['/video/nights/night-04-artist.mp4', '/video/nights/night-04-event.mp4'],
+    teaser: PLACEHOLDER_SHORT,
+    tiers: [
+      { id: 'a', name: 'Ticket type A', price: 0, remaining: 60 },
+      { id: 'b', name: 'Ticket type B', price: 0, remaining: 18 },
     ],
   },
 ]

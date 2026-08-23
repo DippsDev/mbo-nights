@@ -1,34 +1,19 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   CAPABILITIES,
   PLACEHOLDER_KICKER,
   PLACEHOLDER_SHORT,
-  artists,
   nextOpenNight,
 } from '../data'
 import HighlightReel from '../components/HighlightReel'
-import { finePointer, cheapMotion } from '../lib/motion'
+import { cheapMotion } from '../lib/motion'
 import { useSound } from '../sound'
 import { gsap } from 'gsap'
 
 export default function Home() {
   const next = nextOpenNight()
   const { on, toggle } = useSound()
-  const hero = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const el = hero.current
-    if (!el || !finePointer()) return
-
-    const move = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect()
-      el.style.setProperty('--mx', `${e.clientX - r.left}px`)
-      el.style.setProperty('--my', `${e.clientY - r.top}px`)
-    }
-    el.addEventListener('pointermove', move)
-    return () => el.removeEventListener('pointermove', move)
-  }, [])
 
   useEffect(() => {
     if (cheapMotion()) return
@@ -92,8 +77,7 @@ export default function Home() {
 
   return (
     <main className="page home-immerse">
-      <section className="hero spotlight-hero" ref={hero}>
-        <div className="spotlight-hole" aria-hidden />
+      <section className="hero spotlight-hero">
         <div className="hero-copy">
           <p className="kicker">{PLACEHOLDER_KICKER}</p>
           <h1 className="display xl stacked">
@@ -114,23 +98,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="statement">
-        <div className="marquee-track">
-          {Array.from({ length: 6 }, (_, i) => (
-            <span key={i}>{PLACEHOLDER_SHORT} — </span>
-          ))}
-        </div>
-      </div>
-
       <HighlightReel />
-
-      <div className="marquee" aria-hidden>
-        <div className="marquee-track">
-          {[...artists, ...artists].map((a, i) => (
-            <span key={a.id + i}>{a.name} — </span>
-          ))}
-        </div>
-      </div>
 
       <section className="capabilities">
         {CAPABILITIES.map((item) => (

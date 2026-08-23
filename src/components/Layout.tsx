@@ -4,6 +4,7 @@ import { useCart } from '../cart'
 import { nextOpenNight } from '../data'
 import { reducedMotion } from '../lib/motion'
 import { useSound } from '../sound'
+import BagIcon from './BagIcon'
 import Cursor from './Cursor'
 import Intro from './Intro'
 import Menu from './Menu'
@@ -52,7 +53,7 @@ export default function Layout() {
       <Intro />
       <Cursor />
       <header
-        className={`site-nav${atTop ? ' at-top' : ''}${home ? '' : ' over-content'}`}
+        className={`site-nav${atTop ? ' at-top' : ''}${home && atTop ? '' : ' over-content'}`}
       >
         <Link className="logo" to="/" onClick={goHomeTop}>
           MBO
@@ -66,8 +67,13 @@ export default function Layout() {
           >
             {on ? 'Mute' : 'Sound'}
           </button>
-          <Link className="bag-link" to="/bag">
-            Bag {count > 0 && <span>{count}</span>}
+          <Link
+            className="bag-link"
+            to="/bag"
+            aria-label={count > 0 ? `Bag, ${count} items` : 'Bag'}
+          >
+            <BagIcon />
+            {count > 0 && <span>{count}</span>}
           </Link>
           <button
             className="menu-toggle"
