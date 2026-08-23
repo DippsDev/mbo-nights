@@ -34,7 +34,6 @@ class Bed {
     this.file = file
     this.file.loop = true
     this.file.preload = 'auto'
-    this.file.playsInline = true
     this.file.setAttribute('playsinline', '')
     this.file.setAttribute('webkit-playsinline', '')
     this.file.volume = 0
@@ -197,7 +196,6 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         className="sound-bed"
         src={TRACK}
         loop
-        playsInline
         preload="auto"
       />
       {children}
