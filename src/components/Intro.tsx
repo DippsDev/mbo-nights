@@ -1,23 +1,21 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useSound } from '../sound'
 
 export default function Intro() {
   const { start } = useSound()
   const [show, setShow] = useState(true)
   const [out, setOut] = useState(false)
-
-  const dismiss = useCallback(() => {
-    setOut(true)
-    window.setTimeout(() => setShow(false), 700)
-  }, [])
+  const entered = useRef(false)
 
   const enter = useCallback(() => {
-    if (out) return
-    window.scrollTo(0, 0)
-    // Must stay inside the user-gesture stack for iOS audio unlock.
+    if (entered.current) return
+    entered.current = true
+    // First line in the gesture stack — required for iOS audio unlock.
     start()
-    dismiss()
-  }, [dismiss, out, start])
+    window.scrollTo(0, 0)
+    setOut(true)
+    window.setTimeout(() => setShow(false), 700)
+  }, [start])
 
   if (!show) return null
 
@@ -26,11 +24,7 @@ export default function Intro() {
       className={`intro${out ? ' is-out' : ''}`}
       role="button"
       tabIndex={0}
-      onPointerDown={(e) => {
-        e.preventDefault()
-        enter()
-      }}
-      onClick={enter}
+      onPointerDown={enter}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
