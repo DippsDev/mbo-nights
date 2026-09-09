@@ -22,6 +22,7 @@ const TRACK = '/audio/DippsDev.mp3'
 const START_AT = 8
 const FILE_VOL = 0.38
 const FADE_IN = 7
+const FADE_GESTURE = 1.4
 const FADE_OUT = 1.2
 const FADE_RESUME = 2.4
 
@@ -36,6 +37,7 @@ class Bed {
     this.file = file
     this.file.loop = false
     this.file.preload = 'auto'
+    this.file.playsInline = true
     this.file.setAttribute('playsinline', '')
     this.file.setAttribute('webkit-playsinline', '')
     this.file.volume = 0
@@ -71,11 +73,31 @@ class Bed {
   }
 
   /** Call only from a click / tap / key handler. Starts immediately, no await. */
-  play(seconds = FADE_IN) {
+  play(seconds = FADE_GESTURE) {
     this.wanted = true
+    const el = this.file
     this.seekStart()
-    void this.file.play().catch(() => undefined)
+    // Audible right away on gesture — long fades feel like "no sound" on phones.
+    if (el.volume < 0.12) el.volume = 0.12
+    const playing = el.play()
     this.fadeFile(FILE_VOL, seconds)
+    void playing.catch(() => {
+      this.seekStart(true)
+      void el.play()
+        .then(() => this.fadeFile(FILE_VOL, seconds))
+        .catch(() => undefined)
+    })
+    if (el.readyState < 1) {
+      el.addEventListener(
+        'loadedmetadata',
+        () => {
+          if (!this.wanted) return
+          this.seekStart(true)
+          void el.play().catch(() => undefined)
+        },
+        { once: true },
+      )
+    }
   }
 
   mute() {
@@ -137,7 +159,19 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const start = useCallback(() => {
     onRef.current = true
     setOn(true)
-    ensure()?.play(FADE_IN)
+    const engine = ensure()
+    if (!engine) return
+    engine.play(FADE_GESTURE)
+    setLive(engine.live())
+    queueMicrotask(() => {
+      engine.keepPlaying()
+      setLive(engine.live())
+    })
+    window.setTimeout(() => {
+      if (!onRef.current) return
+      engine.keepPlaying()
+      setLive(engine.live())
+    }, 120)
   }, [ensure])
 
   const toggle = useCallback(() => {
@@ -160,7 +194,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     const kick = (event: Event) => {
       if (!onRef.current || engine.live()) return
       if (event.target instanceof Element && event.target.closest('[data-sound-toggle]')) return
-      engine.play(FADE_IN)
+      engine.play(FADE_GESTURE)
       setLive(true)
     }
 
@@ -218,6 +252,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         className="sound-bed"
         src={TRACK}
         preload="auto"
+        playsInline
       />
       {children}
     </SoundContext.Provider>

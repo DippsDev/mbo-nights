@@ -17,6 +17,7 @@ export default function Layout() {
   const home = location.pathname === '/'
   const [open, setOpen] = useState(false)
   const [atTop, setAtTop] = useState(true)
+  const [overHero, setOverHero] = useState(true)
   const close = useCallback(() => setOpen(false), [])
 
   const goHomeTop = (event: MouseEvent<HTMLAnchorElement>) => {
@@ -42,19 +43,38 @@ export default function Layout() {
     const onScroll = () => {
       const top = window.scrollY < 12
       setAtTop((prev) => (prev === top ? prev : top))
+
+      if (!home) {
+        setOverHero(false)
+        return
+      }
+
+      const hero = document.querySelector('.spotlight-hero')
+      const cut =
+        hero instanceof HTMLElement
+          ? Math.max(120, hero.offsetHeight - 80)
+          : Math.max(120, window.innerHeight - 80)
+      const over = window.scrollY < cut
+      setOverHero((prev) => (prev === over ? prev : over))
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [location.pathname])
+  }, [location.pathname, home])
+
+  const navClass = [
+    'site-nav',
+    atTop ? 'at-top' : '',
+    home && overHero ? 'on-hero' : 'over-content',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <>
       <Intro />
       <Cursor />
-      <header
-        className={`site-nav${atTop ? ' at-top' : ''}${home && atTop ? '' : ' over-content'}`}
-      >
+      <header className={navClass}>
         <Link className="logo" to="/" onClick={goHomeTop}>
           MBO
         </Link>

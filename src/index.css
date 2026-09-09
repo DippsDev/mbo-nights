@@ -100,10 +100,19 @@ video {
   height: calc(var(--nav-h) + env(safe-area-inset-top));
   padding: env(safe-area-inset-top) max(1.4rem, env(safe-area-inset-right)) 0
     max(1.4rem, env(safe-area-inset-left));
+  background: transparent;
 }
 
 .site-nav.over-content {
   background: var(--bg);
+}
+
+.site-nav.on-hero {
+  background: transparent;
+}
+
+.site-nav.on-hero::after {
+  opacity: 0;
 }
 
 .nav-spacer {
@@ -224,7 +233,8 @@ video {
     to top,
     #070707 0%,
     rgba(7, 7, 7, 0.22) 38%,
-    rgba(7, 7, 7, 0.42) 100%
+    rgba(7, 7, 7, 0.18) 72%,
+    transparent 100%
   );
 }
 
@@ -1404,8 +1414,8 @@ video {
       to top,
       #070707 0%,
       rgba(7, 7, 7, 0.55) 34%,
-      rgba(7, 7, 7, 0.12) 62%,
-      transparent 82%
+      rgba(7, 7, 7, 0.08) 68%,
+      transparent 88%
     );
   }
 
