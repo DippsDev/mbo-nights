@@ -231,7 +231,7 @@ function resolveBedElement() {
   const el = document.createElement('audio')
   el.id = SOUND_BED_ID
   el.className = 'sound-bed'
-  el.preload = 'auto'
+  el.preload = 'metadata'
   el.src = TRACK
   el.setAttribute('playsinline', '')
   el.setAttribute('webkit-playsinline', '')
