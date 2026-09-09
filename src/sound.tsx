@@ -24,7 +24,6 @@ const START_AT = 8
 const FILE_VOL = 0.55
 /** Long, soft rise so the bed arrives instead of slamming in. */
 const FADE_IN = 7.5
-const FADE_OUT = 1.1
 
 /** Phones / iOS block unmuted autoplay and failed play() calls can poison later unlocks. */
 function needsGestureUnlock() {
@@ -171,10 +170,14 @@ class Bed {
   mute() {
     this.wanted = false
     this.introFadeDone = false
-    this.fadeFile(0, FADE_OUT, () => {
-      if (this.wanted) return
-      this.file.pause()
-    })
+    cancelAnimationFrame(this.fileFade)
+    this.fading = false
+    this.fadeTarget = -1
+    const el = this.file
+    // Cut immediately — fade-out feels broken on mobile Mute taps.
+    el.volume = 0
+    el.muted = true
+    el.pause()
   }
 
   keepPlaying() {
