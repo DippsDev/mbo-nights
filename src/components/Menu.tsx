@@ -106,13 +106,14 @@ export default function Menu({
     const unlock = () => {
       if (!locked.current) return
       locked.current = false
+      const y = scrollY.current
       document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.top = ''
       document.body.style.left = ''
       document.body.style.right = ''
       document.body.style.width = ''
-      window.scrollTo(0, scrollY.current)
+      window.scrollTo(0, y)
     }
 
     if (open) {
@@ -121,11 +122,15 @@ export default function Menu({
         if (e.key === 'Escape') onClose()
       }
       window.addEventListener('keydown', onKey)
-      return () => window.removeEventListener('keydown', onKey)
+      return () => {
+        window.removeEventListener('keydown', onKey)
+        // Always release on effect teardown so HMR / route changes can't leave body fixed.
+        unlock()
+      }
     }
 
-    const id = window.setTimeout(unlock, reducedMotion() ? 0 : 560)
-    return () => window.clearTimeout(id)
+    unlock()
+    return undefined
   }, [open, onClose])
 
   useEffect(

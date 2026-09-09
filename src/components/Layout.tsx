@@ -37,6 +37,13 @@ export default function Layout() {
   useEffect(() => {
     setOpen(false)
     window.scrollTo(0, 0)
+    // Clear any leftover menu scroll-lock (HMR / interrupted close).
+    document.body.style.overflow = ''
+    document.body.style.position = ''
+    document.body.style.top = ''
+    document.body.style.left = ''
+    document.body.style.right = ''
+    document.body.style.width = ''
   }, [location.pathname])
 
   useEffect(() => {
