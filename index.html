@@ -17,13 +17,12 @@
     />
   </head>
   <body>
-    <!-- Boot silent; React owns the one smooth fade-in. -->
+    <!-- Preload only. Autoplay is desktop-only via React — failed iOS play() poisons unlock. -->
     <audio
       id="mbo-sound-bed"
       class="sound-bed"
       src="/audio/DippsDev.mp3"
       preload="auto"
-      autoplay
       playsinline
       webkit-playsinline
     ></audio>
@@ -32,6 +31,12 @@
         var a = document.getElementById('mbo-sound-bed')
         if (!a) return
         a.volume = 0
+        var ua = navigator.userAgent || ''
+        var ios =
+          /iPhone|iPad|iPod/i.test(ua) ||
+          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+        var coarse = window.matchMedia('(pointer: coarse), (hover: none)').matches
+        if (ios || coarse) return
         function go() {
           try {
             if (a.readyState >= 1 && a.paused) a.currentTime = 8
@@ -39,6 +44,7 @@
           var p = a.play()
           if (p && p.catch) p.catch(function () {})
         }
+        a.setAttribute('autoplay', '')
         if (a.readyState >= 2) go()
         else {
           a.addEventListener('canplay', go, { once: true })

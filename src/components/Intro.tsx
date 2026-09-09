@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { useSound } from '../sound'
 
 export default function Intro() {
-  const { start, live } = useSound()
+  const { start } = useSound()
   const [show, setShow] = useState(true)
   const [out, setOut] = useState(false)
   const entered = useRef(false)
@@ -10,12 +10,12 @@ export default function Intro() {
   const enter = useCallback(() => {
     if (entered.current) return
     entered.current = true
-    // Only needed when the browser blocked open-page autoplay.
-    if (!live) start()
+    // Always unlock here — on iPhone this is the only moment audio can start.
+    start()
     window.scrollTo(0, 0)
     setOut(true)
     window.setTimeout(() => setShow(false), 700)
-  }, [live, start])
+  }, [start])
 
   if (!show) return null
 

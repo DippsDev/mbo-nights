@@ -7,19 +7,32 @@ import {
   getVenue,
   merchForNight,
 } from '../data'
+import { isNarrow } from '../lib/motion'
 
 export default function EventDetail() {
   const { id } = useParams()
   const night = id ? getNight(id) : undefined
   const { add } = useCart()
   const [note, setNote] = useState('')
+  const [mobile, setMobile] = useState(() =>
+    typeof window !== 'undefined' ? isNarrow() : false,
+  )
   const videoRef = useRef<HTMLVideoElement>(null)
 
   const clip = night?.clips[0]
+  const showClip = Boolean(clip && mobile)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 799px)')
+    const sync = () => setMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video || !clip) return
+    if (!video || !showClip) return
 
     const play = () => {
       void video.play().catch(() => undefined)
@@ -39,7 +52,7 @@ export default function EventDetail() {
       document.removeEventListener('visibilitychange', onVis)
       window.removeEventListener('pageshow', play)
     }
-  }, [clip])
+  }, [showClip])
 
   if (!night) return <Navigate to="/" replace />
 
@@ -67,7 +80,7 @@ export default function EventDetail() {
     <main className="page">
       <div className="event-layout">
         <div className="media-frame">
-          {clip ? (
+          {showClip ? (
             <video
               ref={videoRef}
               src={clip}

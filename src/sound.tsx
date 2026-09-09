@@ -24,8 +24,18 @@ const START_AT = 8
 const FILE_VOL = 0.55
 /** Long, soft rise so the bed arrives instead of slamming in. */
 const FADE_IN = 7.5
-const FADE_IN_GESTURE = 2.8
 const FADE_OUT = 1.1
+
+/** Phones / iOS block unmuted autoplay and failed play() calls can poison later unlocks. */
+function needsGestureUnlock() {
+  if (typeof window === 'undefined') return true
+  const ua = navigator.userAgent
+  const iOS =
+    /iPhone|iPad|iPod/i.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  const coarse = window.matchMedia('(pointer: coarse), (hover: none)').matches
+  return iOS || coarse
+}
 
 class Bed {
   file: HTMLAudioElement
@@ -35,6 +45,7 @@ class Bed {
   private fadeTarget = -1
   private sought = false
   private introFadeDone = false
+  private unlocked = false
 
   constructor(file: HTMLAudioElement) {
     this.file = file
@@ -43,8 +54,9 @@ class Bed {
     this.file.muted = false
     this.file.setAttribute('playsinline', '')
     this.file.setAttribute('webkit-playsinline', '')
-    this.file.setAttribute('autoplay', '')
     if (!this.file.getAttribute('src')) this.file.src = TRACK
+    // Preload + park at the bed start while paused (safe without a gesture).
+    this.seekWhilePaused()
   }
 
   live() {
@@ -84,9 +96,13 @@ class Bed {
     else el.addEventListener('loadedmetadata', apply, { once: true })
   }
 
-  /** Ensure playback; start a single smooth intro fade once. */
+  /** Desktop open-page path. No-ops on gesture-locked mobile until unlocked. */
   beginFadeIn() {
     this.wanted = true
+    if (needsGestureUnlock() && !this.unlocked) {
+      this.seekWhilePaused()
+      return
+    }
     const el = this.file
     el.muted = false
     this.seekWhilePaused()
@@ -95,7 +111,10 @@ class Bed {
       if (!this.wanted) return
       void el
         .play()
-        .then(() => this.startIntroFade(FADE_IN))
+        .then(() => {
+          this.unlocked = true
+          this.startIntroFade(FADE_IN)
+        })
         .catch(() => undefined)
     }
 
@@ -105,30 +124,46 @@ class Bed {
     }
   }
 
-  /** Gesture path — still fades, just a bit quicker. */
+  /** Splash / first tap — always fade 0 → full. */
   playFromGesture() {
     this.wanted = true
+    this.unlocked = true
+    this.introFadeDone = false
     const el = this.file
     el.muted = false
+    cancelAnimationFrame(this.fileFade)
+    this.fading = false
+    this.fadeTarget = -1
+    el.volume = 0
 
-    void el
-      .play()
-      .then(() => {
-        this.startIntroFade(FADE_IN_GESTURE)
-        if (!this.sought && el.currentTime < START_AT - 0.25) {
-          window.setTimeout(() => {
-            if (!this.wanted) return
-            try {
-              el.currentTime = START_AT
-              this.sought = true
-              if (el.paused) void el.play().catch(() => undefined)
-            } catch {
-              /* ignore */
-            }
-          }, 40)
-        }
-      })
-      .catch(() => undefined)
+    const runFade = () => this.startIntroFade(FADE_IN)
+
+    const attempt = () => {
+      void el
+        .play()
+        .then(() => {
+          runFade()
+        })
+        .catch(() => {
+          // Recover from earlier failed autoplay attempts on iOS.
+          try {
+            el.load()
+          } catch {
+            /* ignore */
+          }
+          el.volume = 0
+          this.sought = false
+          this.seekWhilePaused(true)
+          void el
+            .play()
+            .then(() => {
+              runFade()
+            })
+            .catch(() => undefined)
+        })
+    }
+
+    attempt()
   }
 
   mute() {
@@ -141,7 +176,7 @@ class Bed {
   }
 
   keepPlaying() {
-    if (!this.wanted) return
+    if (!this.wanted || !this.unlocked) return
     if (this.file.ended) this.seekStart(true)
     if (this.file.paused || this.file.ended) {
       void this.file.play().catch(() => undefined)
@@ -156,7 +191,6 @@ class Bed {
       el.volume = FILE_VOL
       return
     }
-    // Never yank volume down mid-rise — continue from current level.
     if (this.fading && this.fadeTarget === FILE_VOL) return
     this.fadeFile(FILE_VOL, seconds, () => {
       this.introFadeDone = true
@@ -169,14 +203,12 @@ class Bed {
     this.fadeTarget = to
     const el = this.file
     const from = el.volume
-    // Scale duration by remaining distance so mid-stream joins stay smooth.
     const span = Math.max(0.04, Math.abs(to - from) / Math.max(0.04, FILE_VOL))
     const start = performance.now()
     const dur = Math.max(80, seconds * 1000 * span)
     const step = (now: number) => {
       if (!this.fading) return
       const t = Math.min(1, (now - start) / dur)
-      // Smootherstep — very soft shoulders, no audible jump at either end.
       const eased = t * t * t * (t * (t * 6 - 15) + 10)
       el.volume = Math.min(1, Math.max(0, from + (to - from) * eased))
       if (t < 1) this.fileFade = requestAnimationFrame(step)
@@ -201,7 +233,6 @@ function resolveBedElement() {
   el.src = TRACK
   el.setAttribute('playsinline', '')
   el.setAttribute('webkit-playsinline', '')
-  el.setAttribute('autoplay', '')
   document.body.appendChild(el)
   return el
 }
@@ -222,7 +253,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     setOn(true)
     const engine = ensure()
     engine.playFromGesture()
-    setLive(engine.live())
+    // live flips on the playing event; don't assume sync success
   }, [ensure])
 
   const toggle = useCallback(() => {
@@ -238,31 +269,34 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const engine = ensure()
-    if (onRef.current) engine.beginFadeIn()
+    const gestureLocked = needsGestureUnlock()
+
+    // Desktop: fade in on open. Mobile: wait for Enter (gesture).
+    if (onRef.current && !gestureLocked) engine.beginFadeIn()
 
     let tries = 0
     const boot = window.setInterval(() => {
-      if (!onRef.current || engine.live() || tries > 12) {
+      if (gestureLocked || !onRef.current || engine.live() || tries > 12) {
         window.clearInterval(boot)
         return
       }
       tries += 1
-      // Retry play only — beginFadeIn will not restart an in-progress rise.
       engine.beginFadeIn()
     }, 500)
 
     const kick = (event: Event) => {
       if (!onRef.current || engine.live()) return
       if (event.target instanceof Element && event.target.closest('[data-sound-toggle]')) return
+      // Intro owns the first unlock + fade on mobile.
       if (event.target instanceof Element && event.target.closest('.intro')) return
       engine.playFromGesture()
-      setLive(true)
     }
 
     const syncLive = () => setLive(engine.live())
 
     const resume = () => {
       if (!onRef.current) return
+      if (gestureLocked && !engine.live()) return
       if (!engine.live()) engine.beginFadeIn()
       else engine.keepPlaying()
       setLive(engine.live())
@@ -280,7 +314,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     window.addEventListener('focus', resume)
     document.addEventListener('visibilitychange', resume)
     engine.file.addEventListener('playing', syncLive)
-    engine.file.addEventListener('pause', resume)
+    engine.file.addEventListener('pause', syncLive)
     engine.file.addEventListener('ended', onEnded)
 
     return () => {
@@ -291,7 +325,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('focus', resume)
       document.removeEventListener('visibilitychange', resume)
       engine.file.removeEventListener('playing', syncLive)
-      engine.file.removeEventListener('pause', resume)
+      engine.file.removeEventListener('pause', syncLive)
       engine.file.removeEventListener('ended', onEnded)
     }
   }, [ensure])
