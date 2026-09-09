@@ -17,10 +17,12 @@ export default function EventDetail() {
   const [mobile, setMobile] = useState(() =>
     typeof window !== 'undefined' ? isNarrow() : false,
   )
+  const [ready, setReady] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   const clip = night?.clips[0]
   const showClip = Boolean(clip && mobile)
+  const poster = night?.image || ''
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 799px)')
@@ -30,29 +32,58 @@ export default function EventDetail() {
     return () => mq.removeEventListener('change', sync)
   }, [])
 
+  // Warm cache as soon as this night has a mobile clip (even before play).
+  useEffect(() => {
+    if (!clip || !mobile) return
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.as = 'video'
+    link.href = clip
+    link.type = 'video/mp4'
+    document.head.appendChild(link)
+    void fetch(clip, { credentials: 'same-origin', priority: 'high' }).catch(
+      () => undefined,
+    )
+    return () => {
+      link.remove()
+    }
+  }, [clip, mobile])
+
   useEffect(() => {
     const video = videoRef.current
     if (!video || !showClip) return
 
+    setReady(false)
+
     const play = () => {
       void video.play().catch(() => undefined)
     }
+    const markReady = () => setReady(true)
 
     const onVis = () => {
       if (document.visibilityState === 'visible') play()
     }
 
-    if (video.readyState >= 2) play()
-    else video.addEventListener('canplay', play, { once: true })
-
+    video.addEventListener('loadeddata', markReady)
+    video.addEventListener('playing', markReady)
     document.addEventListener('visibilitychange', onVis)
     window.addEventListener('pageshow', play)
 
+    if (video.readyState >= 2) {
+      markReady()
+      play()
+    } else {
+      video.addEventListener('loadeddata', play, { once: true })
+      video.addEventListener('canplay', play, { once: true })
+    }
+
     return () => {
+      video.removeEventListener('loadeddata', markReady)
+      video.removeEventListener('playing', markReady)
       document.removeEventListener('visibilitychange', onVis)
       window.removeEventListener('pageshow', play)
     }
-  }, [showClip])
+  }, [showClip, clip])
 
   if (!night) return <Navigate to="/" replace />
 
@@ -81,16 +112,28 @@ export default function EventDetail() {
       <div className="event-layout">
         <div className="media-frame">
           {showClip ? (
-            <video
-              ref={videoRef}
-              src={clip}
-              poster={night.image}
-              muted
-              playsInline
-              loop
-              preload="auto"
-              aria-label={`${night.title} preview`}
-            />
+            <>
+              <img
+                className={`event-still${ready ? ' is-hidden' : ''}`}
+                src={poster}
+                alt=""
+                aria-hidden
+                fetchPriority="high"
+                decoding="async"
+              />
+              <video
+                ref={videoRef}
+                className={`event-clip${ready ? ' is-ready' : ''}`}
+                src={clip}
+                poster={poster}
+                muted
+                playsInline
+                loop
+                preload="auto"
+                autoPlay
+                aria-label={`${night.title} preview`}
+              />
+            </>
           ) : (
             <img src={night.image} alt={night.title} />
           )}

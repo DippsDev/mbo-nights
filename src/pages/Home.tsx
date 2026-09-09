@@ -40,6 +40,36 @@ export default function Home() {
     return () => mq.removeEventListener('change', sync)
   }, [])
 
+  // After Enter, warm the next-night clip so the event page isn't cold.
+  useEffect(() => {
+    if (!next?.clips[0]) return
+    if (!window.matchMedia(HERO_MOBILE_MQ).matches) return
+
+    const src = next.clips[0]
+    const poster = next.image
+    let cancelled = false
+    const warm = () => {
+      if (cancelled) return
+      void fetch(src, { credentials: 'same-origin' }).catch(() => undefined)
+      if (poster) {
+        const img = new Image()
+        img.src = poster
+      }
+    }
+
+    const onEntered = () => {
+      window.setTimeout(warm, 1800)
+    }
+    window.addEventListener('mbo:entered', onEntered)
+    // If splash already gone (HMR / revisit), warm after a beat.
+    window.setTimeout(warm, 4000)
+
+    return () => {
+      cancelled = true
+      window.removeEventListener('mbo:entered', onEntered)
+    }
+  }, [next])
+
   useEffect(() => {
     const video = videoRef.current
     if (!video) return

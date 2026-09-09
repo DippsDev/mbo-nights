@@ -187,7 +187,7 @@ export const nights: Night[] = [
     venueId: 'venue-02',
     date: '19 Sep 2026',
     time: '20:00',
-    image: placeholder(' ', 1800, 1200),
+    image: '/video/nights/DippsDevM2.jpg',
     clips: ['/video/nights/DippsDevM2.mp4'],
     teaser:
       'MBO Rasta opens at The Ponds — supper first, then the floor takes over.',

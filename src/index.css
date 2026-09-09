@@ -594,6 +594,42 @@ video {
   object-position: center top;
 }
 
+.media-frame .event-still,
+.media-frame .event-clip {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.media-frame .event-still {
+  z-index: 1;
+  transition: opacity 0.45s ease;
+}
+
+.media-frame .event-still.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.media-frame .event-clip {
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.media-frame .event-clip.is-ready {
+  opacity: 1;
+}
+
+/* Keep frame height when absolute children remove flow sizing */
+.media-frame:has(.event-clip) {
+  height: 72vw;
+  max-height: 560px;
+}
+
 .atmosphere {
   position: relative;
   overflow: hidden;
@@ -1537,8 +1573,12 @@ video {
     max-height: none;
   }
 
-  .event-layout .media-frame video {
+  .event-layout .media-frame video,
+  .event-layout .media-frame .event-still,
+  .event-layout .media-frame .event-clip,
+  .event-layout .media-frame:has(.event-clip) {
     height: min(125vw, 70svh);
+    max-height: none;
     object-position: center 12%;
   }
 
