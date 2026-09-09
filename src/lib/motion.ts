@@ -27,6 +27,15 @@ export function cheapMotion() {
   )
 }
 
+function revealIfAlreadyInView(el: HTMLElement, self: ScrollTrigger) {
+  const viewH =
+    self.scroller === window ? window.innerHeight : (self.scroller as Element).clientHeight
+  if (self.progress === 1 || self.start < self.scroll() + viewH) {
+    self.animation?.progress(1)
+    gsap.set(el, { clearProps: 'opacity,transform' })
+  }
+}
+
 /**
  * Light fade-up for mobile / coarse pointers.
  * Once-play only — and snap to visible if already on screen so sections never stay ghosted.
@@ -61,25 +70,14 @@ export function softScrollReveal(
             once: true,
             fastScrollEnd: true,
             onRefresh(self) {
-              // Already scrolled past / in view — show fully (fixes stuck ghost sections).
-              const viewH =
-                self.scroller === window
-                  ? window.innerHeight
-                  : (self.scroller as Element).clientHeight
-              if (self.progress === 1 || self.start < self.scroll() + viewH) {
-                tween.progress(1)
-                gsap.set(el, { clearProps: 'opacity,transform' })
-              }
+              revealIfAlreadyInView(el, self)
             },
           },
         },
       )
 
       const st = tween.scrollTrigger
-      if (st && st.start < window.scrollY + window.innerHeight) {
-        tween.progress(1)
-        gsap.set(el, { clearProps: 'opacity,transform' })
-      }
+      if (st) revealIfAlreadyInView(el, st)
     })
   }, scope)
 
