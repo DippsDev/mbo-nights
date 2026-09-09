@@ -10,11 +10,13 @@ export default function Bag() {
     return (
       <main className="page">
         <header className="page-hero about-block">
-          <p className="kicker">Placeholder</p>
-          <h1 className="display lg">Confirmation title</h1>
-          <p className="serif">Placeholder confirmation. Nothing was charged.</p>
-          <Link className="btn" to="/events">
-            Back to nights
+          <p className="kicker">Bag</p>
+          <h1 className="display lg">You’re in</h1>
+          <p className="serif">
+            Thanks — your bag is cleared. Checkout is still demo-only, so nothing was charged.
+          </p>
+          <Link className="btn" to="/">
+            Back home
           </Link>
         </header>
       </main>
@@ -24,14 +26,15 @@ export default function Bag() {
   return (
     <main className="page">
       <header className="page-hero">
-        <p className="kicker">Placeholder</p>
-        <h1 className="display lg">Page title</h1>
+        <p className="kicker">Bag</p>
+        <h1 className="display lg">Your bag</h1>
       </header>
       <section className="section" style={{ paddingTop: 0 }}>
         {items.length === 0 ? (
           <p>
-            Placeholder empty state.{' '}
-            <Link to="/events">Events</Link> or <Link to="/shop">shop</Link>.
+            Nothing here yet. Grab tickets from the{' '}
+            <Link to="/">home page</Link> or something from the{' '}
+            <Link to="/shop">shop</Link>.
           </p>
         ) : (
           <>
@@ -48,14 +51,14 @@ export default function Bag() {
                       Remove
                     </button>
                   </div>
-                  <span>€{item.price * item.qty}</span>
+                  <span>P{item.price * item.qty}</span>
                 </div>
               ))}
             </div>
             <p>
-              Total <strong>€{total}</strong>
+              Total <strong>P{total}</strong>
             </p>
-            <p className="demo-note">Placeholder checkout. Demo, no payment taken.</p>
+            <p className="demo-note">Demo checkout — no payment is taken yet.</p>
             <button
               className="btn"
               onClick={() => {

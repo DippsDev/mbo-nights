@@ -49,11 +49,13 @@ export type Product = {
   nightId?: string
 }
 
-export const PLACEHOLDER_KICKER = 'Placeholder'
-export const PLACEHOLDER_BODY =
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Replace this copy with the real description.'
-export const PLACEHOLDER_SHORT =
-  'Placeholder text. Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
+export const BRAND = 'MBO'
+export const BRAND_FULL = 'More Bands On the way'
+export const BRAND_KICKER = 'More Bands On the way'
+export const BRAND_TAGLINE =
+  'Live nights across Gaborone — new acts, real rooms, and the next song always coming.'
+export const BRAND_BODY =
+  'MBO — More Bands On the way — books live music across Botswana. From restaurant stages to late club floors in Gaborone, we put rising acts in front of people who show up.'
 
 /** Labeled SVG so images never depend on a stock-photo CDN. */
 export function placeholder(
@@ -63,14 +65,19 @@ export function placeholder(
   bg = '111111',
   fg = 'd6ff4b',
 ) {
+  const safe = label
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">
     <rect fill="#${bg}" width="${w}" height="${h}"/>
-    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#${fg}" font-family="Arial,sans-serif" font-size="${Math.round(Math.min(w, h) / 32)}" letter-spacing="3">${label}</text>
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#${fg}" font-family="Arial,sans-serif" font-size="${Math.round(Math.min(w, h) / 32)}" letter-spacing="3">${safe}</text>
   </svg>`
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
-export const HERO_IMAGE = placeholder('HERO IMAGE', 1920, 1080)
+export const HERO_IMAGE = '/IMG_1990-scaled.jpeg'
 
 /** Hero background reel. */
 export const SHOWREEL_CLIPS: string[] = []
@@ -78,166 +85,163 @@ export const SHOWREEL_CLIPS: string[] = []
 export const CAPABILITIES = [
   {
     id: '01',
-    title: 'Section title 01',
-    to: '/events',
-    image: placeholder('CAPABILITY 01', 1600, 1000),
-    blurb: PLACEHOLDER_BODY,
+    title: 'Artists',
+    to: '/artists',
+    image: placeholder('ARTISTS', 1600, 1000, '161616', 'f3eee6'),
+    blurb:
+      'Batswana acts and touring guests we are pushing next — first headliners and familiar names.',
   },
   {
     id: '02',
-    title: 'Section title 02',
-    to: '/artists',
-    image: placeholder('CAPABILITY 02', 1600, 1000, '161616', 'f3eee6'),
-    blurb: PLACEHOLDER_BODY,
+    title: 'Shop',
+    to: '/shop',
+    image: placeholder('SHOP', 1600, 1000),
+    blurb:
+      'Tees, caps, and night prints while the drop lasts — grab merch before the room fills.',
   },
   {
     id: '03',
-    title: 'Section title 03',
-    to: '/venues',
-    image: placeholder('CAPABILITY 03', 1600, 1000),
-    blurb: PLACEHOLDER_BODY,
+    title: 'About',
+    to: '/about',
+    image: placeholder('ABOUT', 1600, 1000, '161616', 'c9a27a'),
+    blurb:
+      'More Bands On the way — why we book the rooms and keep Gaborone’s calendar moving.',
   },
 ] as const
 
 export const artists: Artist[] = [
   {
     id: 'artist-01',
-    name: 'Artist name 01',
-    role: 'Role / genre',
-    bio: PLACEHOLDER_BODY,
-    image: placeholder('ARTIST 01', 1400, 1600),
+    name: 'MBO Rasta',
+    role: 'Artist',
+    bio: 'MBO Rasta brings the night in live — roots energy for Gaborone rooms that stay open late.',
+    image: placeholder('MBO RASTA', 1400, 1600),
   },
   {
     id: 'artist-02',
-    name: 'Artist name 02',
-    role: 'Role / genre',
-    bio: PLACEHOLDER_BODY,
-    image: placeholder('ARTIST 02', 1400, 1600, '161616', 'f3eee6'),
+    name: 'Royal Musiq',
+    role: 'Artist',
+    bio: 'Royal Musiq on the bill — melodic runs and a floor that does not sit down.',
+    image: placeholder('ROYAL MUSIQ', 1400, 1600, '161616', 'f3eee6'),
   },
   {
     id: 'artist-03',
-    name: 'Artist name 03',
-    role: 'Role / genre',
-    bio: PLACEHOLDER_BODY,
-    image: placeholder('ARTIST 03', 1400, 1600),
+    name: 'W4DE',
+    role: 'Artist',
+    bio: 'W4DE for the peak hours — sharp selections made for packed Gabs nights.',
+    image: placeholder('W4DE', 1400, 1600),
   },
   {
     id: 'artist-04',
-    name: 'Artist name 04',
-    role: 'Role / genre',
-    bio: PLACEHOLDER_BODY,
-    image: placeholder('ARTIST 04', 1400, 1600, '161616', 'c9a27a'),
-  },
-  {
-    id: 'artist-05',
-    name: 'Artist name 05',
-    role: 'Role / genre',
-    bio: PLACEHOLDER_BODY,
-    image: placeholder('ARTIST 05', 1400, 1600),
-  },
-  {
-    id: 'artist-06',
-    name: 'Artist name 06',
-    role: 'Role / genre',
-    bio: PLACEHOLDER_BODY,
-    image: placeholder('ARTIST 06', 1400, 1600, '161616', 'f3eee6'),
+    name: 'Remy',
+    role: 'Artist',
+    bio: 'Remy closes the room soft or loud — whichever the night asks for.',
+    image: placeholder('REMY', 1400, 1600, '161616', 'c9a27a'),
   },
 ]
 
 export const venues: Venue[] = [
   {
     id: 'venue-01',
-    name: 'Venue name 01',
+    name: 'Bull & Bush',
     type: 'club',
-    city: 'City name',
-    image: placeholder('CLUB PHOTO', 1600, 1000),
-    blurb: PLACEHOLDER_SHORT,
+    city: 'Gaborone',
+    image: placeholder('BULL & BUSH', 1600, 1000),
+    blurb:
+      'Broadhurst classic — steaks, cold beer, live bands, and the kind of night Gabs still talks about.',
   },
   {
     id: 'venue-02',
-    name: 'Venue name 02',
+    name: 'The Ponds',
     type: 'restaurant',
-    city: 'City name',
-    image: placeholder('RESTAURANT PHOTO', 1600, 1000, '161616', 'c9a27a'),
-    blurb: PLACEHOLDER_SHORT,
+    city: 'Gaborone',
+    image: placeholder('THE PONDS', 1600, 1000, '161616', 'c9a27a'),
+    blurb:
+      'Western Commercial Road favourite — dinner, live music, DJ sets, and a room that stays late.',
   },
   {
     id: 'venue-03',
-    name: 'Venue name 03',
+    name: 'Bahama Lounge',
     type: 'club',
-    city: 'City name',
-    image: placeholder('CLUB PHOTO', 1600, 1000, '1a1a1a', 'f3eee6'),
-    blurb: PLACEHOLDER_SHORT,
+    city: 'Gaborone',
+    image: placeholder('BAHAMA LOUNGE', 1600, 1000, '1a1a1a', 'f3eee6'),
+    blurb:
+      'CBD lounge energy for bigger bills — lights low, floor open, and the night still going.',
   },
   {
     id: 'venue-04',
-    name: 'Venue name 04',
+    name: 'Table50two',
     type: 'restaurant',
-    city: 'City name',
-    image: placeholder('RESTAURANT PHOTO', 1600, 1000, '161616', 'c9a27a'),
-    blurb: PLACEHOLDER_SHORT,
+    city: 'Gaborone',
+    image: placeholder('TABLE50TWO', 1600, 1000, '161616', 'c9a27a'),
+    blurb:
+      'Rooftop dining atop iTowers — city views, fine plates, and seated nights with a soundtrack.',
   },
 ]
 
 export const nights: Night[] = [
   {
     id: 'night-01',
-    title: 'Event title 01',
+    title: 'Ponds Live',
     artistIds: ['artist-01'],
     venueId: 'venue-02',
-    date: 'DD MMM YYYY',
-    time: '00:00',
-    image: placeholder('EVENT IMAGE 01', 1800, 1200),
-    clips: ['/video/nights/night-01-artist.mp4', '/video/nights/night-01-event.mp4'],
-    teaser: PLACEHOLDER_SHORT,
+    date: '19 Sep 2026',
+    time: '20:00',
+    image: placeholder(' ', 1800, 1200),
+    clips: ['/video/nights/DippsDevM2.mp4'],
+    teaser:
+      'MBO Rasta opens at The Ponds — supper first, then the floor takes over.',
     tiers: [
-      { id: 'a', name: 'Ticket type A', price: 0, remaining: 12 },
-      { id: 'b', name: 'Ticket type B', price: 0, remaining: 40 },
+      { id: 'general', name: 'General', price: 150, remaining: 80 },
+      { id: 'vip', name: 'VIP', price: 280, remaining: 20 },
     ],
   },
   {
     id: 'night-02',
-    title: 'Event title 02',
+    title: 'House of Habanos',
     artistIds: ['artist-02'],
     venueId: 'venue-01',
-    date: 'DD MMM YYYY',
-    time: '00:00',
-    image: placeholder('EVENT IMAGE 02', 1800, 1200, '161616', 'f3eee6'),
+    date: '03 Oct 2026',
+    time: '22:00',
+    image: placeholder(' ', 1800, 1200, '161616', 'f3eee6'),
     clips: ['/video/nights/night-02-artist.mp4', '/video/nights/night-02-event.mp4'],
-    teaser: PLACEHOLDER_SHORT,
+    teaser:
+      'Royal Musiq takes House of Habanos past midnight — no chill-out, just the run.',
     tiers: [
-      { id: 'a', name: 'Ticket type A', price: 0, remaining: 180 },
-      { id: 'b', name: 'Ticket type B', price: 0, remaining: 40 },
+      { id: 'general', name: 'General', price: 150, remaining: 180 },
+      { id: 'vip', name: 'VIP', price: 280, remaining: 40 },
     ],
   },
   {
     id: 'night-03',
-    title: 'Event title 03',
+    title: 'Bahama Live',
     artistIds: ['artist-03'],
     venueId: 'venue-03',
-    date: 'DD MMM YYYY',
-    time: '00:00',
-    image: placeholder('EVENT IMAGE 03', 1800, 1200),
+    date: '17 Oct 2026',
+    time: '21:00',
+    image: placeholder(' ', 1800, 1200),
     clips: ['/video/nights/night-03-artist.mp4', '/video/nights/night-03-event.mp4'],
-    teaser: PLACEHOLDER_SHORT,
+    teaser:
+      'W4DE at Bahama Lounge — one of the loudest rooms on the Gabs calendar.',
     tiers: [
-      { id: 'a', name: 'Ticket type A', price: 0, remaining: 80 },
-      { id: 'b', name: 'Ticket type B', price: 0, remaining: 24 },
+      { id: 'general', name: 'General', price: 180, remaining: 100 },
+      { id: 'vip', name: 'VIP', price: 320, remaining: 24 },
     ],
   },
   {
     id: 'night-04',
-    title: 'Event title 04',
+    title: '50two Sessions',
     artistIds: ['artist-04'],
     venueId: 'venue-04',
-    date: 'DD MMM YYYY',
-    time: '00:00',
-    image: placeholder('EVENT IMAGE 04', 1800, 1200, '161616', 'c9a27a'),
+    date: '31 Oct 2026',
+    time: '21:30',
+    image: placeholder(' ', 1800, 1200, '161616', 'c9a27a'),
     clips: ['/video/nights/night-04-artist.mp4', '/video/nights/night-04-event.mp4'],
-    teaser: PLACEHOLDER_SHORT,
+    teaser:
+      'Remy on the iTowers rooftop at Table50two — city lights and a late last song.',
     tiers: [
-      { id: 'a', name: 'Ticket type A', price: 0, remaining: 60 },
-      { id: 'b', name: 'Ticket type B', price: 0, remaining: 18 },
+      { id: 'general', name: 'General', price: 160, remaining: 60 },
+      { id: 'vip', name: 'VIP', price: 350, remaining: 18 },
     ],
   },
 ]
@@ -245,34 +249,34 @@ export const nights: Night[] = [
 export const products: Product[] = [
   {
     id: 'product-01',
-    name: 'Product name 01',
-    price: 0,
-    drop: 'Drop name',
-    image: placeholder('MERCH 01', 1200, 1200),
+    name: 'MBO Mark Tee',
+    price: 280,
+    drop: 'Core drop',
+    image: placeholder('MBO MARK TEE', 1200, 1200),
     nightId: 'night-02',
   },
   {
     id: 'product-02',
-    name: 'Product name 02',
-    price: 0,
-    drop: 'Drop name',
-    image: placeholder('MERCH 02', 1200, 1200, '161616', 'f3eee6'),
+    name: 'On the Way Cap',
+    price: 220,
+    drop: 'Core drop',
+    image: placeholder('ON THE WAY CAP', 1200, 1200, '161616', 'f3eee6'),
   },
   {
     id: 'product-03',
-    name: 'Product name 03',
-    price: 0,
-    drop: 'Drop name',
-    image: placeholder('MERCH 03', 1200, 1200),
+    name: 'Ponds Live Poster',
+    price: 150,
+    drop: 'Night print',
+    image: placeholder('PONDS POSTER', 1200, 1200),
     nightId: 'night-01',
   },
   {
     id: 'product-04',
-    name: 'Product name 04',
-    price: 0,
-    drop: 'Drop name',
+    name: 'House of Habanos Hoodie',
+    price: 450,
+    drop: 'Night print',
     soldOut: true,
-    image: placeholder('MERCH 04', 1200, 1200, '161616', 'ff5a3c'),
+    image: placeholder('HABANOS HOODIE', 1200, 1200, '161616', 'ff5a3c'),
     nightId: 'night-02',
   },
 ]

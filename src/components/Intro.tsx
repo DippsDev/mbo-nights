@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
-import { reducedMotion } from '../lib/motion'
+import { useCallback, useState } from 'react'
 import { useSound } from '../sound'
 
 export default function Intro() {
-  const { start, live } = useSound()
+  const { start } = useSound()
   const [show, setShow] = useState(true)
   const [out, setOut] = useState(false)
 
@@ -13,17 +12,11 @@ export default function Intro() {
   }, [])
 
   const enter = () => {
+    if (out) return
     window.scrollTo(0, 0)
     start()
     dismiss()
   }
-
-  useEffect(() => {
-    if (!live || !show || out) return
-    const wait = reducedMotion() ? 200 : 1600
-    const t = window.setTimeout(dismiss, wait)
-    return () => window.clearTimeout(t)
-  }, [live, show, out, dismiss])
 
   if (!show) return null
 
@@ -38,7 +31,7 @@ export default function Intro() {
       }}
     >
       <span>MBO</span>
-      {!live && <small>Enter</small>}
+      <small>Enter</small>
     </div>
   )
 }

@@ -1,6 +1,5 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { getArtist, nightsForArtist } from '../data'
-import NightCard from '../components/NightCard'
 
 export default function ArtistDetail() {
   const { id } = useParams()
@@ -28,18 +27,6 @@ export default function ArtistDetail() {
           )}
         </div>
       </div>
-      {shows.length > 0 && (
-        <section className="section">
-          <div className="section-head">
-            <h2>Section title</h2>
-          </div>
-          <div className="card-grid nights">
-            {shows.map((night) => (
-              <NightCard key={night.id} night={night} />
-            ))}
-          </div>
-        </section>
-      )}
     </main>
   )
 }

@@ -6,9 +6,7 @@ import { reducedMotion } from '../lib/motion'
 
 const links = [
   ['/', 'Home'],
-  ['/events', 'Nights'],
   ['/artists', 'Artists'],
-  ['/venues', 'Rooms'],
   ['/shop', 'Shop'],
   ['/about', 'About'],
 ] as const

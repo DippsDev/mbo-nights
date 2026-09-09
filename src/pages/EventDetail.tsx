@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useCart } from '../cart'
 import {
@@ -13,14 +13,39 @@ export default function EventDetail() {
   const night = id ? getNight(id) : undefined
   const { add } = useCart()
   const [note, setNote] = useState('')
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-  if (!night) return <Navigate to="/events" replace />
+  const clip = night?.clips[0]
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !clip) return
+
+    const play = () => {
+      void video.play().catch(() => undefined)
+    }
+
+    const onVis = () => {
+      if (document.visibilityState === 'visible') play()
+    }
+
+    if (video.readyState >= 2) play()
+    else video.addEventListener('canplay', play, { once: true })
+
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('pageshow', play)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('pageshow', play)
+    }
+  }, [clip])
+
+  if (!night) return <Navigate to="/" replace />
 
   const venue = getVenue(night.venueId)
   const lineup = artistsFor(night)
   const merch = merchForNight(night.id)
-  const openTiers = night.tiers.filter((t) => t.remaining > 0)
-  const defaultTier = openTiers[0]
 
   const buy = (tierId: string) => {
     const tier = night.tiers.find((t) => t.id === tierId)
@@ -42,7 +67,20 @@ export default function EventDetail() {
     <main className="page">
       <div className="event-layout">
         <div className="media-frame">
-          <img src={night.image} alt={night.title} />
+          {clip ? (
+            <video
+              ref={videoRef}
+              src={clip}
+              poster={night.image}
+              muted
+              playsInline
+              loop
+              preload="auto"
+              aria-label={`${night.title} preview`}
+            />
+          ) : (
+            <img src={night.image} alt={night.title} />
+          )}
         </div>
         <div className="page-hero">
           <p className="kicker">
@@ -73,7 +111,7 @@ export default function EventDetail() {
                     </div>
                   </div>
                   <button className="btn" disabled={gone} onClick={() => buy(tier.id)}>
-                    {gone ? 'Sold out' : `€${tier.price}`}
+                    {gone ? 'Sold out' : `P${tier.price}`}
                   </button>
                 </div>
               )
@@ -82,10 +120,10 @@ export default function EventDetail() {
 
           {merch.length > 0 && (
             <div>
-              <p className="kicker">Related product</p>
+              <p className="kicker">Related merch</p>
               {merch.map((p) => (
                 <Link key={p.id} className="link-arrow" to={`/shop/${p.id}`}>
-                  {p.name} · €{p.price}
+                  {p.name} · P{p.price}
                   {p.soldOut ? ' · sold out' : ''} →
                 </Link>
               ))}
@@ -94,18 +132,6 @@ export default function EventDetail() {
         </div>
       </div>
 
-      <div className="sticky-buy">
-        <span>
-          {night.title} · {night.date}
-        </span>
-        <button
-          className="btn"
-          disabled={!defaultTier || night.soldOut}
-          onClick={() => defaultTier && buy(defaultTier.id)}
-        >
-          {night.soldOut ? 'Sold out' : 'Get tickets'}
-        </button>
-      </div>
       {note && <div className="toast">{note}</div>}
     </main>
   )

@@ -39,11 +39,17 @@ export default function HighlightReel() {
         if (i === 0) return
         const prev = panels[i - 1]
         const at = i - 1
-        tl.to(prev, { scale: 1.08, opacity: 0.35 }, at)
-        tl.to(prev.querySelector('.highlight-copy'), { y: -24, opacity: 0 }, at)
-        tl.to(panel, { yPercent: 0 }, at)
+        const prevCopy = prev.querySelector('.highlight-copy')
         const copy = panel.querySelector('.highlight-copy')
-        if (copy) tl.from(copy, { y: 40, opacity: 0, duration: 0.8 }, at + 0.15)
+
+        tl.fromTo(prev, { scale: 1, opacity: 1 }, { scale: 1.08, opacity: 0.35 }, at)
+        if (prevCopy) {
+          tl.fromTo(prevCopy, { y: 0, opacity: 1 }, { y: -24, opacity: 0 }, at)
+        }
+        tl.fromTo(panel, { yPercent: 100 }, { yPercent: 0 }, at)
+        if (copy) {
+          tl.fromTo(copy, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, at + 0.15)
+        }
       })
     }, section)
 
@@ -58,7 +64,7 @@ export default function HighlightReel() {
 
   return (
     <section className="highlights" ref={wrap}>
-      <p className="highlights-label">Highlight projects</p>
+      <p className="highlights-label">Upcoming</p>
       <div className="highlights-stack">
         {slides.map((night) => (
           <HighlightSlide key={night.id} night={night} />
@@ -90,7 +96,7 @@ function HighlightSlide({ night }: { night: Night }) {
           {names} · {night.date}
         </p>
         <Link className="btn" to={`/events/${night.id}`}>
-          View project
+          Get tickets
         </Link>
       </div>
     </article>

@@ -24,10 +24,10 @@ export default function VenueDetail() {
       </div>
       <section className="section">
         <div className="section-head">
-          <h2>Section title</h2>
+          <h2>Shows here</h2>
         </div>
         {shows.length === 0 ? (
-          <p className="demo-note">Placeholder empty state.</p>
+          <p className="demo-note">No nights booked here yet — check back soon.</p>
         ) : (
           <div className="card-grid nights">
             {shows.map((night) => (

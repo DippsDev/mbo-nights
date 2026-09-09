@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { PLACEHOLDER_KICKER, PLACEHOLDER_SHORT, products } from '../data'
+import { BRAND_KICKER, products } from '../data'
 import { isNarrow } from '../lib/motion'
 
 export default function Shop() {
@@ -30,9 +30,9 @@ export default function Shop() {
   return (
     <main className="page shop-page">
       <header className="page-hero">
-        <p className="kicker">{PLACEHOLDER_KICKER}</p>
-        <h1 className="display lg">Page title</h1>
-        <p className="serif">{PLACEHOLDER_SHORT}</p>
+        <p className="kicker">{BRAND_KICKER}</p>
+        <h1 className="display lg">Shop</h1>
+        <p className="serif">Tees, prints, and night drops while they last.</p>
       </header>
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="card-grid shop" ref={rail}>
@@ -44,7 +44,7 @@ export default function Shop() {
                   {product.soldOut ? 'Sold out' : product.drop}
                 </span>
                 <h2 className="display md">{product.name}</h2>
-                <p>€{product.price}</p>
+                <p>P{product.price}</p>
               </div>
             </Link>
           ))}

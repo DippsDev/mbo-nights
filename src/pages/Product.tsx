@@ -35,7 +35,7 @@ export default function Product() {
         <div className="page-hero">
           <p className="kicker">{product.drop}</p>
           <h1 className="display lg">{product.name}</h1>
-          <p className="serif">€{product.price}</p>
+          <p className="serif">P{product.price}</p>
           {night && (
             <p>
               Tied to{' '}

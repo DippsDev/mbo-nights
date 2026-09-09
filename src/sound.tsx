@@ -19,6 +19,7 @@ type SoundContextValue = {
 const SoundContext = createContext<SoundContextValue | null>(null)
 
 const TRACK = '/audio/DippsDev.mp3'
+const START_AT = 8
 const FILE_VOL = 0.38
 const FADE_IN = 7
 const FADE_OUT = 1.2
@@ -29,10 +30,11 @@ class Bed {
   wanted = true
   private fileFade = 0
   private fading = false
+  private sought = false
 
   constructor(file: HTMLAudioElement) {
     this.file = file
-    this.file.loop = true
+    this.file.loop = false
     this.file.preload = 'auto'
     this.file.setAttribute('playsinline', '')
     this.file.setAttribute('webkit-playsinline', '')
@@ -43,8 +45,25 @@ class Bed {
     return !this.file.paused
   }
 
+  /** Seek to the bed intro once metadata is ready. */
+  seekStart(force = false) {
+    if (this.sought && !force) return
+    const el = this.file
+    const apply = () => {
+      try {
+        el.currentTime = START_AT
+        this.sought = true
+      } catch {
+        /* not ready yet */
+      }
+    }
+    if (el.readyState >= 1) apply()
+    else el.addEventListener('loadedmetadata', apply, { once: true })
+  }
+
   tryAutoplay() {
     this.wanted = true
+    this.seekStart()
     void this.file
       .play()
       .then(() => this.fadeFile(FILE_VOL, FADE_IN))
@@ -54,6 +73,7 @@ class Bed {
   /** Call only from a click / tap / key handler. Starts immediately, no await. */
   play(seconds = FADE_IN) {
     this.wanted = true
+    this.seekStart()
     void this.file.play().catch(() => undefined)
     this.fadeFile(FILE_VOL, seconds)
   }
@@ -68,7 +88,9 @@ class Bed {
 
   keepPlaying() {
     if (!this.wanted) return
-    if (this.file.ended) this.file.currentTime = 0
+    if (this.file.ended) {
+      this.seekStart(true)
+    }
     if (this.file.paused || this.file.ended) {
       void this.file.play().catch(() => undefined)
     }
@@ -152,7 +174,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
     const onEnded = () => {
       if (!onRef.current) return
-      engine.file.currentTime = 0
+      engine.seekStart(true)
       engine.keepPlaying()
     }
 
@@ -195,7 +217,6 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         ref={fileRef}
         className="sound-bed"
         src={TRACK}
-        loop
         preload="auto"
       />
       {children}

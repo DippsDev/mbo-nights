@@ -91,7 +91,7 @@ export default function Layout() {
         <Outlet />
       </div>
       <footer className="site-foot">
-        <span>Placeholder footer text</span>
+        <span>MBO · More Bands On the way</span>
         {next && (
           <Link to={`/events/${next.id}`}>
             Next: {next.title} · {next.date}

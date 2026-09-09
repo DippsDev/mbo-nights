@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom'
-import { PLACEHOLDER_KICKER, artists } from '../data'
+import { BRAND_KICKER, artists } from '../data'
 
 export default function Artists() {
   return (
     <main className="page">
       <header className="page-hero">
-        <p className="kicker">{PLACEHOLDER_KICKER}</p>
-        <h1 className="display lg">Page title</h1>
+        <p className="kicker">{BRAND_KICKER}</p>
+        <h1 className="display lg">Artists</h1>
       </header>
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="card-grid artists">
