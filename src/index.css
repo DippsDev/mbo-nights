@@ -27,11 +27,15 @@ body,
 
 #root {
   position: relative;
+  overflow-x: clip;
 }
 
 html {
   background: var(--bg);
   scroll-behavior: auto;
+  /* html must remain the only vertical scrollport */
+  overflow-x: hidden;
+  overflow-y: scroll;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -42,7 +46,9 @@ body {
   font-family: var(--font-ui);
   background: var(--bg);
   letter-spacing: 0.01em;
-  overflow-x: hidden;
+  /* Do NOT set overflow on body — it becomes a nested scrollport and
+     kills wheel/trackpad scrolling over position:fixed pinned sections. */
+  overflow: visible;
 }
 
 body::before {
@@ -1107,6 +1113,19 @@ video {
   background: var(--bg);
 }
 
+/* Desktop pin uses position:fixed — let wheel/trackpad pass through to the
+   document scrollport, while keeping buttons clickable. */
+@media (pointer: fine) and (hover: hover) and (min-width: 1200px) {
+  .highlights {
+    pointer-events: none;
+  }
+
+  .highlights .btn,
+  .highlights a {
+    pointer-events: auto;
+  }
+}
+
 .highlights-stack {
   position: relative;
   height: 100%;
@@ -1347,9 +1366,12 @@ video {
     -webkit-backdrop-filter: none;
   }
 
-  html,
-  body {
+  html {
     overflow-x: clip;
+  }
+
+  body {
+    overflow: visible;
   }
 
   .hero .hero-clip {
