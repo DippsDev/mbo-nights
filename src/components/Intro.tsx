@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { useSound } from '../sound'
 
 export default function Intro() {
-  const { start } = useSound()
+  const { start, live } = useSound()
   const [show, setShow] = useState(true)
   const [out, setOut] = useState(false)
   const entered = useRef(false)
@@ -10,12 +10,12 @@ export default function Intro() {
   const enter = useCallback(() => {
     if (entered.current) return
     entered.current = true
-    // First line in the gesture stack — required for iOS audio unlock.
-    start()
+    // Only needed when the browser blocked open-page autoplay.
+    if (!live) start()
     window.scrollTo(0, 0)
     setOut(true)
     window.setTimeout(() => setShow(false), 700)
-  }, [start])
+  }, [live, start])
 
   if (!show) return null
 

@@ -17,6 +17,51 @@
     />
   </head>
   <body>
+    <!-- Starts as early as the browser allows; React adopts this same element. -->
+    <audio
+      id="mbo-sound-bed"
+      class="sound-bed"
+      src="/audio/DippsDev.mp3"
+      preload="auto"
+      autoplay
+      playsinline
+      webkit-playsinline
+    ></audio>
+    <script>
+      ;(function () {
+        var a = document.getElementById('mbo-sound-bed')
+        if (!a) return
+        a.volume = 0
+        var target = 0.55
+        var fading = false
+        function fade() {
+          if (fading) return
+          fading = true
+          var t0 = performance.now()
+          function step(now) {
+            var t = Math.min(1, (now - t0) / 5500)
+            a.volume = target * t * t * (3 - 2 * t)
+            if (t < 1) requestAnimationFrame(step)
+            else fading = false
+          }
+          requestAnimationFrame(step)
+        }
+        function go() {
+          try {
+            if (a.readyState >= 1 && a.paused) a.currentTime = 8
+          } catch (e) {}
+          var p = a.play()
+          if (p && p.then) p.then(fade).catch(function () {})
+          else if (!a.paused) fade()
+        }
+        if (a.readyState >= 2) go()
+        else {
+          a.addEventListener('canplay', go, { once: true })
+          a.addEventListener('loadeddata', go, { once: true })
+        }
+        go()
+      })()
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

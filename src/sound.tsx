@@ -18,9 +18,11 @@ type SoundContextValue = {
 
 const SoundContext = createContext<SoundContextValue | null>(null)
 
+export const SOUND_BED_ID = 'mbo-sound-bed'
 const TRACK = '/audio/DippsDev.mp3'
 const START_AT = 8
 const FILE_VOL = 0.55
+const FADE_IN = 5.5
 const FADE_OUT = 0.9
 
 class Bed {
@@ -37,19 +39,22 @@ class Bed {
     this.file.muted = false
     this.file.setAttribute('playsinline', '')
     this.file.setAttribute('webkit-playsinline', '')
-    this.file.volume = FILE_VOL
-    this.primeSeek()
+    this.file.setAttribute('autoplay', '')
+    if (!this.file.getAttribute('src')) this.file.src = TRACK
   }
 
   live() {
     return !this.file.paused && !this.file.ended
   }
 
-  /** Seek while paused (safe on iOS). Never seek in the same turn as play(). */
-  private primeSeek() {
+  /** Seek while paused only — safe before autoplay attempts. */
+  seekWhilePaused(force = false) {
+    if (this.sought && !force) return
+    if (force) this.sought = false
     const el = this.file
+    if (!el.paused && el.currentTime > 0.2) return
     const apply = () => {
-      if (this.sought || !el.paused) return
+      if (!el.paused && el.currentTime > 0.2) return
       try {
         el.currentTime = START_AT
         this.sought = true
@@ -59,11 +64,9 @@ class Bed {
     }
     if (el.readyState >= 1) apply()
     else el.addEventListener('loadedmetadata', apply, { once: true })
-    el.load()
   }
 
   seekStart(force = false) {
-    if (this.sought && !force) return
     if (force) this.sought = false
     const el = this.file
     const apply = () => {
@@ -78,46 +81,58 @@ class Bed {
     else el.addEventListener('loadedmetadata', apply, { once: true })
   }
 
-  tryAutoplay() {
-    this.wanted = true
-    void this.file.play().catch(() => undefined)
-  }
-
-  /**
-   * Call synchronously from a tap/click. Do not seek before play on iOS —
-   * that cancels the gesture unlock.
-   */
-  play() {
+  /** Open-page path: play ASAP and fade 0 → full. */
+  beginFadeIn() {
     this.wanted = true
     const el = this.file
     el.muted = false
-    el.volume = FILE_VOL
+    this.seekWhilePaused()
+    if (el.paused || el.volume < 0.04) el.volume = 0
+
+    const kick = () => {
+      if (!this.wanted) return
+      void el
+        .play()
+        .then(() => {
+          if (!this.wanted) return
+          if (el.volume < FILE_VOL * 0.95) this.fadeFile(FILE_VOL, FADE_IN)
+        })
+        .catch(() => undefined)
+    }
+
+    kick()
+    if (el.readyState < 2) {
+      el.addEventListener('canplay', kick, { once: true })
+      el.addEventListener('loadeddata', kick, { once: true })
+    }
+  }
+
+  /** Gesture fallback — full volume immediately if autoplay was blocked. */
+  playFromGesture() {
+    this.wanted = true
+    const el = this.file
+    el.muted = false
     cancelAnimationFrame(this.fileFade)
     this.fading = false
+    el.volume = FILE_VOL
 
-    const req = el.play()
-
-    if (req !== undefined) {
-      void req
-        .then(() => {
-          // Seek only after playback is actually running.
-          if (!this.sought && el.currentTime < START_AT - 0.25) {
-            window.setTimeout(() => {
-              if (!this.wanted) return
-              try {
-                el.currentTime = START_AT
-                this.sought = true
-                if (el.paused) void el.play().catch(() => undefined)
-              } catch {
-                /* ignore */
-              }
-            }, 40)
-          }
-        })
-        .catch(() => {
-          /* gesture consumed; next tap / keepPlaying can retry */
-        })
-    }
+    void el
+      .play()
+      .then(() => {
+        if (!this.sought && el.currentTime < START_AT - 0.25) {
+          window.setTimeout(() => {
+            if (!this.wanted) return
+            try {
+              el.currentTime = START_AT
+              this.sought = true
+              if (el.paused) void el.play().catch(() => undefined)
+            } catch {
+              /* ignore */
+            }
+          }, 40)
+        }
+      })
+      .catch(() => undefined)
   }
 
   mute() {
@@ -130,14 +145,12 @@ class Bed {
 
   keepPlaying() {
     if (!this.wanted) return
-    if (this.file.ended) {
-      this.seekStart(true)
-    }
+    if (this.file.ended) this.seekStart(true)
     if (this.file.paused || this.file.ended) {
       void this.file.play().catch(() => undefined)
     }
-    if (!this.fading && this.file.volume < FILE_VOL * 0.5) {
-      this.file.volume = FILE_VOL
+    if (!this.fading && this.live() && this.file.volume < FILE_VOL * 0.35) {
+      this.fadeFile(FILE_VOL, 2)
     }
   }
 
@@ -162,17 +175,29 @@ class Bed {
   }
 }
 
+function resolveBedElement() {
+  const existing = document.getElementById(SOUND_BED_ID)
+  if (existing instanceof HTMLAudioElement) return existing
+  const el = document.createElement('audio')
+  el.id = SOUND_BED_ID
+  el.className = 'sound-bed'
+  el.preload = 'auto'
+  el.src = TRACK
+  el.setAttribute('playsinline', '')
+  el.setAttribute('webkit-playsinline', '')
+  el.setAttribute('autoplay', '')
+  document.body.appendChild(el)
+  return el
+}
+
 export function SoundProvider({ children }: { children: ReactNode }) {
-  const fileRef = useRef<HTMLAudioElement | null>(null)
   const bed = useRef<Bed | null>(null)
   const onRef = useRef(true)
   const [on, setOn] = useState(true)
   const [live, setLive] = useState(false)
 
   const ensure = useCallback(() => {
-    const el = fileRef.current
-    if (!el) return null
-    if (!bed.current) bed.current = new Bed(el)
+    if (!bed.current) bed.current = new Bed(resolveBedElement())
     return bed.current
   }, [])
 
@@ -180,17 +205,15 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     onRef.current = true
     setOn(true)
     const engine = ensure()
-    if (!engine) return
-    // Must stay fully synchronous with the user gesture.
-    engine.play()
-    setLive(!engine.file.paused)
+    engine.playFromGesture()
+    setLive(engine.live())
   }, [ensure])
 
   const toggle = useCallback(() => {
     if (onRef.current) {
       onRef.current = false
       setOn(false)
-      ensure()?.mute()
+      ensure().mute()
       setLive(false)
       return
     }
@@ -199,16 +222,24 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const engine = ensure()
-    if (!engine) return
+    if (onRef.current) engine.beginFadeIn()
 
-    if (onRef.current) engine.tryAutoplay()
+    // Keep retrying briefly on open — catches late media decode / bfcache restores.
+    let tries = 0
+    const boot = window.setInterval(() => {
+      if (!onRef.current || engine.live() || tries > 12) {
+        window.clearInterval(boot)
+        return
+      }
+      tries += 1
+      engine.beginFadeIn()
+    }, 400)
 
     const kick = (event: Event) => {
       if (!onRef.current || engine.live()) return
       if (event.target instanceof Element && event.target.closest('[data-sound-toggle]')) return
-      // Intro calls start() itself — avoid double-handling that gesture.
       if (event.target instanceof Element && event.target.closest('.intro')) return
-      engine.play()
+      engine.playFromGesture()
       setLive(true)
     }
 
@@ -216,14 +247,15 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
     const resume = () => {
       if (!onRef.current) return
-      engine.keepPlaying()
+      if (!engine.live()) engine.beginFadeIn()
+      else engine.keepPlaying()
       setLive(engine.live())
     }
 
     const onEnded = () => {
       if (!onRef.current) return
       engine.seekStart(true)
-      void engine.file.play().catch(() => undefined)
+      void engine.file.play().then(() => engine.beginFadeIn()).catch(() => undefined)
     }
 
     window.addEventListener('pointerdown', kick, true)
@@ -234,11 +266,11 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     engine.file.addEventListener('playing', syncLive)
     engine.file.addEventListener('pause', resume)
     engine.file.addEventListener('ended', onEnded)
-    engine.file.addEventListener('stalled', resume)
+    engine.file.addEventListener('canplay', resume)
     engine.file.addEventListener('error', resume)
-    const watchdog = window.setInterval(resume, 2000)
 
     return () => {
+      window.clearInterval(boot)
       window.removeEventListener('pointerdown', kick, true)
       window.removeEventListener('keydown', kick, true)
       window.removeEventListener('pageshow', resume)
@@ -247,25 +279,14 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       engine.file.removeEventListener('playing', syncLive)
       engine.file.removeEventListener('pause', resume)
       engine.file.removeEventListener('ended', onEnded)
-      engine.file.removeEventListener('stalled', resume)
+      engine.file.removeEventListener('canplay', resume)
       engine.file.removeEventListener('error', resume)
-      window.clearInterval(watchdog)
     }
   }, [ensure])
 
   const value = useMemo(() => ({ on, live, toggle, start }), [on, live, toggle, start])
 
-  return (
-    <SoundContext.Provider value={value}>
-      <audio
-        ref={fileRef}
-        className="sound-bed"
-        src={TRACK}
-        preload="auto"
-      />
-      {children}
-    </SoundContext.Provider>
-  )
+  return <SoundContext.Provider value={value}>{children}</SoundContext.Provider>
 }
 
 export function useSound() {
