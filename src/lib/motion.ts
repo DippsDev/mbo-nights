@@ -27,18 +27,10 @@ export function cheapMotion() {
   )
 }
 
-function revealIfAlreadyInView(el: HTMLElement, self: ScrollTrigger) {
-  const viewH =
-    self.scroller === window ? window.innerHeight : (self.scroller as Element).clientHeight
-  if (self.progress === 1 || self.start < self.scroll() + viewH) {
-    self.animation?.progress(1)
-    gsap.set(el, { clearProps: 'opacity,transform' })
-  }
-}
-
 /**
- * Light fade-up for mobile / coarse pointers.
- * Once-play only — and snap to visible if already on screen so sections never stay ghosted.
+ * Fade / rise tied to scroll — plays both directions (down and up).
+ * Keep this free of TDZ bugs: never close over the tween inside ScrollTrigger callbacks
+ * that fire during construction.
  */
 export function softScrollReveal(
   roots: Element | Element[] | NodeListOf<Element> | string,
@@ -53,31 +45,24 @@ export function softScrollReveal(
 
   const ctx = gsap.context(() => {
     targets.forEach((el) => {
-      const tween = gsap.fromTo(
+      gsap.fromTo(
         el,
-        { y: 18, opacity: 0 },
+        { y: 28, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 0.5,
-          ease: 'power2.out',
+          ease: 'none',
           force3D: true,
           immediateRender: false,
           scrollTrigger: {
             trigger: el,
-            start: 'top 96%',
-            toggleActions: 'play none none none',
-            once: true,
+            start: 'top 92%',
+            end: 'top 68%',
+            scrub: true,
             fastScrollEnd: true,
-            onRefresh(self) {
-              revealIfAlreadyInView(el, self)
-            },
           },
         },
       )
-
-      const st = tween.scrollTrigger
-      if (st) revealIfAlreadyInView(el, st)
     })
   }, scope)
 
