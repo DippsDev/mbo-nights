@@ -32,6 +32,7 @@ body,
 html {
   background: var(--bg);
   overflow-x: hidden;
+  scroll-behavior: auto;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -43,6 +44,7 @@ body {
   background: var(--bg);
   letter-spacing: 0.01em;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 body::before {
@@ -1350,6 +1352,19 @@ video {
   html,
   body {
     overflow-x: clip;
+  }
+
+  /* Let the browser skip offscreen work while flinging the page. */
+  .home-immerse .highlight,
+  .home-immerse .capability,
+  .home-immerse .contact-split {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 360px;
+  }
+
+  .hero .hero-clip {
+    /* Cheaper compositing while the clip is on screen */
+    transform: translateZ(0);
   }
 }
 

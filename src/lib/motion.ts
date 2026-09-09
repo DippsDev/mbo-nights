@@ -3,7 +3,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 gsap.config({ force3D: true, nullTargetWarn: false })
-ScrollTrigger.config({ ignoreMobileResize: true })
+ScrollTrigger.config({
+  ignoreMobileResize: true,
+  // Avoid layout thrash from address-bar show/hide on phones.
+  autoRefreshEvents: 'visibilitychange,DOMContentLoaded,load',
+})
 
 export function reducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -25,7 +29,10 @@ export function cheapMotion() {
   )
 }
 
-/** Light fade-up reveals for mobile / coarse pointers — scrubbed so scroll-up reverses cleanly. */
+/**
+ * Light fade-up for mobile / coarse pointers.
+ * Once-play (no scrub) — scrub fights native momentum scrolling and causes stutters.
+ */
 export function softScrollReveal(
   roots: Element | Element[] | NodeListOf<Element> | string,
   scope?: Element | string | object,
@@ -41,17 +48,20 @@ export function softScrollReveal(
     targets.forEach((el) => {
       gsap.fromTo(
         el,
-        { y: 28, opacity: 0 },
+        { y: 18, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          ease: 'none',
+          duration: 0.5,
+          ease: 'power2.out',
           force3D: true,
           scrollTrigger: {
             trigger: el,
-            start: 'top 92%',
-            end: 'top 70%',
-            scrub: true,
+            start: 'top 94%',
+            toggleActions: 'play none none none',
+            once: true,
+            // Don't invalidate on every mobile chrome resize.
+            fastScrollEnd: true,
           },
         },
       )

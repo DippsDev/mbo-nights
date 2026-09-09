@@ -25,7 +25,7 @@ export default function HighlightReel() {
         scrollTrigger: {
           trigger: section,
           pin: true,
-          scrub: true,
+          scrub: 0.45,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           end: () => `+=${Math.round(window.innerHeight * 0.9 * (panels.length - 1))}`,

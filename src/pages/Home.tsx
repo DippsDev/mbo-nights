@@ -62,6 +62,17 @@ export default function Home() {
       if (document.visibilityState === 'visible') seekAndPlay()
     }
 
+    // Pause off-screen — decoding a full-bleed loop while scrolling is a common mobile stutter.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry) return
+        if (entry.isIntersecting && entry.intersectionRatio > 0.12) seekAndPlay()
+        else video.pause()
+      },
+      { threshold: [0, 0.12, 0.5] },
+    )
+    io.observe(video)
+
     if (video.readyState >= 1) seekAndPlay()
     else video.addEventListener('loadedmetadata', seekAndPlay, { once: true })
 
@@ -70,6 +81,7 @@ export default function Home() {
     window.addEventListener('pageshow', seekAndPlay)
 
     return () => {
+      io.disconnect()
       video.removeEventListener('ended', onEnded)
       document.removeEventListener('visibilitychange', onVis)
       window.removeEventListener('pageshow', seekAndPlay)
@@ -87,6 +99,7 @@ export default function Home() {
     }
 
     const ctx = gsap.context(() => {
+      // Slight scrub lag feels smoother than 1:1 frame linking on desktop.
       gsap.to('.hero-copy', {
         yPercent: -8,
         opacity: 0.35,
@@ -95,7 +108,7 @@ export default function Home() {
           trigger: '.spotlight-hero',
           start: 'top top',
           end: 'bottom top',
-          scrub: true,
+          scrub: 0.55,
         },
       })
 
@@ -105,7 +118,7 @@ export default function Home() {
         if (img) {
           gsap.fromTo(
             img,
-            { yPercent: -8, scale: 1.06 },
+            { yPercent: -6, scale: 1.04 },
             {
               yPercent: 0,
               scale: 1,
@@ -115,7 +128,7 @@ export default function Home() {
                 trigger: el,
                 start: 'top bottom',
                 end: 'bottom top',
-                scrub: true,
+                scrub: 0.55,
               },
             },
           )
@@ -123,7 +136,7 @@ export default function Home() {
         if (copy) {
           gsap.fromTo(
             copy,
-            { y: 32, opacity: 0 },
+            { y: 28, opacity: 0 },
             {
               y: 0,
               opacity: 1,
@@ -132,7 +145,7 @@ export default function Home() {
                 trigger: el,
                 start: 'top 82%',
                 end: 'top 48%',
-                scrub: true,
+                scrub: 0.45,
               },
             },
           )
