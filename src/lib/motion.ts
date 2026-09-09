@@ -62,7 +62,11 @@ export function softScrollReveal(
             fastScrollEnd: true,
             onRefresh(self) {
               // Already scrolled past / in view — show fully (fixes stuck ghost sections).
-              if (self.progress === 1 || self.start < self.scroll() + self.scroller.clientHeight) {
+              const viewH =
+                self.scroller === window
+                  ? window.innerHeight
+                  : (self.scroller as Element).clientHeight
+              if (self.progress === 1 || self.start < self.scroll() + viewH) {
                 tween.progress(1)
                 gsap.set(el, { clearProps: 'opacity,transform' })
               }
