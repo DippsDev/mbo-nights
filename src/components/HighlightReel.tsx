@@ -55,8 +55,11 @@ export default function HighlightReel() {
 
     const refresh = () => ScrollTrigger.refresh()
     window.addEventListener('orientationchange', refresh)
+    // Page-in animation / late layout — refresh pin metrics once settled.
+    const refreshTimer = window.setTimeout(refresh, 520)
 
     return () => {
+      window.clearTimeout(refreshTimer)
       window.removeEventListener('orientationchange', refresh)
       ctx.revert()
     }

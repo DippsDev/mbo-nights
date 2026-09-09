@@ -1052,17 +1052,16 @@ video {
 }
 
 .page-veil {
-  animation: page-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* Opacity only — any transform here breaks GSAP ScrollTrigger pinning on desktop. */
+  animation: page-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes page-in {
   from {
     opacity: 0;
-    transform: translate3d(0, 1.1rem, 0);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -1275,7 +1274,7 @@ video {
   }
 
   .contact-split {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 0;
     min-height: 0;
     align-items: stretch;
@@ -1283,8 +1282,17 @@ video {
     padding-bottom: 5.5rem;
   }
 
+  .contact-split:has(> :nth-child(2)) {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .contact-split > div {
     gap: 0.9rem;
+    padding-right: 0;
+    max-width: 36rem;
+  }
+
+  .contact-split:has(> :nth-child(2)) > div {
     padding-right: 3.5rem;
   }
 

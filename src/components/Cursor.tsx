@@ -7,7 +7,11 @@ export default function Cursor() {
   const glow = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!finePointer() || reducedMotion()) return
+    // Match CSS: custom cursor only on wide fine-pointer desktops.
+    const desktopCursor = window.matchMedia(
+      '(pointer: fine) and (hover: hover) and (min-width: 1200px)',
+    )
+    if (!desktopCursor.matches || reducedMotion() || !finePointer()) return
 
     document.documentElement.classList.add('has-cursor')
     let x = 0
