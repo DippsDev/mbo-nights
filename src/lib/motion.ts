@@ -29,7 +29,7 @@ export function cheapMotion() {
 
 /**
  * Light fade-up for mobile / coarse pointers.
- * Once-play (no scrub) — scrub fights native momentum scrolling and causes stutters.
+ * Once-play only — and snap to visible if already on screen so sections never stay ghosted.
  */
 export function softScrollReveal(
   roots: Element | Element[] | NodeListOf<Element> | string,
@@ -44,7 +44,7 @@ export function softScrollReveal(
 
   const ctx = gsap.context(() => {
     targets.forEach((el) => {
-      gsap.fromTo(
+      const tween = gsap.fromTo(
         el,
         { y: 18, opacity: 0 },
         {
@@ -53,16 +53,29 @@ export function softScrollReveal(
           duration: 0.5,
           ease: 'power2.out',
           force3D: true,
+          immediateRender: false,
           scrollTrigger: {
             trigger: el,
-            start: 'top 94%',
+            start: 'top 96%',
             toggleActions: 'play none none none',
             once: true,
-            // Don't invalidate on every mobile chrome resize.
             fastScrollEnd: true,
+            onRefresh(self) {
+              // Already scrolled past / in view — show fully (fixes stuck ghost sections).
+              if (self.progress === 1 || self.start < self.scroll() + self.scroller.clientHeight) {
+                tween.progress(1)
+                gsap.set(el, { clearProps: 'opacity,transform' })
+              }
+            },
           },
         },
       )
+
+      const st = tween.scrollTrigger
+      if (st && st.start < window.scrollY + window.innerHeight) {
+        tween.progress(1)
+        gsap.set(el, { clearProps: 'opacity,transform' })
+      }
     })
   }, scope)
 

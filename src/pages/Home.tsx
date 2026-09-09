@@ -139,12 +139,14 @@ export default function Home() {
             {
               y: 0,
               opacity: 1,
-              ease: 'none',
+              duration: 0.65,
+              ease: 'power2.out',
+              immediateRender: false,
               scrollTrigger: {
                 trigger: el,
-                start: 'top 82%',
-                end: 'top 48%',
-                scrub: true,
+                start: 'top 88%',
+                toggleActions: 'play none none none',
+                once: true,
               },
             },
           )
