@@ -50,7 +50,8 @@ class Bed {
   constructor(file: HTMLAudioElement) {
     this.file = file
     this.file.loop = false
-    this.file.preload = 'auto'
+    // Metadata only until unlock — leave bandwidth for the hero video.
+    this.file.preload = needsGestureUnlock() ? 'metadata' : 'auto'
     this.file.muted = false
     this.file.setAttribute('playsinline', '')
     this.file.setAttribute('webkit-playsinline', '')
@@ -130,6 +131,7 @@ class Bed {
     this.unlocked = true
     this.introFadeDone = false
     const el = this.file
+    el.preload = 'auto'
     el.muted = false
     cancelAnimationFrame(this.fileFade)
     this.fading = false

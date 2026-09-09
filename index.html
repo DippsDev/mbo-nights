@@ -15,29 +15,35 @@
       href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="preload" as="image" href="/IMG_1990-scaled.jpeg" />
-    <link
-      rel="preload"
-      as="video"
-      href="/video/DippsDevMobile.mp4"
-      type="video/mp4"
-      media="(max-width: 799px)"
-    />
-    <link
-      rel="preload"
-      as="video"
-      href="/video/DippsDevMp4.mp4"
-      type="video/mp4"
-      media="(min-width: 800px)"
-    />
+    <script>
+      ;(function () {
+        var mobile = window.matchMedia('(max-width: 799px)').matches
+        var poster = mobile ? '/video/DippsDevMobile.jpg' : '/video/DippsDevHero.jpg'
+        var clip = mobile ? '/video/DippsDevMobile.mp4' : '/video/DippsDevHero.mp4'
+        ;[
+          { rel: 'preload', as: 'image', href: poster },
+          { rel: 'preload', as: 'video', href: clip, type: 'video/mp4' },
+        ].forEach(function (attrs) {
+          var l = document.createElement('link')
+          Object.keys(attrs).forEach(function (k) {
+            l.setAttribute(k, attrs[k])
+          })
+          document.head.appendChild(l)
+        })
+        // Warm HTTP cache for the hero clip before React mounts.
+        if (window.fetch) {
+          fetch(clip, { credentials: 'same-origin', priority: 'high' }).catch(function () {})
+        }
+      })()
+    </script>
   </head>
   <body>
-    <!-- Preload only. Autoplay is desktop-only via React — failed iOS play() poisons unlock. -->
+    <!-- Metadata only until Enter — keeps bandwidth free for the hero clip. -->
     <audio
       id="mbo-sound-bed"
       class="sound-bed"
       src="/audio/DippsDev.mp3"
-      preload="auto"
+      preload="metadata"
       playsinline
       webkit-playsinline
     ></audio>
@@ -53,6 +59,7 @@
         var coarse = window.matchMedia('(pointer: coarse), (hover: none)').matches
         if (ios || coarse) return
         function go() {
+          a.preload = 'auto'
           try {
             if (a.readyState >= 1 && a.paused) a.currentTime = 8
           } catch (e) {}
@@ -65,7 +72,8 @@
           a.addEventListener('canplay', go, { once: true })
           a.addEventListener('loadeddata', go, { once: true })
         }
-        go()
+        // Delay audio fetch slightly so the hero video wins the first bytes.
+        window.setTimeout(go, 1200)
       })()
     </script>
     <div id="root"></div>

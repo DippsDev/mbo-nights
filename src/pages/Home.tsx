@@ -4,7 +4,6 @@ import {
   BRAND_KICKER,
   BRAND_TAGLINE,
   CAPABILITIES,
-  HERO_IMAGE,
   nextOpenNight,
 } from '../data'
 import HighlightReel from '../components/HighlightReel'
@@ -13,17 +12,17 @@ import { useSound } from '../sound'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
-const HERO_CLIP_DESKTOP = '/video/DippsDevMp4.mp4'
+const HERO_CLIP_DESKTOP = '/video/DippsDevHero.mp4'
 const HERO_CLIP_MOBILE = '/video/DippsDevMobile.mp4'
-const HERO_START_DESKTOP = 8
-const HERO_START_MOBILE = 0
+const HERO_POSTER_DESKTOP = '/video/DippsDevHero.jpg'
+const HERO_POSTER_MOBILE = '/video/DippsDevMobile.jpg'
 const HERO_MOBILE_MQ = '(max-width: 799px)'
 
 function heroForViewport() {
   const mobile = typeof window !== 'undefined' && window.matchMedia(HERO_MOBILE_MQ).matches
   return mobile
-    ? { src: HERO_CLIP_MOBILE, start: HERO_START_MOBILE }
-    : { src: HERO_CLIP_DESKTOP, start: HERO_START_DESKTOP }
+    ? { src: HERO_CLIP_MOBILE, poster: HERO_POSTER_MOBILE }
+    : { src: HERO_CLIP_DESKTOP, poster: HERO_POSTER_DESKTOP }
 }
 
 export default function Home() {
@@ -45,70 +44,54 @@ export default function Home() {
     const video = videoRef.current
     if (!video) return
 
-    const { start } = hero
-
-    const seekAndPlay = () => {
-      try {
-        if (start > 0 && Math.abs(video.currentTime - start) > 0.35) {
-          video.currentTime = start
-        }
-      } catch {
-        /* ignore seek until ready */
-      }
+    const play = () => {
       void video.play().catch(() => undefined)
     }
 
     const markReady = () => setReady(true)
 
-    const onEnded = () => {
-      video.currentTime = start
-      void video.play().catch(() => undefined)
-    }
-
     const onVis = () => {
-      if (document.visibilityState === 'visible') seekAndPlay()
+      if (document.visibilityState === 'visible') play()
     }
 
     const onEntered = () => {
       window.scrollTo(0, 0)
       ScrollTrigger.refresh()
-      seekAndPlay()
+      play()
     }
 
     const io = new IntersectionObserver(
       ([entry]) => {
         if (!entry) return
-        if (entry.isIntersecting && entry.intersectionRatio > 0.12) seekAndPlay()
+        if (entry.isIntersecting && entry.intersectionRatio > 0.12) play()
         else video.pause()
       },
       { threshold: [0, 0.12, 0.5] },
     )
     io.observe(video)
 
+    // First decoded frame is enough to swap off the still.
     video.addEventListener('loadeddata', markReady)
     video.addEventListener('playing', markReady)
-    video.addEventListener('ended', onEnded)
     document.addEventListener('visibilitychange', onVis)
-    window.addEventListener('pageshow', seekAndPlay)
+    window.addEventListener('pageshow', play)
     window.addEventListener('mbo:entered', onEntered)
 
     // Kick load immediately — don't wait for intro dismiss.
-    video.load()
     if (video.readyState >= 2) {
       markReady()
-      seekAndPlay()
+      play()
     } else {
-      video.addEventListener('loadedmetadata', seekAndPlay, { once: true })
-      video.addEventListener('canplay', seekAndPlay, { once: true })
+      video.addEventListener('loadeddata', play, { once: true })
+      video.addEventListener('canplay', play, { once: true })
     }
 
     return () => {
       io.disconnect()
       video.removeEventListener('loadeddata', markReady)
       video.removeEventListener('playing', markReady)
-      video.removeEventListener('ended', onEnded)
       document.removeEventListener('visibilitychange', onVis)
-      window.removeEventListener('pageshow', seekAndPlay)
+      window.removeEventListener('pageshow', play)
       window.removeEventListener('mbo:entered', onEntered)
     }
   }, [hero])
@@ -186,7 +169,7 @@ export default function Home() {
       <section className="hero spotlight-hero">
         <img
           className={`hero-still${ready ? ' is-hidden' : ''}`}
-          src={HERO_IMAGE}
+          src={hero.poster}
           alt=""
           aria-hidden
           fetchPriority="high"
@@ -199,9 +182,10 @@ export default function Home() {
           src={hero.src}
           muted
           playsInline
+          loop
           preload="auto"
           autoPlay
-          poster={HERO_IMAGE}
+          poster={hero.poster}
           aria-hidden
         />
         <div className="hero-copy">
