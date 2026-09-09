@@ -4,12 +4,14 @@ import {
   BRAND_KICKER,
   BRAND_TAGLINE,
   CAPABILITIES,
+  HERO_IMAGE,
   nextOpenNight,
 } from '../data'
 import HighlightReel from '../components/HighlightReel'
 import { cheapMotion, reducedMotion, softScrollReveal } from '../lib/motion'
 import { useSound } from '../sound'
 import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 const HERO_CLIP_DESKTOP = '/video/DippsDevMp4.mp4'
 const HERO_CLIP_MOBILE = '/video/DippsDevMobile.mp4'
@@ -29,6 +31,7 @@ export default function Home() {
   const { on, toggle } = useSound()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [hero, setHero] = useState(heroForViewport)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     const mq = window.matchMedia(HERO_MOBILE_MQ)
@@ -46,12 +49,16 @@ export default function Home() {
 
     const seekAndPlay = () => {
       try {
-        if (start > 0 && video.currentTime < start) video.currentTime = start
+        if (start > 0 && Math.abs(video.currentTime - start) > 0.35) {
+          video.currentTime = start
+        }
       } catch {
         /* ignore seek until ready */
       }
       void video.play().catch(() => undefined)
     }
+
+    const markReady = () => setReady(true)
 
     const onEnded = () => {
       video.currentTime = start
@@ -62,7 +69,12 @@ export default function Home() {
       if (document.visibilityState === 'visible') seekAndPlay()
     }
 
-    // Pause off-screen — decoding a full-bleed loop while scrolling is a common mobile stutter.
+    const onEntered = () => {
+      window.scrollTo(0, 0)
+      ScrollTrigger.refresh()
+      seekAndPlay()
+    }
+
     const io = new IntersectionObserver(
       ([entry]) => {
         if (!entry) return
@@ -73,18 +85,31 @@ export default function Home() {
     )
     io.observe(video)
 
-    if (video.readyState >= 1) seekAndPlay()
-    else video.addEventListener('loadedmetadata', seekAndPlay, { once: true })
-
+    video.addEventListener('loadeddata', markReady)
+    video.addEventListener('playing', markReady)
     video.addEventListener('ended', onEnded)
     document.addEventListener('visibilitychange', onVis)
     window.addEventListener('pageshow', seekAndPlay)
+    window.addEventListener('mbo:entered', onEntered)
+
+    // Kick load immediately — don't wait for intro dismiss.
+    video.load()
+    if (video.readyState >= 2) {
+      markReady()
+      seekAndPlay()
+    } else {
+      video.addEventListener('loadedmetadata', seekAndPlay, { once: true })
+      video.addEventListener('canplay', seekAndPlay, { once: true })
+    }
 
     return () => {
       io.disconnect()
+      video.removeEventListener('loadeddata', markReady)
+      video.removeEventListener('playing', markReady)
       video.removeEventListener('ended', onEnded)
       document.removeEventListener('visibilitychange', onVis)
       window.removeEventListener('pageshow', seekAndPlay)
+      window.removeEventListener('mbo:entered', onEntered)
     }
   }, [hero])
 
@@ -159,14 +184,24 @@ export default function Home() {
   return (
     <main className="page home-immerse">
       <section className="hero spotlight-hero">
+        <img
+          className={`hero-still${ready ? ' is-hidden' : ''}`}
+          src={HERO_IMAGE}
+          alt=""
+          aria-hidden
+          fetchPriority="high"
+          decoding="async"
+        />
         <video
           key={hero.src}
           ref={videoRef}
-          className="hero-clip"
+          className={`hero-clip${ready ? ' is-ready' : ''}`}
           src={hero.src}
           muted
           playsInline
           preload="auto"
+          autoPlay
+          poster={HERO_IMAGE}
           aria-hidden
         />
         <div className="hero-copy">
@@ -194,7 +229,7 @@ export default function Home() {
       <section className="capabilities">
         {CAPABILITIES.map((item) => (
           <Link className="capability" key={item.id} to={item.to}>
-            <img src={item.image} alt="" />
+            <img src={item.image} alt="" loading="lazy" decoding="async" />
             <div>
               <p className="kicker">{item.id}</p>
               <h2 className="display lg">{item.title}</h2>

@@ -204,9 +204,8 @@ video {
   overflow: hidden;
 }
 
-.hero video,
 .hero .hero-still,
-.hero .atmosphere {
+.hero .hero-clip {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -218,13 +217,27 @@ video {
   pointer-events: none;
 }
 
+.hero .hero-still {
+  z-index: 0;
+  transition: opacity 0.45s ease;
+}
+
+.hero .hero-still.is-hidden {
+  opacity: 0;
+}
+
 .hero .hero-clip {
+  opacity: 0;
+  transition: opacity 0.45s ease;
   transform: scale(1.02);
+}
+
+.hero .hero-clip.is-ready {
+  opacity: 1;
 }
 
 @media (max-width: 799px) {
   .hero .hero-clip {
-    /* Keep native pixels sharp on the lower-res vertical source */
     transform: none;
     object-position: center center;
   }
