@@ -5,8 +5,6 @@ gsap.registerPlugin(ScrollTrigger)
 gsap.config({ force3D: true, nullTargetWarn: false })
 ScrollTrigger.config({
   ignoreMobileResize: true,
-  // Avoid layout thrash from address-bar show/hide on phones.
-  autoRefreshEvents: 'visibilitychange,DOMContentLoaded,load',
 })
 
 export function reducedMotion() {

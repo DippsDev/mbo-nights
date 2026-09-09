@@ -99,7 +99,6 @@ export default function Home() {
     }
 
     const ctx = gsap.context(() => {
-      // Slight scrub lag feels smoother than 1:1 frame linking on desktop.
       gsap.to('.hero-copy', {
         yPercent: -8,
         opacity: 0.35,
@@ -108,7 +107,7 @@ export default function Home() {
           trigger: '.spotlight-hero',
           start: 'top top',
           end: 'bottom top',
-          scrub: 0.55,
+          scrub: true,
         },
       })
 
@@ -128,7 +127,7 @@ export default function Home() {
                 trigger: el,
                 start: 'top bottom',
                 end: 'bottom top',
-                scrub: 0.55,
+                scrub: true,
               },
             },
           )
@@ -145,7 +144,7 @@ export default function Home() {
                 trigger: el,
                 start: 'top 82%',
                 end: 'top 48%',
-                scrub: 0.45,
+                scrub: true,
               },
             },
           )
