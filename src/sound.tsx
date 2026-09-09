@@ -22,15 +22,19 @@ export const SOUND_BED_ID = 'mbo-sound-bed'
 const TRACK = '/audio/DippsDev.mp3'
 const START_AT = 8
 const FILE_VOL = 0.55
-const FADE_IN = 5.5
-const FADE_OUT = 0.9
+/** Long, soft rise so the bed arrives instead of slamming in. */
+const FADE_IN = 7.5
+const FADE_IN_GESTURE = 2.8
+const FADE_OUT = 1.1
 
 class Bed {
   file: HTMLAudioElement
   wanted = true
   private fileFade = 0
   private fading = false
+  private fadeTarget = -1
   private sought = false
+  private introFadeDone = false
 
   constructor(file: HTMLAudioElement) {
     this.file = file
@@ -47,7 +51,6 @@ class Bed {
     return !this.file.paused && !this.file.ended
   }
 
-  /** Seek while paused only — safe before autoplay attempts. */
   seekWhilePaused(force = false) {
     if (this.sought && !force) return
     if (force) this.sought = false
@@ -81,44 +84,37 @@ class Bed {
     else el.addEventListener('loadedmetadata', apply, { once: true })
   }
 
-  /** Open-page path: play ASAP and fade 0 → full. */
+  /** Ensure playback; start a single smooth intro fade once. */
   beginFadeIn() {
     this.wanted = true
     const el = this.file
     el.muted = false
     this.seekWhilePaused()
-    if (el.paused || el.volume < 0.04) el.volume = 0
 
-    const kick = () => {
+    const ensurePlay = () => {
       if (!this.wanted) return
       void el
         .play()
-        .then(() => {
-          if (!this.wanted) return
-          if (el.volume < FILE_VOL * 0.95) this.fadeFile(FILE_VOL, FADE_IN)
-        })
+        .then(() => this.startIntroFade(FADE_IN))
         .catch(() => undefined)
     }
 
-    kick()
+    ensurePlay()
     if (el.readyState < 2) {
-      el.addEventListener('canplay', kick, { once: true })
-      el.addEventListener('loadeddata', kick, { once: true })
+      el.addEventListener('canplay', ensurePlay, { once: true })
     }
   }
 
-  /** Gesture fallback — full volume immediately if autoplay was blocked. */
+  /** Gesture path — still fades, just a bit quicker. */
   playFromGesture() {
     this.wanted = true
     const el = this.file
     el.muted = false
-    cancelAnimationFrame(this.fileFade)
-    this.fading = false
-    el.volume = FILE_VOL
 
     void el
       .play()
       .then(() => {
+        this.startIntroFade(FADE_IN_GESTURE)
         if (!this.sought && el.currentTime < START_AT - 0.25) {
           window.setTimeout(() => {
             if (!this.wanted) return
@@ -137,6 +133,7 @@ class Bed {
 
   mute() {
     this.wanted = false
+    this.introFadeDone = false
     this.fadeFile(0, FADE_OUT, () => {
       if (this.wanted) return
       this.file.pause()
@@ -149,25 +146,44 @@ class Bed {
     if (this.file.paused || this.file.ended) {
       void this.file.play().catch(() => undefined)
     }
-    if (!this.fading && this.live() && this.file.volume < FILE_VOL * 0.35) {
-      this.fadeFile(FILE_VOL, 2)
+  }
+
+  private startIntroFade(seconds: number) {
+    if (!this.wanted) return
+    const el = this.file
+    if (this.introFadeDone || el.volume >= FILE_VOL * 0.98) {
+      this.introFadeDone = true
+      el.volume = FILE_VOL
+      return
     }
+    // Never yank volume down mid-rise — continue from current level.
+    if (this.fading && this.fadeTarget === FILE_VOL) return
+    this.fadeFile(FILE_VOL, seconds, () => {
+      this.introFadeDone = true
+    })
   }
 
   private fadeFile(to: number, seconds: number, done?: () => void) {
     cancelAnimationFrame(this.fileFade)
     this.fading = true
+    this.fadeTarget = to
     const el = this.file
     const from = el.volume
+    // Scale duration by remaining distance so mid-stream joins stay smooth.
+    const span = Math.max(0.04, Math.abs(to - from) / Math.max(0.04, FILE_VOL))
     const start = performance.now()
-    const dur = Math.max(40, seconds * 1000)
+    const dur = Math.max(80, seconds * 1000 * span)
     const step = (now: number) => {
+      if (!this.fading) return
       const t = Math.min(1, (now - start) / dur)
-      const eased = t * t * (3 - 2 * t)
+      // Smootherstep — very soft shoulders, no audible jump at either end.
+      const eased = t * t * t * (t * (t * 6 - 15) + 10)
       el.volume = Math.min(1, Math.max(0, from + (to - from) * eased))
       if (t < 1) this.fileFade = requestAnimationFrame(step)
       else {
         this.fading = false
+        this.fadeTarget = -1
+        el.volume = to
         done?.()
       }
     }
@@ -224,7 +240,6 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     const engine = ensure()
     if (onRef.current) engine.beginFadeIn()
 
-    // Keep retrying briefly on open — catches late media decode / bfcache restores.
     let tries = 0
     const boot = window.setInterval(() => {
       if (!onRef.current || engine.live() || tries > 12) {
@@ -232,8 +247,9 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         return
       }
       tries += 1
+      // Retry play only — beginFadeIn will not restart an in-progress rise.
       engine.beginFadeIn()
-    }, 400)
+    }, 500)
 
     const kick = (event: Event) => {
       if (!onRef.current || engine.live()) return
@@ -255,7 +271,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     const onEnded = () => {
       if (!onRef.current) return
       engine.seekStart(true)
-      void engine.file.play().then(() => engine.beginFadeIn()).catch(() => undefined)
+      void engine.file.play().catch(() => undefined)
     }
 
     window.addEventListener('pointerdown', kick, true)
@@ -266,8 +282,6 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     engine.file.addEventListener('playing', syncLive)
     engine.file.addEventListener('pause', resume)
     engine.file.addEventListener('ended', onEnded)
-    engine.file.addEventListener('canplay', resume)
-    engine.file.addEventListener('error', resume)
 
     return () => {
       window.clearInterval(boot)
@@ -279,8 +293,6 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       engine.file.removeEventListener('playing', syncLive)
       engine.file.removeEventListener('pause', resume)
       engine.file.removeEventListener('ended', onEnded)
-      engine.file.removeEventListener('canplay', resume)
-      engine.file.removeEventListener('error', resume)
     }
   }, [ensure])
 
