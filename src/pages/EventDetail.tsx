@@ -22,7 +22,9 @@ export default function EventDetail() {
 
   const clip = night?.clips[0]
   const showClip = Boolean(clip && mobile)
-  const poster = night?.image || ''
+  const poster = clip
+    ? clip.replace(/\.mp4$/i, '.jpg')
+    : night?.image || ''
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 799px)')
