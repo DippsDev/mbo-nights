@@ -87,7 +87,7 @@ export const CAPABILITIES = [
     id: '01',
     title: 'Artists',
     to: '/artists',
-    image: placeholder('ARTISTS', 1600, 1000, '161616', 'f3eee6'),
+    image: placeholder('COMING SOON', 1600, 1000, '161616', 'f3eee6'),
     blurb:
       'Batswana acts and touring guests we are pushing next — first headliners and familiar names.',
   },
@@ -95,7 +95,7 @@ export const CAPABILITIES = [
     id: '02',
     title: 'Shop',
     to: '/shop',
-    image: placeholder('SHOP', 1600, 1000),
+    image: placeholder('COMING SOON', 1600, 1000),
     blurb:
       'Tees, caps, and night prints while the drop lasts — grab merch before the room fills.',
   },
@@ -103,7 +103,7 @@ export const CAPABILITIES = [
     id: '03',
     title: 'About',
     to: '/about',
-    image: placeholder('ABOUT', 1600, 1000, '161616', 'c9a27a'),
+    image: placeholder('COMING SOON', 1600, 1000, '161616', 'c9a27a'),
     blurb:
       'More Bands On the way — why we book the rooms and keep Gaborone’s calendar moving.',
   },

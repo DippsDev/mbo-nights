@@ -195,6 +195,28 @@ video {
   padding-top: 0;
 }
 
+.coming-soon {
+  min-height: calc(100svh - var(--nav-h) - 4.5rem);
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 0.85rem;
+  padding: 2.4rem max(1.4rem, env(safe-area-inset-right)) 3rem
+    max(1.4rem, env(safe-area-inset-left));
+}
+
+.coming-soon .display {
+  margin: 0;
+}
+
+.coming-soon .serif {
+  max-width: 28rem;
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.35;
+  color: var(--cream);
+}
+
 .hero {
   position: relative;
   min-height: 100svh;
