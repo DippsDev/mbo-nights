@@ -35,7 +35,7 @@ export default function Menu({
     const el = overlay.current
     const menu = nav.current
     if (!el || !menu) return
-    const items = menu.querySelectorAll('a')
+    const items = menu.querySelectorAll('a, .menu-disabled')
     const reduce = reducedMotion()
 
     tween.current?.kill()
@@ -164,6 +164,10 @@ export default function Menu({
           <span className="menu-index">0{links.length + 1}</span>
           <span className="menu-label">Bag{count > 0 ? ` (${count})` : ''}</span>
         </NavLink>
+        <button type="button" className="menu-disabled" disabled>
+          <span className="menu-index">0{links.length + 2}</span>
+          <span className="menu-label">Administrator</span>
+        </button>
       </nav>
     </div>
   )

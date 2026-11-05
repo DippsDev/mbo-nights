@@ -914,6 +914,7 @@ video {
   .intro,
   .page-veil,
   .menu-overlay a,
+  .menu-overlay .menu-disabled,
   .menu-index,
   .menu-label,
   .highlight,
@@ -923,7 +924,8 @@ video {
     transition: none !important;
   }
 
-  .menu-overlay.open a {
+  .menu-overlay.open a,
+  .menu-overlay.open .menu-disabled {
     opacity: 1;
     transform: none;
   }
@@ -1050,7 +1052,8 @@ video {
   gap: 0.2rem;
 }
 
-.menu-overlay a {
+.menu-overlay a,
+.menu-overlay .menu-disabled {
   display: flex;
   align-items: baseline;
   gap: 1rem;
@@ -1063,6 +1066,16 @@ video {
   letter-spacing: -0.03em;
   text-transform: uppercase;
   color: var(--cream);
+}
+
+.menu-overlay .menu-disabled {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--muted);
+  cursor: default;
 }
 
 .menu-index {
@@ -1654,7 +1667,8 @@ video {
     align-content: center;
   }
 
-  .menu-overlay a {
+  .menu-overlay a,
+  .menu-overlay .menu-disabled {
     font-size: clamp(1.85rem, 10.5vw, 2.8rem);
   }
 
@@ -1910,7 +1924,8 @@ video {
       max(2.4rem, env(safe-area-inset-left));
   }
 
-  .menu-overlay a {
+  .menu-overlay a,
+  .menu-overlay .menu-disabled {
     font-size: clamp(2.2rem, 6.4vw, 4.4rem);
   }
 

@@ -124,14 +124,22 @@ class Bed {
     }
   }
 
-  /** Splash / first tap — always fade 0 → full. */
+  /** Splash / first tap — fade 0 → full only if the bed isn't already going. */
   playFromGesture() {
     this.wanted = true
-    this.unlocked = true
-    this.introFadeDone = false
     const el = this.file
     el.preload = 'auto'
     el.muted = false
+
+    // Desktop may already be fading in. Enter must not zero the volume or jump back to the start.
+    if (!el.paused && !el.ended) {
+      this.unlocked = true
+      if (!this.introFadeDone) this.startIntroFade(FADE_IN)
+      return
+    }
+
+    this.unlocked = true
+    this.introFadeDone = false
     cancelAnimationFrame(this.fileFade)
     this.fading = false
     this.fadeTarget = -1

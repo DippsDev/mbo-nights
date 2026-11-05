@@ -188,7 +188,8 @@ export const nights: Night[] = [
     date: '19 Sep 2026',
     time: '20:00',
     image: placeholder(' ', 1800, 1200),
-    clips: ['/video/nights/DippsDevM2.mp4'],
+    // MBO Rasta clip paused for now — restore '/video/nights/DippsDevM2.mp4' to turn it back on.
+    clips: [],
     teaser:
       'MBO Rasta opens at The Ponds — supper first, then the floor takes over.',
     tiers: [
