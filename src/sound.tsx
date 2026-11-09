@@ -25,6 +25,35 @@ const FILE_VOL = 0.55
 /** Long, soft rise so the bed arrives instead of slamming in. */
 const FADE_IN = 7.5
 
+/**
+ * On-screen sound log for debugging on devices without a console (iPad).
+ * Turn on by opening the site with ?sounddebug — stays on for that tab.
+ */
+const soundDebug = (() => {
+  if (typeof window === 'undefined') return false
+  try {
+    if (new URLSearchParams(location.search).has('sounddebug')) sessionStorage.setItem('sounddebug', '1')
+    return sessionStorage.getItem('sounddebug') === '1'
+  } catch {
+    return false
+  }
+})()
+
+function logSound(msg: string) {
+  if (!soundDebug) return
+  let box = document.getElementById('sound-debug')
+  if (!box) {
+    box = document.createElement('pre')
+    box.id = 'sound-debug'
+    box.style.cssText =
+      'position:fixed;left:6px;bottom:6px;z-index:99999;max-width:min(94vw,460px);max-height:40vh;overflow:auto;margin:0;padding:6px 8px;background:rgba(0,0,0,.85);color:#d6ff4b;font:11px/1.35 ui-monospace,monospace;white-space:pre-wrap;pointer-events:none'
+    document.body.appendChild(box)
+  }
+  const time = new Date().toLocaleTimeString('en-GB')
+  const lines = [`${time} ${msg}`, ...(box.textContent ?? '').split('\n')]
+  box.textContent = lines.slice(0, 40).join('\n')
+}
+
 /** Phones / iOS block unmuted autoplay and failed play() calls can poison later unlocks. */
 function needsGestureUnlock() {
   if (typeof window === 'undefined') return true
@@ -72,7 +101,19 @@ class Bed {
       if (this.everPlayed && t < this.lastPos - 1.5) this.restorePosition()
       else if (!this.file.paused) this.lastPos = t
     })
-    this.file.addEventListener('playing', () => this.restorePosition())
+    this.file.addEventListener('playing', () => {
+      // iOS can reject a play() promise (AbortError) even though playback started —
+      // e.g. when the hero video starts in the same tap. The `playing` event is the
+      // truth: once we've heard it, never treat the bed as fresh again.
+      this.everPlayed = true
+      this.unlocked = true
+      this.restorePosition()
+    })
+    if (soundDebug) {
+      for (const type of ['play', 'playing', 'pause', 'ended', 'emptied', 'loadstart', 'seeking', 'stalled', 'waiting']) {
+        this.file.addEventListener(type, () => logSound(`${type} t=${this.file.currentTime.toFixed(1)} last=${this.lastPos.toFixed(1)}`))
+      }
+    }
   }
 
   /** Put the bed back at its last position if something rewound or reloaded it. */
@@ -82,6 +123,7 @@ class Bed {
     if (!this.everPlayed || target <= 0) return
     const apply = () => {
       if (el.currentTime >= target - 1.5) return
+      logSound(`restore ${el.currentTime.toFixed(1)} -> ${target.toFixed(1)}`)
       try {
         el.currentTime = target
       } catch {
@@ -115,6 +157,7 @@ class Bed {
   }
 
   seekStart(force = false) {
+    logSound(`seekStart t=${this.file.currentTime.toFixed(1)}`)
     if (force) this.sought = false
     const el = this.file
     // Intentional rewind (loop): move the remembered position with it.
@@ -162,6 +205,7 @@ class Bed {
 
   /** Splash / first tap — fade 0 → full only if the bed isn't already going. */
   playFromGesture() {
+    logSound(`playFromGesture paused=${this.file.paused} everPlayed=${this.everPlayed} t=${this.file.currentTime.toFixed(1)}`)
     this.wanted = true
     const el = this.file
     el.preload = 'auto'
@@ -204,7 +248,16 @@ class Bed {
         .then(() => {
           runFade()
         })
-        .catch(() => {
+        .catch((err: unknown) => {
+          logSound(`play() rejected: ${(err as { name?: string })?.name ?? err}`)
+          // Rejected but actually playing (iOS AbortError race), or it has played
+          // before: reloading here is what restarts the song. Just carry on.
+          if (this.everPlayed || !el.paused) {
+            this.everPlayed = true
+            this.restorePosition()
+            if (el.paused) void el.play().catch(() => undefined)
+            return
+          }
           // Recover from earlier failed autoplay attempts on iOS.
           try {
             el.load()
@@ -350,6 +403,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     }, 500)
 
     const kick = (event: Event) => {
+      if (soundDebug) logSound(`tap live=${engine.live()} on=${onRef.current}`)
       if (!onRef.current || engine.live()) return
       if (event.target instanceof Element && event.target.closest('[data-sound-toggle]')) return
       // Intro owns the first unlock + fade on mobile.
