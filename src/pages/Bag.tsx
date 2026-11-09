@@ -1,30 +1,26 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useCart } from '../cart'
+import { Link, useNavigate } from 'react-router-dom'
+import { useCart, type CartItem } from '../cart'
+import { MAX_PER_TIER, stockKey, ticketRef, useStock } from '../lib/tickets'
 
 export default function Bag() {
-  const { items, remove, total, clear } = useCart()
-  const [done, setDone] = useState(false)
+  const { items, remove, setQty } = useCart()
+  const navigate = useNavigate()
+  const { stock } = useStock()
+  const tickets = items.filter((i) => i.kind === 'ticket')
+  const hasMerch = items.some((i) => i.kind === 'merch')
+  const total = tickets.reduce((n, i) => n + i.price * i.qty, 0)
 
-  if (done) {
-    return (
-      <main className="page">
-        <header className="page-hero about-block">
-          <p className="kicker">Bag</p>
-          <h1 className="display lg">You’re in</h1>
-          <p className="serif">
-            Thanks — your bag is cleared. Checkout is still demo-only, so nothing was charged.
-          </p>
-          <Link className="btn" to="/">
-            Back home
-          </Link>
-        </header>
-      </main>
-    )
+  const maxFor = (item: CartItem) => {
+    if (item.kind !== 'ticket') return MAX_PER_TIER
+    const { nightId, tierId } = ticketRef(item)
+    // Until stock loads, don't block the buttons; the server re-checks anyway.
+    const live = stock?.[stockKey(nightId, tierId)]
+    return Math.min(MAX_PER_TIER, live ? live.remaining : MAX_PER_TIER)
   }
+  const overStock = tickets.some((i) => i.qty > maxFor(i))
 
   return (
-    <main className="page">
+    <main className="page flow">
       <header className="page-hero">
         <p className="kicker">Bag</p>
         <h1 className="display lg">Your bag</h1>
@@ -32,43 +28,68 @@ export default function Bag() {
       <section className="section" style={{ paddingTop: 0 }}>
         {items.length === 0 ? (
           <p>
-            Nothing here yet. Grab tickets from the{' '}
-            <Link to="/">home page</Link> or something from the{' '}
-            <Link to="/shop">shop</Link>.
+            Nothing here yet. Grab tickets from the <Link to="/">home page</Link>.
           </p>
         ) : (
-          <>
+          <div className="checkout-wrap">
             <div className="bag-list">
-              {items.map((item) => (
-                <div className="bag-row" key={item.key}>
-                  <img src={item.image} alt="" />
-                  <div>
-                    <strong>{item.name}</strong>
-                    <div className="demo-note">
-                      {item.detail} · ×{item.qty}
+              {items.map((item) => {
+                const max = maxFor(item)
+                return (
+                  <div className="bag-row" key={item.key}>
+                    <img src={item.image} alt="" />
+                    <div>
+                      <strong>{item.name}</strong>
+                      <div className="demo-note">{item.detail}</div>
+                      <div className="qty">
+                        <button
+                          type="button"
+                          aria-label={`One fewer ${item.name}`}
+                          onClick={() => setQty(item.key, item.qty - 1)}
+                        >
+                          −
+                        </button>
+                        <span aria-live="polite">{item.qty}</span>
+                        <button
+                          type="button"
+                          aria-label={`One more ${item.name}`}
+                          disabled={item.qty >= max}
+                          onClick={() => setQty(item.key, item.qty + 1)}
+                        >
+                          +
+                        </button>
+                        <button className="link-arrow" onClick={() => remove(item.key)}>
+                          Remove
+                        </button>
+                      </div>
+                      {item.qty > max && (
+                        <div className="form-error">
+                          {max === 0 ? 'Sold out — remove this line.' : `Only ${max} left.`}
+                        </div>
+                      )}
                     </div>
-                    <button className="link-arrow" onClick={() => remove(item.key)}>
-                      Remove
-                    </button>
+                    <span>P{item.price * item.qty}</span>
                   </div>
-                  <span>P{item.price * item.qty}</span>
-                </div>
-              ))}
+                )
+              })}
             </div>
-            <p>
-              Total <strong>P{total}</strong>
-            </p>
-            <p className="demo-note">Demo checkout — no payment is taken yet.</p>
+            <div className="checkout-total">
+              <span>Total</span>
+              <strong>P{total}</strong>
+            </div>
+            {hasMerch && (
+              <p className="demo-note">
+                Merch isn’t on sale yet — only the tickets in your bag go through checkout.
+              </p>
+            )}
             <button
               className="btn"
-              onClick={() => {
-                clear()
-                setDone(true)
-              }}
+              disabled={tickets.length === 0 || overStock}
+              onClick={() => navigate('/checkout')}
             >
-              Confirm
+              Checkout
             </button>
-          </>
+          </div>
         )}
       </section>
     </main>

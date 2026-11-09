@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useCart } from '../cart'
 import {
@@ -8,18 +8,20 @@ import {
   merchForNight,
 } from '../data'
 import { isNarrow } from '../lib/motion'
-import { forceMuted } from '../lib/media'
+import { forceMuted, useMutedVideoRef } from '../lib/media'
+import { MAX_PER_TIER, stockKey, useStock } from '../lib/tickets'
 
 export default function EventDetail() {
   const { id } = useParams()
   const night = id ? getNight(id) : undefined
-  const { add } = useCart()
+  const { add, items } = useCart()
+  const { stock, error: stockError } = useStock()
   const [note, setNote] = useState('')
   const [mobile, setMobile] = useState(() =>
     typeof window !== 'undefined' ? isNarrow() : false,
   )
   const [ready, setReady] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const [videoRef, attachVideo] = useMutedVideoRef()
 
   const clip = night?.clips[0]
   const showClip = Boolean(clip && mobile)
@@ -88,7 +90,7 @@ export default function EventDetail() {
       document.removeEventListener('visibilitychange', onVis)
       window.removeEventListener('pageshow', play)
     }
-  }, [showClip, clip])
+  }, [showClip, clip, videoRef])
 
   if (!night) return <Navigate to="/" replace />
 
@@ -98,14 +100,22 @@ export default function EventDetail() {
 
   const buy = (tierId: string) => {
     const tier = night.tiers.find((t) => t.id === tierId)
-    if (!tier || night.soldOut || tier.remaining <= 0) return
+    const live = stock?.[stockKey(night.id, tierId)]
+    if (!tier || !live || night.soldOut) return
+    const inBag = items.find((i) => i.key === `ticket:${night.id}:${tier.id}`)?.qty ?? 0
+    const max = Math.min(MAX_PER_TIER, live.remaining)
+    if (inBag >= max) {
+      setNote(max === 0 ? 'Sold out' : `Max ${max} in your bag`)
+      window.setTimeout(() => setNote(''), 1800)
+      return
+    }
     add({
       key: `ticket:${night.id}:${tier.id}`,
       kind: 'ticket',
       refId: night.id,
       name: night.title,
       detail: `${tier.name} · ${night.date} · ${venue?.name}`,
-      price: tier.price,
+      price: live.price,
       image: night.image,
     })
     setNote(`${tier.name} added`)
@@ -127,7 +137,7 @@ export default function EventDetail() {
                 decoding="async"
               />
               <video
-                ref={videoRef}
+                ref={attachVideo}
                 className={`event-clip${ready ? ' is-ready' : ''}`}
                 src={clip}
                 poster={poster}
@@ -135,7 +145,6 @@ export default function EventDetail() {
                 playsInline
                 loop
                 preload="auto"
-                autoPlay
                 aria-label={`${night.title} preview`}
               />
             </>
@@ -162,17 +171,20 @@ export default function EventDetail() {
 
           <div className="tiers">
             {night.tiers.map((tier) => {
-              const gone = night.soldOut || tier.remaining <= 0
+              const live = stock?.[stockKey(night.id, tier.id)]
+              const left = live?.remaining ?? 0
+              const gone = Boolean(live) && (night.soldOut || left <= 0)
+              const loading = !live
               return (
                 <div className="tier" key={tier.id}>
                   <div>
                     <strong>{tier.name}</strong>
                     <div className="demo-note">
-                      {gone ? 'Gone' : `${tier.remaining} left`}
+                      {loading ? (stockError ? 'Can’t load — refresh' : 'Checking…') : gone ? 'Gone' : `${left} left`}
                     </div>
                   </div>
-                  <button className="btn" disabled={gone} onClick={() => buy(tier.id)}>
-                    {gone ? 'Sold out' : `P${tier.price}`}
+                  <button className="btn" disabled={gone || loading} onClick={() => buy(tier.id)}>
+                    {gone ? 'Sold out' : `P${live?.price ?? tier.price}`}
                   </button>
                 </div>
               )

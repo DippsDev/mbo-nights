@@ -21,6 +21,7 @@ type CartContextValue = {
   items: CartItem[]
   add: (item: Omit<CartItem, 'qty'> & { qty?: number }) => void
   remove: (key: string) => void
+  setQty: (key: string, qty: number) => void
   clear: () => void
   count: number
   total: number
@@ -48,6 +49,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       items,
       add,
       remove: (key) => setItems((prev) => prev.filter((p) => p.key !== key)),
+      setQty: (key, qty) =>
+        setItems((prev) =>
+          qty <= 0
+            ? prev.filter((p) => p.key !== key)
+            : prev.map((p) => (p.key === key ? { ...p, qty } : p)),
+        ),
       clear: () => setItems([]),
       count: items.reduce((n, i) => n + i.qty, 0),
       total: items.reduce((n, i) => n + i.price * i.qty, 0),
