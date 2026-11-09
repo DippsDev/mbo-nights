@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   BRAND_TAGLINE,
@@ -9,7 +9,7 @@ import HighlightReel from '../components/HighlightReel'
 import { softScrollReveal } from '../lib/motion'
 import { useSound } from '../sound'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { forceMuted } from '../lib/media'
+import { forceMuted, useMutedVideoRef } from '../lib/media'
 
 const HERO_CLIP_DESKTOP = '/video/DippsDevHero.mp4'
 const HERO_CLIP_MOBILE = '/video/DippsDevMobile.mp4'
@@ -27,7 +27,7 @@ function heroForViewport() {
 export default function Home() {
   const next = nextOpenNight()
   const { on, toggle } = useSound()
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const [videoRef, attachVideo] = useMutedVideoRef()
   const [hero, setHero] = useState(heroForViewport)
   const [ready, setReady] = useState(false)
 
@@ -125,7 +125,7 @@ export default function Home() {
       window.removeEventListener('pageshow', play)
       window.removeEventListener('mbo:entered', onEntered)
     }
-  }, [hero])
+  }, [hero, videoRef])
 
   useEffect(
     () =>
@@ -149,14 +149,13 @@ export default function Home() {
         />
         <video
           key={hero.src}
-          ref={videoRef}
+          ref={attachVideo}
           className={`hero-clip${ready ? ' is-ready' : ''}`}
           src={hero.src}
           muted
           playsInline
           loop
           preload="auto"
-          autoPlay
           poster={hero.poster}
           aria-hidden
         />

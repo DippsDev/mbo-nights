@@ -47,6 +47,12 @@ class Bed {
   private unlocked = false
   /** Once the bed has actually played, never rewind it to recover — just resume. */
   private everPlayed = false
+  /**
+   * Last known play position. iOS can pause, reload or rewind the element when
+   * another media element (e.g. a remounted hero video) touches the audio session;
+   * we use this to put the bed back where it was instead of restarting the track.
+   */
+  private lastPos = 0
 
   constructor(file: HTMLAudioElement) {
     this.file = file
@@ -59,6 +65,31 @@ class Bed {
     if (!this.file.getAttribute('src')) this.file.src = TRACK
     // Preload + park at the bed start while paused (safe without a gesture).
     this.seekWhilePaused()
+
+    this.file.addEventListener('timeupdate', () => {
+      const t = this.file.currentTime
+      // A jump backwards we didn't ask for (seekStart moves lastPos first).
+      if (this.everPlayed && t < this.lastPos - 1.5) this.restorePosition()
+      else if (!this.file.paused) this.lastPos = t
+    })
+    this.file.addEventListener('playing', () => this.restorePosition())
+  }
+
+  /** Put the bed back at its last position if something rewound or reloaded it. */
+  restorePosition() {
+    const el = this.file
+    const target = this.lastPos
+    if (!this.everPlayed || target <= 0) return
+    const apply = () => {
+      if (el.currentTime >= target - 1.5) return
+      try {
+        el.currentTime = target
+      } catch {
+        /* ignore */
+      }
+    }
+    if (el.readyState >= 1) apply()
+    else el.addEventListener('loadedmetadata', apply, { once: true })
   }
 
   live() {
@@ -86,6 +117,8 @@ class Bed {
   seekStart(force = false) {
     if (force) this.sought = false
     const el = this.file
+    // Intentional rewind (loop): move the remembered position with it.
+    this.lastPos = START_AT
     const apply = () => {
       try {
         el.currentTime = START_AT
@@ -145,6 +178,7 @@ class Bed {
     // pick up where it stopped instead of reloading from the start.
     if (this.everPlayed) {
       this.unlocked = true
+      this.restorePosition()
       void el
         .play()
         .then(() => this.startIntroFade(FADE_IN))
@@ -208,6 +242,7 @@ class Bed {
   keepPlaying() {
     if (!this.wanted || !this.unlocked) return
     if (this.file.ended) this.seekStart(true)
+    else this.restorePosition()
     if (this.file.paused || this.file.ended) {
       void this.file.play().catch(() => undefined)
     }
