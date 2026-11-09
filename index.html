@@ -37,8 +37,9 @@
     <audio
       id="mbo-sound-bed"
       class="sound-bed"
-      src="/audio/DippsDev.mp3"
+      src="/audio/DippsDevBed.mp3"
       preload="metadata"
+      loop
       playsinline
       webkit-playsinline
     ></audio>
@@ -55,9 +56,6 @@
         if (ios || coarse) return
         function go() {
           a.preload = 'auto'
-          try {
-            if (a.readyState >= 1 && a.paused) a.currentTime = 8
-          } catch (e) {}
           var p = a.play()
           if (p && p.catch) p.catch(function () {})
         }

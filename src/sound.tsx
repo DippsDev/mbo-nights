@@ -19,10 +19,14 @@ type SoundContextValue = {
 const SoundContext = createContext<SoundContextValue | null>(null)
 
 export const SOUND_BED_ID = 'mbo-sound-bed'
-const TRACK = '/audio/DippsDev.mp3'
-const START_AT = 8
+/**
+ * The bed already starts where the music should (the intro was cut out of the
+ * file), so we never seek. Seeking was what broke iPad: Safari would sometimes
+ * land the jump before the data was ready and report the track as `ended`.
+ */
+const TRACK = '/audio/DippsDevBed.mp3'
 const FILE_VOL = 0.55
-/** Long, soft rise so the bed arrives instead of slamming in. */
+/** Long, soft rise so the bed arrives instead of slamming in. (iOS ignores volume.) */
 const FADE_IN = 7.5
 
 /**
@@ -32,7 +36,9 @@ const FADE_IN = 7.5
 const soundDebug = (() => {
   if (typeof window === 'undefined') return false
   try {
-    if (new URLSearchParams(location.search).has('sounddebug')) sessionStorage.setItem('sounddebug', '1')
+    if (new URLSearchParams(location.search).has('sounddebug')) {
+      sessionStorage.setItem('sounddebug', '1')
+    }
     return sessionStorage.getItem('sounddebug') === '1'
   } catch {
     return false
@@ -70,213 +76,101 @@ class Bed {
   wanted = true
   private fileFade = 0
   private fading = false
-  private fadeTarget = -1
-  private sought = false
   private introFadeDone = false
   private unlocked = false
-  /** Once the bed has actually played, never rewind it to recover — just resume. */
+  /** Set from the element's own `playing` event — iOS play() promises can lie. */
   private everPlayed = false
-  /**
-   * Last known play position. iOS can pause, reload or rewind the element when
-   * another media element (e.g. a remounted hero video) touches the audio session;
-   * we use this to put the bed back where it was instead of restarting the track.
-   */
-  private lastPos = 0
+  private retried = false
 
   constructor(file: HTMLAudioElement) {
     this.file = file
-    this.file.loop = false
+    // Native looping: no `ended` → seek → play dance for us to get wrong.
+    this.file.loop = true
     // Metadata only until unlock — leave bandwidth for the hero video.
     this.file.preload = needsGestureUnlock() ? 'metadata' : 'auto'
     this.file.muted = false
     this.file.setAttribute('playsinline', '')
     this.file.setAttribute('webkit-playsinline', '')
-    if (!this.file.getAttribute('src')) this.file.src = TRACK
-    // Preload + park at the bed start while paused (safe without a gesture).
-    this.seekWhilePaused()
+    if (!this.file.getAttribute('src')?.endsWith(TRACK)) this.file.src = TRACK
 
-    this.file.addEventListener('timeupdate', () => {
-      const t = this.file.currentTime
-      // A jump backwards we didn't ask for (seekStart moves lastPos first).
-      if (this.everPlayed && t < this.lastPos - 1.5) this.restorePosition()
-      else if (!this.file.paused) this.lastPos = t
-    })
     this.file.addEventListener('playing', () => {
-      // iOS can reject a play() promise (AbortError) even though playback started —
-      // e.g. when the hero video starts in the same tap. The `playing` event is the
-      // truth: once we've heard it, never treat the bed as fresh again.
       this.everPlayed = true
       this.unlocked = true
-      this.restorePosition()
     })
-    if (soundDebug) {
-      for (const type of ['play', 'playing', 'pause', 'ended', 'emptied', 'loadstart', 'seeking', 'stalled', 'waiting']) {
-        this.file.addEventListener(type, () => logSound(`${type} t=${this.file.currentTime.toFixed(1)} last=${this.lastPos.toFixed(1)}`))
-      }
-    }
-  }
 
-  /** Put the bed back at its last position if something rewound or reloaded it. */
-  restorePosition() {
-    const el = this.file
-    const target = this.lastPos
-    if (!this.everPlayed || target <= 0) return
-    const apply = () => {
-      if (el.currentTime >= target - 1.5) return
-      logSound(`restore ${el.currentTime.toFixed(1)} -> ${target.toFixed(1)}`)
-      try {
-        el.currentTime = target
-      } catch {
-        /* ignore */
+    if (soundDebug) {
+      const types = ['play', 'playing', 'pause', 'ended', 'emptied', 'stalled', 'waiting']
+      for (const type of types) {
+        this.file.addEventListener(type, () =>
+          logSound(
+            `${type} t=${this.file.currentTime.toFixed(1)} dur=${this.file.duration.toFixed(1)}`,
+          ),
+        )
       }
     }
-    if (el.readyState >= 1) apply()
-    else el.addEventListener('loadedmetadata', apply, { once: true })
   }
 
   live() {
     return !this.file.paused && !this.file.ended
   }
 
-  seekWhilePaused(force = false) {
-    if (this.sought && !force) return
-    if (force) this.sought = false
-    const el = this.file
-    if (!el.paused && el.currentTime > 0.2) return
-    const apply = () => {
-      if (!el.paused && el.currentTime > 0.2) return
-      try {
-        el.currentTime = START_AT
-        this.sought = true
-      } catch {
-        /* ignore */
-      }
-    }
-    if (el.readyState >= 1) apply()
-    else el.addEventListener('loadedmetadata', apply, { once: true })
-  }
-
-  seekStart(force = false) {
-    logSound(`seekStart t=${this.file.currentTime.toFixed(1)}`)
-    if (force) this.sought = false
-    const el = this.file
-    // Intentional rewind (loop): move the remembered position with it.
-    this.lastPos = START_AT
-    const apply = () => {
-      try {
-        el.currentTime = START_AT
-        this.sought = true
-      } catch {
-        /* ignore */
-      }
-    }
-    if (el.readyState >= 1) apply()
-    else el.addEventListener('loadedmetadata', apply, { once: true })
+  private play(onStarted?: () => void) {
+    void this.file
+      .play()
+      .then(() => {
+        this.unlocked = true
+        this.everPlayed = true
+        onStarted?.()
+      })
+      .catch((err: unknown) => {
+        logSound(`play() rejected: ${(err as { name?: string })?.name ?? String(err)}`)
+        // iOS can reject while actually playing — the `playing` event already
+        // covered that. Only a bed that has never made a sound gets one reload.
+        if (this.everPlayed || !this.file.paused || this.retried) return
+        this.retried = true
+        try {
+          this.file.load()
+        } catch {
+          /* ignore */
+        }
+        void this.file
+          .play()
+          .then(() => onStarted?.())
+          .catch(() => undefined)
+      })
   }
 
   /** Desktop open-page path. No-ops on gesture-locked mobile until unlocked. */
   beginFadeIn() {
     this.wanted = true
-    if (needsGestureUnlock() && !this.unlocked) {
-      this.seekWhilePaused()
-      return
-    }
-    const el = this.file
-    el.muted = false
-    this.seekWhilePaused()
-
-    const ensurePlay = () => {
-      if (!this.wanted) return
-      void el
-        .play()
-        .then(() => {
-          this.unlocked = true
-          this.everPlayed = true
-          this.startIntroFade(FADE_IN)
-        })
-        .catch(() => undefined)
-    }
-
-    ensurePlay()
-    if (el.readyState < 2) {
-      el.addEventListener('canplay', ensurePlay, { once: true })
-    }
+    if (needsGestureUnlock() && !this.unlocked) return
+    if (this.live()) return
+    this.file.muted = false
+    if (!this.everPlayed) this.file.volume = 0
+    this.play(() => this.startIntroFade(FADE_IN))
   }
 
-  /** Splash / first tap — fade 0 → full only if the bed isn't already going. */
+  /** Enter tap / later taps — start the bed, or resume it where it stopped. */
   playFromGesture() {
-    logSound(`playFromGesture paused=${this.file.paused} everPlayed=${this.everPlayed} t=${this.file.currentTime.toFixed(1)}`)
+    logSound(`gesture paused=${this.file.paused} everPlayed=${this.everPlayed}`)
     this.wanted = true
     const el = this.file
     el.preload = 'auto'
     el.muted = false
 
-    // Desktop may already be fading in. Enter must not zero the volume or jump back to the start.
-    if (!el.paused && !el.ended) {
+    if (this.live()) {
       this.unlocked = true
       if (!this.introFadeDone) this.startIntroFade(FADE_IN)
       return
     }
 
-    // Interrupted (iOS paused it for another media element) or unmuted again:
-    // pick up where it stopped instead of reloading from the start.
-    if (this.everPlayed) {
-      this.unlocked = true
-      this.restorePosition()
-      void el
-        .play()
-        .then(() => this.startIntroFade(FADE_IN))
-        .catch(() => undefined)
-      return
+    if (!this.everPlayed) {
+      this.introFadeDone = false
+      cancelAnimationFrame(this.fileFade)
+      this.fading = false
+      el.volume = 0
     }
-
-    this.unlocked = true
-    this.introFadeDone = false
-    cancelAnimationFrame(this.fileFade)
-    this.fading = false
-    this.fadeTarget = -1
-    el.volume = 0
-
-    const runFade = () => {
-      this.everPlayed = true
-      this.startIntroFade(FADE_IN)
-    }
-
-    const attempt = () => {
-      void el
-        .play()
-        .then(() => {
-          runFade()
-        })
-        .catch((err: unknown) => {
-          logSound(`play() rejected: ${(err as { name?: string })?.name ?? err}`)
-          // Rejected but actually playing (iOS AbortError race), or it has played
-          // before: reloading here is what restarts the song. Just carry on.
-          if (this.everPlayed || !el.paused) {
-            this.everPlayed = true
-            this.restorePosition()
-            if (el.paused) void el.play().catch(() => undefined)
-            return
-          }
-          // Recover from earlier failed autoplay attempts on iOS.
-          try {
-            el.load()
-          } catch {
-            /* ignore */
-          }
-          el.volume = 0
-          this.sought = false
-          this.seekWhilePaused(true)
-          void el
-            .play()
-            .then(() => {
-              runFade()
-            })
-            .catch(() => undefined)
-        })
-    }
-
-    attempt()
+    this.play(() => this.startIntroFade(FADE_IN))
   }
 
   mute() {
@@ -284,7 +178,6 @@ class Bed {
     this.introFadeDone = false
     cancelAnimationFrame(this.fileFade)
     this.fading = false
-    this.fadeTarget = -1
     const el = this.file
     // Cut immediately — fade-out feels broken on mobile Mute taps.
     el.volume = 0
@@ -292,13 +185,11 @@ class Bed {
     el.pause()
   }
 
+  /** iOS paused us (another media element, a call, etc). Pick up where it stopped. */
   keepPlaying() {
-    if (!this.wanted || !this.unlocked) return
-    if (this.file.ended) this.seekStart(true)
-    else this.restorePosition()
-    if (this.file.paused || this.file.ended) {
-      void this.file.play().catch(() => undefined)
-    }
+    if (!this.wanted || !this.unlocked || this.live()) return
+    logSound('resume after pause')
+    void this.file.play().catch(() => undefined)
   }
 
   private startIntroFade(seconds: number) {
@@ -309,7 +200,7 @@ class Bed {
       el.volume = FILE_VOL
       return
     }
-    if (this.fading && this.fadeTarget === FILE_VOL) return
+    if (this.fading) return
     this.fadeFile(FILE_VOL, seconds, () => {
       this.introFadeDone = true
     })
@@ -318,7 +209,6 @@ class Bed {
   private fadeFile(to: number, seconds: number, done?: () => void) {
     cancelAnimationFrame(this.fileFade)
     this.fading = true
-    this.fadeTarget = to
     const el = this.file
     const from = el.volume
     const span = Math.max(0.04, Math.abs(to - from) / Math.max(0.04, FILE_VOL))
@@ -332,7 +222,6 @@ class Bed {
       if (t < 1) this.fileFade = requestAnimationFrame(step)
       else {
         this.fading = false
-        this.fadeTarget = -1
         el.volume = to
         done?.()
       }
@@ -348,6 +237,7 @@ function resolveBedElement() {
   el.id = SOUND_BED_ID
   el.className = 'sound-bed'
   el.preload = 'metadata'
+  el.loop = true
   el.src = TRACK
   el.setAttribute('playsinline', '')
   el.setAttribute('webkit-playsinline', '')
@@ -369,8 +259,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const start = useCallback(() => {
     onRef.current = true
     setOn(true)
-    const engine = ensure()
-    engine.playFromGesture()
+    ensure().playFromGesture()
     // live flips on the playing event; don't assume sync success
   }, [ensure])
 
@@ -402,6 +291,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       engine.beginFadeIn()
     }, 500)
 
+    // A tap while the bed is stopped (but not muted) starts/resumes it.
     const kick = (event: Event) => {
       if (soundDebug) logSound(`tap live=${engine.live()} on=${onRef.current}`)
       if (!onRef.current || engine.live()) return
@@ -413,12 +303,10 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
     const syncLive = () => setLive(engine.live())
 
-    // iOS can pause the bed when a page's video starts. If the user didn't mute,
-    // resume from the same spot (allowed: this element was already gesture-unlocked).
     let resumeTimer = 0
     const onPause = () => {
       syncLive()
-      if (!onRef.current || !engine.wanted || engine.file.ended) return
+      if (!onRef.current || !engine.wanted) return
       // Backgrounded tab / locked screen: let it stay paused; `resume` handles return.
       if (document.visibilityState !== 'visible') return
       window.clearTimeout(resumeTimer)
@@ -426,17 +314,10 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     }
 
     const resume = () => {
-      if (!onRef.current) return
-      if (gestureLocked && !engine.live()) return
-      if (!engine.live()) engine.beginFadeIn()
-      else engine.keepPlaying()
+      if (!onRef.current || document.visibilityState !== 'visible') return
+      if (gestureLocked) engine.keepPlaying()
+      else if (!engine.live()) engine.beginFadeIn()
       setLive(engine.live())
-    }
-
-    const onEnded = () => {
-      if (!onRef.current) return
-      engine.seekStart(true)
-      void engine.file.play().catch(() => undefined)
     }
 
     window.addEventListener('pointerdown', kick, true)
@@ -446,7 +327,6 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     document.addEventListener('visibilitychange', resume)
     engine.file.addEventListener('playing', syncLive)
     engine.file.addEventListener('pause', onPause)
-    engine.file.addEventListener('ended', onEnded)
 
     return () => {
       window.clearInterval(boot)
@@ -458,7 +338,6 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       engine.file.removeEventListener('playing', syncLive)
       engine.file.removeEventListener('pause', onPause)
       window.clearTimeout(resumeTimer)
-      engine.file.removeEventListener('ended', onEnded)
     }
   }, [ensure])
 
