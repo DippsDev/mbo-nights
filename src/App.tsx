@@ -1,10 +1,12 @@
+import { lazy } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { CartProvider } from './cart'
 import { SoundProvider } from './sound'
 import Layout from './components/Layout'
 import Home from './pages/Home'
-import VenueDetail from './pages/VenueDetail'
-import ComingSoon from './pages/ComingSoon'
+// Home ships in the main bundle; everything else loads on first visit.
+const VenueDetail = lazy(() => import('./pages/VenueDetail'))
+const ComingSoon = lazy(() => import('./pages/ComingSoon'))
 
 export default function App() {
   return (

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type MouseEvent } from 'react'
+import { Suspense, useCallback, useEffect, useState, type MouseEvent } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useCart } from '../cart'
 import { nextOpenNight } from '../data'
@@ -47,26 +47,39 @@ export default function Layout() {
   }, [location.pathname])
 
   useEffect(() => {
-    const onScroll = () => {
-      const top = window.scrollY < 12
-      setAtTop((prev) => (prev === top ? prev : top))
-
-      if (!home) {
-        setOverHero(false)
-        return
-      }
-
-      const hero = document.querySelector('.spotlight-hero')
-      const cut =
+    // Measure the hero once (and on resize) — reading offsetHeight inside the
+    // scroll handler forced a layout on every scroll event.
+    const hero = home ? document.querySelector('.spotlight-hero') : null
+    let cut = 0
+    const measure = () => {
+      cut =
         hero instanceof HTMLElement
           ? Math.max(120, hero.offsetHeight - 80)
           : Math.max(120, window.innerHeight - 80)
-      const over = window.scrollY < cut
+    }
+    measure()
+    const ro = hero ? new ResizeObserver(measure) : null
+    if (hero && ro) ro.observe(hero)
+
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const y = window.scrollY
+      const top = y < 12
+      setAtTop((prev) => (prev === top ? prev : top))
+      const over = home && y < cut
       setOverHero((prev) => (prev === over ? prev : over))
     }
-    onScroll()
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update)
+    }
+    update()
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(frame)
+      ro?.disconnect()
+    }
   }, [location.pathname, home])
 
   const navClass = [
@@ -115,7 +128,10 @@ export default function Layout() {
       <Menu open={open} onClose={close} />
       {home ? null : <div className="nav-spacer" aria-hidden />}
       <div className="page-veil" key={location.pathname}>
-        <Outlet />
+        {/* Lazy routes suspend here only — nav and footer stay put. */}
+        <Suspense fallback={null}>
+          <Outlet />
+        </Suspense>
       </div>
       <footer className="site-foot">
         <span>MBO · More Bands On the way</span>

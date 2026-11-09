@@ -1,80 +1,14 @@
-import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { artistsFor, getVenue, nights, type Night } from '../data'
-import { cheapMotion } from '../lib/motion'
 
 export default function HighlightReel() {
-  const wrap = useRef<HTMLElement>(null)
-  const bar = useRef<HTMLSpanElement>(null)
-  const slides = nights
-
-  useEffect(() => {
-    const section = wrap.current
-    if (!section || cheapMotion()) return
-
-    const panels = gsap.utils.toArray<HTMLElement>('.highlight', section)
-    if (panels.length < 2) return
-
-    const ctx = gsap.context(() => {
-      gsap.set(panels.slice(1), { yPercent: 100 })
-
-      const tl = gsap.timeline({
-        defaults: { ease: 'none', force3D: true, duration: 1 },
-        scrollTrigger: {
-          trigger: section,
-          pin: true,
-          scrub: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          end: () => `+=${Math.round(window.innerHeight * 0.9 * (panels.length - 1))}`,
-          onUpdate: (self) => {
-            if (bar.current) bar.current.style.transform = `scaleX(${self.progress})`
-          },
-        },
-      })
-
-      panels.forEach((panel, i) => {
-        if (i === 0) return
-        const prev = panels[i - 1]
-        const at = i - 1
-        const prevCopy = prev.querySelector('.highlight-copy')
-        const copy = panel.querySelector('.highlight-copy')
-
-        tl.fromTo(prev, { scale: 1, opacity: 1 }, { scale: 1.08, opacity: 0.35 }, at)
-        if (prevCopy) {
-          tl.fromTo(prevCopy, { y: 0, opacity: 1 }, { y: -24, opacity: 0 }, at)
-        }
-        tl.fromTo(panel, { yPercent: 100 }, { yPercent: 0 }, at)
-        if (copy) {
-          tl.fromTo(copy, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, at + 0.15)
-        }
-      })
-    }, section)
-
-    const refresh = () => ScrollTrigger.refresh()
-    window.addEventListener('orientationchange', refresh)
-    // Page-in animation / late layout — refresh pin metrics once settled.
-    const refreshTimer = window.setTimeout(refresh, 520)
-
-    return () => {
-      window.clearTimeout(refreshTimer)
-      window.removeEventListener('orientationchange', refresh)
-      ctx.revert()
-    }
-  }, [slides.length])
-
   return (
-    <section className="highlights" ref={wrap}>
+    <section className="highlights">
       <p className="highlights-label">Upcoming</p>
       <div className="highlights-stack">
-        {slides.map((night) => (
+        {nights.map((night) => (
           <HighlightSlide key={night.id} night={night} />
         ))}
-      </div>
-      <div className="highlights-progress" aria-hidden>
-        <span ref={bar} />
       </div>
     </section>
   )
@@ -88,7 +22,7 @@ function HighlightSlide({ night }: { night: Night }) {
 
   return (
     <article className="highlight">
-      <img src={night.image} alt={night.title} />
+      <img src={night.image} alt={night.title} loading="lazy" decoding="async" />
       <div className="highlight-copy">
         <p className="kicker">
           {venue?.type} · {venue?.city}

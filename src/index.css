@@ -7,9 +7,9 @@
   --acid: #d6ff4b;
   --copper: #c9a27a;
   --danger: #ff5a3c;
-  --font-display: 'Oswald', sans-serif;
+  --font-display: 'Oswald Variable', 'Oswald', 'Arial Narrow', sans-serif;
   --font-serif: 'Instrument Serif', Georgia, serif;
-  --font-ui: 'Manrope', system-ui, sans-serif;
+  --font-ui: 'Manrope Variable', 'Manrope', system-ui, sans-serif;
   --nav-h: 4.75rem;
 }
 
@@ -927,40 +927,17 @@ video {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .lineup li,
-  .night-card img,
-  .product-card img,
-  .artist-card img,
-  .venue-card img,
-  .intro,
-  .page-veil,
-  .menu-overlay a,
-  .menu-overlay .menu-disabled,
-  .menu-index,
-  .menu-label,
-  .highlight,
-  .atmosphere-still,
-  .atmosphere::after {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  .menu-overlay.open a,
-  .menu-overlay.open .menu-disabled {
-    opacity: 1;
-    transform: none;
-  }
-
-  .card-grid.shop {
-    transform: none !important;
-  }
-}
-
 .has-cursor,
 .has-cursor a,
 .has-cursor button {
   cursor: none;
+}
+
+/* Cursor.tsx adds .has-cursor only when a mouse/trackpad is present. */
+html:not(.has-cursor) .cursor-dot,
+html:not(.has-cursor) .cursor-ring,
+html:not(.has-cursor) .cursor-glow {
+  display: none;
 }
 
 .cursor-dot,
@@ -1121,7 +1098,7 @@ video {
   color: var(--acid);
 }
 
-@media (hover: hover) and (pointer: fine) {
+@media (any-hover: hover) and (any-pointer: fine) {
   .menu-index,
   .menu-label {
     transition:
@@ -1190,57 +1167,31 @@ video {
   margin: 1.2rem 0 0;
 }
 
+/* Stacked cards on every screen size; each fades up once (lib/motion.ts). */
 .highlights {
   position: relative;
-  height: 100svh;
-  overflow: hidden;
   background: var(--bg);
-}
-
-/* Desktop pin uses position:fixed — let wheel/trackpad pass through to the
-   document scrollport, while keeping buttons clickable. */
-@media (pointer: fine) and (hover: hover) and (min-width: 1200px) {
-  .highlights {
-    pointer-events: none;
-  }
-
-  .highlights .btn,
-  .highlights a {
-    pointer-events: auto;
-  }
+  padding: 0 2.4rem 1.5rem;
 }
 
 .highlights-stack {
-  position: relative;
-  height: 100%;
+  display: grid;
+  gap: 1.25rem;
 }
 
 .highlight {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  min-height: min(42vw, 30rem);
   overflow: hidden;
-  transform: translateZ(0);
-  will-change: transform, opacity;
-}
-
-.highlight:nth-child(1) {
-  z-index: 1;
-}
-
-.highlight:nth-child(2) {
-  z-index: 2;
-}
-
-.highlight:nth-child(3) {
-  z-index: 3;
-}
-
-.highlight:nth-child(4) {
-  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 .highlight img,
 .highlight .atmosphere {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1251,47 +1202,28 @@ video {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: rgba(7, 7, 7, 0.58);
+  background: linear-gradient(
+    to top,
+    rgba(7, 7, 7, 0.95) 0%,
+    rgba(7, 7, 7, 0.55) 50%,
+    rgba(7, 7, 7, 0.25) 100%
+  );
 }
 
 .highlight-copy {
-  position: absolute;
+  position: relative;
   z-index: 2;
-  left: 1.4rem;
-  right: 1.4rem;
-  bottom: 3.6rem;
   max-width: 36rem;
+  padding: 3.5rem 1.8rem 1.8rem;
 }
 
 .highlights-label {
-  position: absolute;
-  top: 5.5rem;
-  left: 1.4rem;
-  z-index: 3;
   margin: 0;
+  padding: 1.6rem 0 0.8rem;
   font-size: 0.7rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--acid);
-}
-
-.highlights-progress {
-  position: absolute;
-  z-index: 3;
-  left: 1.4rem;
-  right: 1.4rem;
-  bottom: 1.4rem;
-  height: 1px;
-  background: var(--line);
-}
-
-.highlights-progress span {
-  display: block;
-  height: 100%;
-  width: 100%;
-  background: var(--acid);
-  transform: scaleX(0);
-  transform-origin: left;
 }
 
 .capabilities {
@@ -1314,7 +1246,6 @@ video {
   height: 100%;
   object-fit: cover;
   opacity: 0.32;
-  will-change: transform;
 }
 
 .capability:hover img {
@@ -1363,17 +1294,10 @@ video {
 
 @media (min-width: 800px) {
   .menu-overlay,
-  .highlight-copy,
-  .highlights-label,
   .capability,
   .contact-split {
     padding-left: 2.4rem;
     padding-right: 2.4rem;
-  }
-
-  .highlights-progress {
-    left: 2.4rem;
-    right: 2.4rem;
   }
 
   .contact-split {
@@ -1421,13 +1345,7 @@ video {
   }
 }
 
-@media (pointer: coarse), (hover: none), (max-width: 1199px) {
-  .cursor-dot,
-  .cursor-ring,
-  .cursor-glow {
-    display: none;
-  }
-
+@media not all and (any-pointer: fine) and (any-hover: hover), (max-width: 1199px) {
   body::before {
     display: none;
   }
@@ -1436,14 +1354,6 @@ video {
     animation-duration: 0.42s;
   }
 
-  .highlight {
-    will-change: auto;
-    transform: none;
-  }
-
-  .capability img {
-    will-change: auto;
-  }
 
   .sticky-buy {
     backdrop-filter: none;
@@ -1695,9 +1605,7 @@ video {
   }
 
   .highlights {
-    height: auto;
-    overflow: visible;
-    padding-bottom: 0.4rem;
+    padding: 0 0 0.4rem;
   }
 
   .highlights-stack {
@@ -1785,10 +1693,6 @@ video {
     left: auto;
     padding: 1.3rem max(1.2rem, env(safe-area-inset-right)) 0.55rem
       max(1.2rem, env(safe-area-inset-left));
-  }
-
-  .highlights-progress {
-    display: none;
   }
 
   .capability {
@@ -1901,10 +1805,6 @@ video {
     padding: 1.2rem 0 0.6rem;
   }
 
-  .highlights-progress {
-    display: none;
-  }
-
   .display.xl {
     font-size: clamp(2.8rem, 7.2vw, 5.4rem);
   }
@@ -1958,4 +1858,19 @@ video {
   .highlight-copy {
     max-width: min(32rem, calc(100% - 3rem));
   }
+}
+
+/* Mobile scroll reveal (motion.ts softScrollReveal on cheapMotion devices).
+   Compositor-only properties; toggled by an IntersectionObserver. */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
 }

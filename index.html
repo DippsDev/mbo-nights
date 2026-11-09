@@ -9,20 +9,15 @@
       if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
       window.scrollTo(0, 0)
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap"
-      rel="stylesheet"
-    />
     <script>
       ;(function () {
         var mobile = window.matchMedia('(max-width: 799px)').matches
         var poster = mobile ? '/video/DippsDevMobile.jpg' : '/video/DippsDevHero.jpg'
         var clip = mobile ? '/video/DippsDevMobile.mp4' : '/video/DippsDevHero.mp4'
+        // No <link rel=preload as=video>: most browsers ignore it, and where they
+        // don't it duplicates the fetch() warm-up below.
         ;[
-          { rel: 'preload', as: 'image', href: poster },
-          { rel: 'preload', as: 'video', href: clip, type: 'video/mp4' },
+          { rel: 'preload', as: 'image', href: poster, fetchpriority: 'high' },
         ].forEach(function (attrs) {
           var l = document.createElement('link')
           Object.keys(attrs).forEach(function (k) {

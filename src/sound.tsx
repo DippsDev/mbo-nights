@@ -45,6 +45,8 @@ class Bed {
   private sought = false
   private introFadeDone = false
   private unlocked = false
+  /** Once the bed has actually played, never rewind it to recover — just resume. */
+  private everPlayed = false
 
   constructor(file: HTMLAudioElement) {
     this.file = file
@@ -113,6 +115,7 @@ class Bed {
         .play()
         .then(() => {
           this.unlocked = true
+          this.everPlayed = true
           this.startIntroFade(FADE_IN)
         })
         .catch(() => undefined)
@@ -138,6 +141,17 @@ class Bed {
       return
     }
 
+    // Interrupted (iOS paused it for another media element) or unmuted again:
+    // pick up where it stopped instead of reloading from the start.
+    if (this.everPlayed) {
+      this.unlocked = true
+      void el
+        .play()
+        .then(() => this.startIntroFade(FADE_IN))
+        .catch(() => undefined)
+      return
+    }
+
     this.unlocked = true
     this.introFadeDone = false
     cancelAnimationFrame(this.fileFade)
@@ -145,7 +159,10 @@ class Bed {
     this.fadeTarget = -1
     el.volume = 0
 
-    const runFade = () => this.startIntroFade(FADE_IN)
+    const runFade = () => {
+      this.everPlayed = true
+      this.startIntroFade(FADE_IN)
+    }
 
     const attempt = () => {
       void el
@@ -307,6 +324,18 @@ export function SoundProvider({ children }: { children: ReactNode }) {
 
     const syncLive = () => setLive(engine.live())
 
+    // iOS can pause the bed when a page's video starts. If the user didn't mute,
+    // resume from the same spot (allowed: this element was already gesture-unlocked).
+    let resumeTimer = 0
+    const onPause = () => {
+      syncLive()
+      if (!onRef.current || !engine.wanted || engine.file.ended) return
+      // Backgrounded tab / locked screen: let it stay paused; `resume` handles return.
+      if (document.visibilityState !== 'visible') return
+      window.clearTimeout(resumeTimer)
+      resumeTimer = window.setTimeout(() => engine.keepPlaying(), 250)
+    }
+
     const resume = () => {
       if (!onRef.current) return
       if (gestureLocked && !engine.live()) return
@@ -327,7 +356,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     window.addEventListener('focus', resume)
     document.addEventListener('visibilitychange', resume)
     engine.file.addEventListener('playing', syncLive)
-    engine.file.addEventListener('pause', syncLive)
+    engine.file.addEventListener('pause', onPause)
     engine.file.addEventListener('ended', onEnded)
 
     return () => {
@@ -338,7 +367,8 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('focus', resume)
       document.removeEventListener('visibilitychange', resume)
       engine.file.removeEventListener('playing', syncLive)
-      engine.file.removeEventListener('pause', syncLive)
+      engine.file.removeEventListener('pause', onPause)
+      window.clearTimeout(resumeTimer)
       engine.file.removeEventListener('ended', onEnded)
     }
   }, [ensure])

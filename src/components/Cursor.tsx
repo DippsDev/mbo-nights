@@ -7,11 +7,12 @@ export default function Cursor() {
   const glow = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Match CSS: custom cursor only on wide fine-pointer desktops.
-    const desktopCursor = window.matchMedia(
-      '(pointer: fine) and (hover: hover) and (min-width: 1200px)',
-    )
-    if (!desktopCursor.matches || reducedMotion() || !finePointer()) return
+    // Any device with a mouse/trackpad gets the custom cursor. No 1200px gate:
+    // Windows display scaling (125–175%) makes most laptops report ~1100px.
+    if (!finePointer() || window.matchMedia('(max-width: 799px)').matches) return
+    // Reduced motion (e.g. Windows "Animation effects" off): keep the cursor, drop the trail.
+    const ease = reducedMotion() ? 1 : 0.2
+    const glowEase = reducedMotion() ? 1 : 0.12
 
     document.documentElement.classList.add('has-cursor')
     let x = 0
@@ -28,10 +29,10 @@ export default function Cursor() {
     }
 
     const tick = () => {
-      rx += (x - rx) * 0.2
-      ry += (y - ry) * 0.2
-      gx += (x - gx) * 0.12
-      gy += (y - gy) * 0.12
+      rx += (x - rx) * ease
+      ry += (y - ry) * ease
+      gx += (x - gx) * glowEase
+      gy += (y - gy) * glowEase
       place(ring.current, rx, ry)
       place(glow.current, gx, gy)
       if (

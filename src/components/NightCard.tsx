@@ -9,7 +9,7 @@ export default function NightCard({ night }: { night: Night }) {
 
   return (
     <Link className="night-card" to={`/events/${night.id}`}>
-      <img src={night.image} alt={night.title} />
+      <img src={night.image} alt={night.title} loading="lazy" decoding="async" />
       <div className="card-meta">
         <span className={`tag ${night.soldOut ? 'sold' : venue?.type === 'restaurant' ? 'copper' : ''}`}>
           {night.soldOut ? 'Sold out' : venue?.type ?? 'Venue type'}

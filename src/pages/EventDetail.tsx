@@ -8,6 +8,7 @@ import {
   merchForNight,
 } from '../data'
 import { isNarrow } from '../lib/motion'
+import { forceMuted } from '../lib/media'
 
 export default function EventDetail() {
   const { id } = useParams()
@@ -57,7 +58,9 @@ export default function EventDetail() {
 
     setReady(false)
 
+    forceMuted(video)
     const play = () => {
+      forceMuted(video)
       void video.play().catch(() => undefined)
     }
     const markReady = () => setReady(true)

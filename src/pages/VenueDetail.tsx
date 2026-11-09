@@ -1,10 +1,20 @@
+import { useEffect, useRef } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { getVenue, nightsForVenue } from '../data'
 import NightCard from '../components/NightCard'
+import { softScrollReveal } from '../lib/motion'
 
 export default function VenueDetail() {
   const { id } = useParams()
   const venue = id ? getVenue(id) : undefined
+  const section = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const el = section.current
+    if (!el) return
+    return softScrollReveal(el.querySelectorAll('.section-head, .card-grid > *'), el)
+  }, [id])
+
   if (!venue) return <Navigate to="/venues" replace />
   const shows = nightsForVenue(venue.id)
 
@@ -22,7 +32,7 @@ export default function VenueDetail() {
           <p className="serif">{venue.blurb}</p>
         </div>
       </div>
-      <section className="section">
+      <section className="section" ref={section}>
         <div className="section-head">
           <h2>Shows here</h2>
         </div>

@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  BRAND_KICKER,
   BRAND_TAGLINE,
   CAPABILITIES,
   nextOpenNight,
 } from '../data'
 import HighlightReel from '../components/HighlightReel'
-import { cheapMotion, reducedMotion, softScrollReveal } from '../lib/motion'
+import { softScrollReveal } from '../lib/motion'
 import { useSound } from '../sound'
-import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { forceMuted } from '../lib/media'
 
 const HERO_CLIP_DESKTOP = '/video/DippsDevHero.mp4'
 const HERO_CLIP_MOBILE = '/video/DippsDevMobile.mp4'
@@ -74,7 +73,9 @@ export default function Home() {
     const video = videoRef.current
     if (!video) return
 
+    forceMuted(video)
     const play = () => {
+      forceMuted(video)
       void video.play().catch(() => undefined)
     }
 
@@ -126,73 +127,14 @@ export default function Home() {
     }
   }, [hero])
 
-  useEffect(() => {
-    if (reducedMotion()) return
-
-    if (cheapMotion()) {
-      return softScrollReveal(
-        '.home-immerse .highlight, .home-immerse .capability, .home-immerse .contact-split > div',
+  useEffect(
+    () =>
+      softScrollReveal(
+        '.home-immerse .highlight, .home-immerse .capability > div, .home-immerse .contact-split > div',
         '.home-immerse',
-      )
-    }
-
-    const ctx = gsap.context(() => {
-      gsap.to('.hero-copy', {
-        yPercent: -8,
-        opacity: 0.35,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '.spotlight-hero',
-          start: 'top top',
-          end: 'bottom top',
-          scrub: true,
-        },
-      })
-
-      gsap.utils.toArray<HTMLElement>('.capability').forEach((el) => {
-        const img = el.querySelector('img')
-        const copy = el.querySelector('div')
-        if (img) {
-          gsap.fromTo(
-            img,
-            { yPercent: -6, scale: 1.04 },
-            {
-              yPercent: 0,
-              scale: 1,
-              ease: 'none',
-              force3D: true,
-              scrollTrigger: {
-                trigger: el,
-                start: 'top bottom',
-                end: 'bottom top',
-                scrub: true,
-              },
-            },
-          )
-        }
-        if (copy) {
-          gsap.fromTo(
-            copy,
-            { y: 28, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              ease: 'none',
-              immediateRender: false,
-              scrollTrigger: {
-                trigger: el,
-                start: 'top 82%',
-                end: 'top 48%',
-                scrub: true,
-              },
-            },
-          )
-        }
-      })
-    })
-
-    return () => ctx.revert()
-  }, [])
+      ),
+    [],
+  )
 
   return (
     <main className="page home-immerse">
@@ -219,7 +161,6 @@ export default function Home() {
           aria-hidden
         />
         <div className="hero-copy">
-          <p className="kicker">{BRAND_KICKER}</p>
           <h1 className="display xl stacked">
             <span>More Bands</span>
             <span>On the way</span>
