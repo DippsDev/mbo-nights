@@ -222,9 +222,9 @@ export type TeamMember = {
 
 /** About page portraits. Swap names, roles and images (e.g. '/images/team/name.jpg') when ready. */
 export const team: TeamMember[] = [
-  { id: 'member-01', name: 'Kgosi', role: 'Founder', image: '/img/team/member-01.jpg' },
-  { id: 'member-02', name: 'MBO Rasta', role: 'Bookings', image: '/img/team/member-02.jpg' },
-  { id: 'member-03', name: 'Leruo', role: 'Production', image: placeholder(' ', 900, 1200) },
+  { id: 'member-01', name: 'Kgosi', role: 'EL PATRON', image: '/img/team/member-01.jpg' },
+  { id: 'member-02', name: 'MBO Rasta', role: 'BIG BOSS', image: '/img/team/member-02.jpg' },
+  { id: 'member-03', name: 'Leruo', role: 'EL JEFE', image: '/img/team/member-03.jpg' },
 ]
 
 export const nights: Night[] = [
