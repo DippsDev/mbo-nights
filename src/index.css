@@ -491,6 +491,7 @@ video {
   display: grid;
   gap: 0.4rem;
   margin: 1.6rem 0 2rem;
+  padding: 0;
 }
 
 .lineup li {
@@ -934,8 +935,8 @@ video {
   .about-dots {
     display: flex;
     justify-content: center;
-    gap: 0.45rem;
-    margin-top: 1rem;
+    gap: 0;
+    margin-top: 0.4rem;
   }
 
   .about-dots button {
@@ -951,7 +952,8 @@ video {
   /* Bigger tap target without changing the look. */
   .about-dots button {
     box-sizing: content-box;
-    border-block: 0.6rem solid transparent;
+    border-block: 0.9rem solid transparent;
+    border-inline: 0.5rem solid transparent;
     background-clip: content-box;
   }
 
@@ -1010,7 +1012,7 @@ video {
 
 .foot-grid {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) repeat(2, minmax(0, 2fr)) minmax(0, 3fr);
+  grid-template-columns: minmax(0, 4fr) repeat(2, minmax(0, 2fr)) repeat(2, minmax(0, 2.6fr));
   gap: clamp(2rem, 4vw, 3.5rem);
   max-width: 80rem;
   margin: 0 auto;
@@ -2717,6 +2719,65 @@ html:not(.has-cursor) .cursor-glow {
   font-size: 1.8rem;
 }
 
+/* Legal pages: tab strip between documents, then readable long-form text. */
+.legal .display.lg {
+  font-size: clamp(2.4rem, 8vw, 4rem);
+}
+
+.legal-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.4rem;
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal-tabs a {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.legal-tabs a.active,
+.legal-tabs a:hover {
+  color: var(--acid);
+}
+
+.legal-empty {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  padding: 2rem 1.4rem;
+  border: 1px dashed var(--line);
+}
+
+.legal-empty p {
+  margin: 0;
+}
+
+.legal-body {
+  display: grid;
+  gap: 2rem;
+}
+
+.legal-body h2 {
+  margin: 0 0 0.7rem;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.legal-body p {
+  margin: 0 0 0.8rem;
+  line-height: 1.7;
+  color: rgba(243, 238, 230, 0.82);
+}
+
 /* Admin sales page: totals, then one block per night with a bar per tier. */
 .sales {
   display: grid;
@@ -3126,4 +3187,50 @@ html:not(.has-cursor) .cursor-glow {
 .door-manual {
   grid-template-columns: 1fr auto;
   align-items: end;
+}
+
+/* Touch screens: give small text links a thumb-sized hit area (~44px)
+   without changing how they look. */
+@media (pointer: coarse) {
+  .logo,
+  .foot-col a,
+  .foot-top,
+  .foot-logo,
+  .legal-tabs a,
+  .link-arrow,
+  .event-ticket-link,
+  .bag-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .bag-link {
+    min-width: 44px;
+  }
+
+  .foot-col a {
+    min-width: 44px;
+    margin-block: -0.6rem;
+  }
+
+  .legal-tabs a {
+    padding-block: 0;
+  }
+}
+
+/* Phones held sideways: short screens need tighter vertical rhythm. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .about-member {
+    max-height: calc(100svh - var(--nav-h) - 2rem);
+  }
+
+  .lineup {
+    margin: 0.8rem 0 1rem;
+  }
+
+  .lineup li {
+    font-size: clamp(2rem, 6vw, 3rem);
+  }
 }

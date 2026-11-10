@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { BRAND_FULL, CHANNELS, nextOpenNight } from '../data'
+import { LEGAL } from '../legal'
 import { reducedMotion } from '../lib/motion'
 import { TICKETS_ENABLED } from '../lib/flags'
 
@@ -60,6 +61,17 @@ export default function Footer() {
             <li>
               <Link to="/bag">Bag</Link>
             </li>
+          </ul>
+        </nav>
+
+        <nav className="foot-col" aria-label="Legal">
+          <p className="foot-head">Legal</p>
+          <ul>
+            {LEGAL.map((d) => (
+              <li key={d.slug}>
+                <Link to={`/legal/${d.slug}`}>{d.title}</Link>
+              </li>
+            ))}
           </ul>
         </nav>
 

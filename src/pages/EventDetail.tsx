@@ -24,11 +24,13 @@ export default function EventDetail() {
   const [ready, setReady] = useState(false)
   const [videoRef, attachVideo] = useMutedVideoRef()
 
+  // Falls back to the night's image if the clip or its poster file isn't in public/ yet.
+  const [clipFailed, setClipFailed] = useState(false)
+  const [posterFailed, setPosterFailed] = useState(false)
   const clip = night?.clips[0]
-  const showClip = Boolean(clip && mobile)
-  const poster = clip
-    ? clip.replace(/\.mp4$/i, '.jpg')
-    : night?.image || ''
+  const showClip = Boolean(clip && mobile && !clipFailed)
+  const poster =
+    clip && !posterFailed ? clip.replace(/\.mp4$/i, '.jpg') : night?.image || ''
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 799px)')
@@ -136,8 +138,10 @@ export default function EventDetail() {
                 aria-hidden
                 fetchPriority="high"
                 decoding="async"
+                onError={() => setPosterFailed(true)}
               />
               <video
+                onError={() => setClipFailed(true)}
                 ref={attachVideo}
                 className={`event-clip${ready ? ' is-ready' : ''}`}
                 src={clip}
