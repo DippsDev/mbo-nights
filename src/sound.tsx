@@ -26,7 +26,6 @@ export const SOUND_BED_ID = 'mbo-sound-bed'
  */
 const PLAYLIST = [
   '/audio/DippsDevBed.mp3',
-  '/audio/DippsDevBed2.mp3',
   '/audio/DippsDevBed3.mp3',
   '/audio/DippsDevBed4.mp3',
 ]
