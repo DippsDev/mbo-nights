@@ -24,10 +24,19 @@ export const SOUND_BED_ID = 'mbo-sound-bed'
  * file), so we never seek. Seeking was what broke iPad: Safari would sometimes
  * land the jump before the data was ready and report the track as `ended`.
  */
-const TRACK = '/audio/DippsDevBed.mp3'
+const PLAYLIST = [
+  '/audio/DippsDevBed.mp3',
+  '/audio/DippsDevBed2.mp3',
+  '/audio/DippsDevBed3.mp3',
+  '/audio/DippsDevBed4.mp3',
+]
 const FILE_VOL = 0.55
 /** Long, soft rise so the bed arrives instead of slamming in. (iOS ignores volume.) */
 const FADE_IN = 7.5
+/** Each track eases out over its last few seconds… */
+const TRACK_FADE_OUT = 4
+/** …and the next one eases in. */
+const TRACK_FADE_IN = 3
 
 /**
  * On-screen sound log for debugging on devices without a console (iPad).
@@ -81,22 +90,31 @@ class Bed {
   /** Set from the element's own `playing` event — iOS play() promises can lie. */
   private everPlayed = false
   private retried = false
+  private index = 0
+  private fadingOut = false
+  private prefetched = -1
 
   constructor(file: HTMLAudioElement) {
     this.file = file
-    // Native looping: no `ended` → seek → play dance for us to get wrong.
-    this.file.loop = true
+    // One element for the whole playlist: once iOS unlocks it, swapping src
+    // and calling play() from `ended` keeps working without a new gesture.
+    this.file.loop = false
     // Metadata only until unlock — leave bandwidth for the hero video.
     this.file.preload = needsGestureUnlock() ? 'metadata' : 'auto'
     this.file.muted = false
     this.file.setAttribute('playsinline', '')
     this.file.setAttribute('webkit-playsinline', '')
-    if (!this.file.getAttribute('src')?.endsWith(TRACK)) this.file.src = TRACK
+    const current = this.file.getAttribute('src') ?? ''
+    const found = PLAYLIST.findIndex((t) => current.endsWith(t))
+    if (found >= 0) this.index = found
+    else this.file.src = PLAYLIST[0]
 
     this.file.addEventListener('playing', () => {
       this.everPlayed = true
       this.unlocked = true
     })
+    this.file.addEventListener('timeupdate', () => this.maybeFadeOut())
+    this.file.addEventListener('ended', () => this.next())
 
     if (soundDebug) {
       const types = ['play', 'playing', 'pause', 'ended', 'emptied', 'stalled', 'waiting']
@@ -178,6 +196,7 @@ class Bed {
     this.introFadeDone = false
     cancelAnimationFrame(this.fileFade)
     this.fading = false
+    this.fadingOut = false
     const el = this.file
     // Cut immediately — fade-out feels broken on mobile Mute taps.
     el.volume = 0
@@ -190,6 +209,54 @@ class Bed {
     if (!this.wanted || !this.unlocked || this.live()) return
     logSound('resume after pause')
     void this.file.play().catch(() => undefined)
+  }
+
+  /** Ease the current track out as it nears its end. */
+  private maybeFadeOut() {
+    const el = this.file
+    if (!this.wanted || this.fadingOut || el.paused) return
+    const left = el.duration - el.currentTime
+    if (!Number.isFinite(left) || el.duration < TRACK_FADE_OUT * 3) return
+    // Warm the cache for the next file so it starts without a load gap.
+    if (left < 30 && this.prefetched !== this.index) {
+      this.prefetched = this.index
+      const warm = new Audio()
+      warm.preload = 'auto'
+      warm.src = PLAYLIST[(this.index + 1) % PLAYLIST.length]
+    }
+    if (left > TRACK_FADE_OUT) return
+    this.fadingOut = true
+    this.introFadeDone = false
+    // Finish the fade slightly early and cut straight to the next track,
+    // rather than sitting through the silent tail until `ended`.
+    this.fadeFile(0, Math.max(0.3, left - 0.4), () => this.next(true), true)
+  }
+
+  /** Track finished — move on, wrapping back to the first after the last. */
+  private next(early = false) {
+    const el = this.file
+    // Safari can fire a bogus `ended` early; just carry on with the same track.
+    if (!early && Number.isFinite(el.duration) && el.currentTime < el.duration - 1.5) {
+      if (this.wanted) void el.play().catch(() => undefined)
+      return
+    }
+    this.index = (this.index + 1) % PLAYLIST.length
+    logSound(`next track ${this.index}`)
+    cancelAnimationFrame(this.fileFade)
+    this.fading = false
+    this.fadingOut = false
+    this.introFadeDone = false
+    el.volume = 0
+    el.src = PLAYLIST[this.index]
+    if (!this.wanted) return
+    void el
+      .play()
+      .then(() => {
+        if (!this.wanted) return
+        // Ease-out curve: audible right away, then settles — no near-silent lead-in.
+        this.fadeFile(FILE_VOL, TRACK_FADE_IN, () => (this.introFadeDone = true), true, true)
+      })
+      .catch(() => undefined)
   }
 
   private startIntroFade(seconds: number) {
@@ -206,18 +273,24 @@ class Bed {
     })
   }
 
-  private fadeFile(to: number, seconds: number, done?: () => void) {
+  private fadeFile(
+    to: number,
+    seconds: number,
+    done?: () => void,
+    exact = false,
+    easeOut = false,
+  ) {
     cancelAnimationFrame(this.fileFade)
     this.fading = true
     const el = this.file
     const from = el.volume
-    const span = Math.max(0.04, Math.abs(to - from) / Math.max(0.04, FILE_VOL))
+    const span = exact ? 1 : Math.max(0.04, Math.abs(to - from) / Math.max(0.04, FILE_VOL))
     const start = performance.now()
     const dur = Math.max(80, seconds * 1000 * span)
     const step = (now: number) => {
       if (!this.fading) return
       const t = Math.min(1, (now - start) / dur)
-      const eased = t * t * t * (t * (t * 6 - 15) + 10)
+      const eased = easeOut ? 1 - (1 - t) ** 3 : t * t * t * (t * (t * 6 - 15) + 10)
       el.volume = Math.min(1, Math.max(0, from + (to - from) * eased))
       if (t < 1) this.fileFade = requestAnimationFrame(step)
       else {
@@ -237,8 +310,8 @@ function resolveBedElement() {
   el.id = SOUND_BED_ID
   el.className = 'sound-bed'
   el.preload = 'metadata'
-  el.loop = true
-  el.src = TRACK
+  el.loop = false
+  el.src = PLAYLIST[0]
   el.setAttribute('playsinline', '')
   el.setAttribute('webkit-playsinline', '')
   document.body.appendChild(el)
