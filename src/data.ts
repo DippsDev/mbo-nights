@@ -95,32 +95,53 @@ export const HERO_IMAGE = '/IMG_1990-scaled.jpeg'
 /** Hero background reel. */
 export const SHOWREEL_CLIPS: string[] = []
 
-export const CAPABILITIES = [
+/**
+ * Home page section panels. `video` is an optional muted background loop — drop an
+ * .mp4 in public/video/sections/ and set the path (e.g. '/video/sections/artists.mp4').
+ * Leave it '' to show `image` instead. A matching .jpg next to the clip is used as its
+ * first frame while it loads.
+ */
+export const CAPABILITIES: {
+  id: string
+  title: string
+  to: string
+  image: string
+  video: string
+  /** Which part of the clip stays in frame when it's cropped, as CSS object-position. */
+  focus?: string
+  blurb: string
+}[] = [
   {
     id: '01',
-    title: 'Artists',
-    to: '/artists',
-    image: placeholder('COMING SOON', 1600, 1000, '161616', 'f3eee6'),
-    blurb:
-      'Batswana acts and touring guests we are pushing next — first headliners and familiar names.',
-  },
-  {
-    id: '02',
     title: 'Shop',
     to: '/shop',
-    image: placeholder('COMING SOON', 1600, 1000),
+    video: '',
+    focus: 'center 62%',
+    image: '/img/sections/shop.jpg',
     blurb:
       'Tees, caps, and night prints while the drop lasts — grab merch before the room fills.',
   },
   {
-    id: '03',
+    id: '02',
     title: 'About',
     to: '/about',
+    video: '/video/sections/about.mp4',
+    focus: 'center 88%',
     image: placeholder('COMING SOON', 1600, 1000, '161616', 'c9a27a'),
     blurb:
       'More Bands On the way — why we book the rooms and keep Gaborone’s calendar moving.',
   },
-] as const
+  {
+    id: '03',
+    title: 'Artists',
+    to: '/artists',
+    video: '/video/sections/artists.mp4',
+    focus: 'center 32%',
+    image: placeholder('COMING SOON', 1600, 1000, '161616', 'f3eee6'),
+    blurb:
+      'Batswana acts and touring guests we are pushing next — first headliners and familiar names.',
+  },
+]
 
 export const artists: Artist[] = [
   {

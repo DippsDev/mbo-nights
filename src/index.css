@@ -1382,6 +1382,28 @@ html:not(.has-cursor) .cursor-glow {
   animation: introIn 0.6s 0.9s ease forwards;
 }
 
+/* Age notice — sits above "Enter" so it's read before the tap. */
+.intro-age {
+  position: absolute;
+  bottom: calc(11% + 1.6rem);
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--cream);
+  opacity: 0;
+  animation: introIn 0.6s 0.7s ease forwards;
+}
+
+.intro-age b {
+  font-weight: 600;
+  color: var(--acid);
+}
+
 @keyframes introIn {
   from {
     opacity: 0;
@@ -1975,17 +1997,46 @@ html:not(.has-cursor) .cursor-glow {
   padding: 2.4rem 1.4rem;
 }
 
-.capability img {
+.capability img,
+.capability video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   opacity: 0.32;
+  transition: opacity 0.6s ease;
 }
 
 .capability:hover img {
   opacity: 0.48;
+}
+
+/* Footage is busier than a flat still: a bit brighter, with a floor shade so the title stays legible. */
+.capability video,
+.capability img.is-photo {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.capability:hover video,
+.capability:hover img.is-photo {
+  opacity: 0.6;
+}
+
+.capability:has(video)::before,
+.capability:has(img.is-photo)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(10, 10, 10, 0.85) 0%, rgba(10, 10, 10, 0.2) 55%, transparent 100%);
+}
+
+.capability:has(video) div,
+.capability:has(img.is-photo) div {
+  z-index: 2;
 }
 
 .capability div {

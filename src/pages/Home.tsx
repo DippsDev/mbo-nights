@@ -6,6 +6,7 @@ import {
   nextOpenNight,
 } from '../data'
 import HighlightReel from '../components/HighlightReel'
+import SectionVideo from '../components/SectionVideo'
 import { softScrollReveal } from '../lib/motion'
 import { useSound } from '../sound'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -183,7 +184,18 @@ export default function Home() {
       <section className="capabilities">
         {CAPABILITIES.map((item) => (
           <Link className="capability" key={item.id} to={item.to}>
-            <img src={item.image} alt="" loading="lazy" decoding="async" />
+            {item.video ? (
+              <SectionVideo src={item.video} image={item.image} focus={item.focus} />
+            ) : (
+              <img
+                src={item.image}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className={item.image.startsWith('data:') ? undefined : 'is-photo'}
+                style={item.focus ? { objectPosition: item.focus } : undefined}
+              />
+            )}
             <div>
               <p className="kicker">{item.id}</p>
               <h2 className="display lg">{item.title}</h2>

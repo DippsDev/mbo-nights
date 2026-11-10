@@ -83,6 +83,9 @@ export default function Intro() {
       }}
     >
       <span>MBO</span>
+      <p className="intro-age">
+        Strictly <b>18+</b>
+      </p>
       <small>Enter</small>
     </div>
   )
