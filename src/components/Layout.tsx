@@ -1,18 +1,17 @@
 import { Suspense, useCallback, useEffect, useState, type MouseEvent } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useCart } from '../cart'
-import { nextOpenNight } from '../data'
 import { reducedMotion } from '../lib/motion'
 import { useSound } from '../sound'
 import BagIcon from './BagIcon'
 import Cursor from './Cursor'
+import Footer from './Footer'
 import Intro from './Intro'
 import Menu from './Menu'
 
 export default function Layout() {
   const { count } = useCart()
   const { on, toggle } = useSound()
-  const next = nextOpenNight()
   const location = useLocation()
   const home = location.pathname === '/'
   const [open, setOpen] = useState(false)
@@ -133,14 +132,7 @@ export default function Layout() {
           <Outlet />
         </Suspense>
       </div>
-      <footer className="site-foot">
-        <span>MBO · More Bands On the way</span>
-        {next && (
-          <Link to={`/events/${next.id}`}>
-            Next: {next.title} · {next.date}
-          </Link>
-        )}
-      </footer>
+      <Footer />
     </>
   )
 }

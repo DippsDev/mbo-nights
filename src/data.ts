@@ -35,6 +35,8 @@ export type Night = {
   /** Artist music-video cuts and MBO event footage. Drop files in public/video then add paths. */
   clips: string[]
   soldOut?: boolean
+  /** Only nights with this set can be bought; the rest show "On sale soon". */
+  onSale?: boolean
   teaser: string
   tiers: TicketTier[]
 }
@@ -56,6 +58,17 @@ export const BRAND_TAGLINE =
   'Live nights across Gaborone — new acts, real rooms, and the next song always coming.'
 export const BRAND_BODY =
   'MBO — More Bands On the way — books live music across Botswana. From restaurant stages to late club floors in Gaborone, we put rising acts in front of people who show up.'
+
+/**
+ * Footer "Channels" links. Fill in the real addresses; any left empty are hidden.
+ * Email as 'mailto:you@domain.com', WhatsApp as 'https://wa.me/267XXXXXXXX'.
+ */
+export const CHANNELS: { label: string; href: string }[] = [
+  { label: 'Instagram', href: '' },
+  { label: 'TikTok', href: '' },
+  { label: 'WhatsApp', href: '' },
+  { label: 'Email', href: '' },
+]
 
 /** Labeled SVG so images never depend on a stock-photo CDN. */
 export function placeholder(
@@ -179,6 +192,20 @@ export const venues: Venue[] = [
   },
 ]
 
+export type TeamMember = {
+  id: string
+  name: string
+  role: string
+  image: string
+}
+
+/** About page portraits. Swap names, roles and images (e.g. '/images/team/name.jpg') when ready. */
+export const team: TeamMember[] = [
+  { id: 'member-01', name: 'MBO member 1', role: 'Founder', image: placeholder(' ', 900, 1200) },
+  { id: 'member-02', name: 'MBO member 2', role: 'Bookings', image: placeholder(' ', 900, 1200, '161616') },
+  { id: 'member-03', name: 'MBO member 3', role: 'Production', image: placeholder(' ', 900, 1200) },
+]
+
 export const nights: Night[] = [
   {
     id: 'night-01',
@@ -190,6 +217,7 @@ export const nights: Night[] = [
     image: placeholder(' ', 1800, 1200),
     // MBO Rasta clip paused for now — restore '/video/nights/DippsDevM2.mp4' to turn it back on.
     clips: [],
+    onSale: true,
     teaser:
       'MBO Rasta opens at The Ponds — supper first, then the floor takes over.',
     tiers: [
@@ -206,6 +234,7 @@ export const nights: Night[] = [
     time: '22:00',
     image: placeholder(' ', 1800, 1200, '161616', 'f3eee6'),
     clips: ['/video/nights/night-02-artist.mp4', '/video/nights/night-02-event.mp4'],
+    onSale: true,
     teaser:
       'Royal Musiq takes House of Habanos past midnight — no chill-out, just the run.',
     tiers: [
@@ -314,8 +343,12 @@ export function merchForNight(nightId: string) {
   return products.filter((p) => p.nightId === nightId)
 }
 
+export function canBuy(night: Night) {
+  return Boolean(night.onSale) && !night.soldOut
+}
+
 export function nextOpenNight() {
-  return nights.find((n) => !n.soldOut)
+  return nights.find(canBuy)
 }
 
 export const SHOWREEL = nights.map((night) => night.image)

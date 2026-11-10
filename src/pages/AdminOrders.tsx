@@ -5,13 +5,11 @@ import {
   confirmOrder,
   listOrders,
   rejectOrder,
-  salesSummary,
   signOut,
   STATUS_LABEL,
   TicketError,
   type Order,
   type OrderStatus,
-  type SalesRow,
 } from '../lib/tickets'
 
 type Filter = 'action' | 'all' | OrderStatus
@@ -70,6 +68,19 @@ const time = (ms?: number) =>
       })
     : '—'
 
+/** QR code glyph: three finder squares plus a few data blocks. */
+function ScanIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden fill="currentColor">
+      <path
+        fillRule="evenodd"
+        d="M3 3h8v8H3V3Zm2 2v4h4V5H5Zm8-2h8v8h-8V3Zm2 2v4h4V5h-4ZM3 13h8v8H3v-8Zm2 2v4h4v-4H5Z"
+      />
+      <path d="M6 6h2v2H6zM16 6h2v2h-2zM6 16h2v2H6zM13 13h3v3h-3zM18 13h3v3h-3zM16 16h2v2h-2zM13 18h3v3h-3zM18 18h3v3h-3z" />
+    </svg>
+  )
+}
+
 export default function AdminOrdersPage() {
   return (
     <AdminGate>
@@ -80,18 +91,14 @@ export default function AdminOrdersPage() {
 
 function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([])
-  const [sales, setSales] = useState<SalesRow[]>([])
   const [filter, setFilter] = useState<Filter>('action')
   const [query, setQuery] = useState('')
   const [error, setError] = useState('')
   const [justConfirmed, setJustConfirmed] = useState<Order | null>(null)
 
   const refresh = useCallback(() => {
-    Promise.all([listOrders(), salesSummary()])
-      .then(([o, s]) => {
-        setOrders(o)
-        setSales(s)
-      })
+    listOrders()
+      .then(setOrders)
       .catch((err) =>
         setError(err instanceof TicketError ? err.message : 'Couldn’t load orders.'),
       )
@@ -134,19 +141,27 @@ function AdminOrders() {
 
   return (
     <main className="page">
-      <header className="page-hero">
-        <p className="kicker">Administrator</p>
-        <h1 className="display lg">Orders</h1>
+      <header className="page-hero admin-hero">
+        <div className="admin-hero-top">
+          <div>
+            <p className="kicker">Administrator</p>
+            <h1 className="display lg">Orders</h1>
+          </div>
+          <Link className="btn admin-scan" to="/admin/scan" aria-label="Door scanner">
+            <ScanIcon />
+            <span>Door scanner</span>
+          </Link>
+        </div>
         <p className="demo-note">
           Match each Pay2Cell SMS to its reference and amount before confirming. Updates every 30
           seconds.
         </p>
-        <div className="admin-actions">
+        <div className="admin-actions admin-bar-row">
           <button className="btn ghost" onClick={refresh}>
             Refresh
           </button>
-          <Link className="btn ghost" to="/admin/scan">
-            Door scanner
+          <Link className="btn ghost" to="/admin/sales">
+            Sales
           </Link>
           <button className="btn ghost" onClick={() => void signOut()}>
             Sign out
@@ -155,20 +170,6 @@ function AdminOrders() {
       </header>
 
       <section className="section" style={{ paddingTop: 0 }}>
-        <div className="admin-sales">
-          {sales.map((s) => (
-            <div key={`${s.nightId}:${s.tierName}`} className="admin-stat">
-              <span className="demo-note">
-                {s.title} · {s.tierName}
-              </span>
-              <strong>
-                {s.sold}/{s.capacity}
-              </strong>
-              {s.held > 0 && <span className="demo-note">{s.held} held</span>}
-            </div>
-          ))}
-        </div>
-
         <div className="admin-tools">
           <div className="admin-filters" role="tablist">
             {(

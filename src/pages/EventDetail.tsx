@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { useCart } from '../cart'
 import {
   artistsFor,
+  canBuy,
   getNight,
   getVenue,
   merchForNight,
@@ -101,7 +102,7 @@ export default function EventDetail() {
   const buy = (tierId: string) => {
     const tier = night.tiers.find((t) => t.id === tierId)
     const live = stock?.[stockKey(night.id, tierId)]
-    if (!tier || !live || night.soldOut) return
+    if (!tier || !live || !canBuy(night)) return
     const inBag = items.find((i) => i.key === `ticket:${night.id}:${tier.id}`)?.qty ?? 0
     const max = Math.min(MAX_PER_TIER, live.remaining)
     if (inBag >= max) {
@@ -174,17 +175,26 @@ export default function EventDetail() {
               const live = stock?.[stockKey(night.id, tier.id)]
               const left = live?.remaining ?? 0
               const gone = Boolean(live) && (night.soldOut || left <= 0)
-              const loading = !live
+              const soon = !night.onSale
+              const loading = !live && !soon
               return (
                 <div className="tier" key={tier.id}>
                   <div>
                     <strong>{tier.name}</strong>
                     <div className="demo-note">
-                      {loading ? (stockError ? 'Can’t load — refresh' : 'Checking…') : gone ? 'Gone' : `${left} left`}
+                      {soon
+                        ? 'On sale soon'
+                        : loading
+                          ? stockError
+                            ? 'Can’t load — refresh'
+                            : 'Checking…'
+                          : gone
+                            ? 'Gone'
+                            : `${left} left`}
                     </div>
                   </div>
-                  <button className="btn" disabled={gone || loading} onClick={() => buy(tier.id)}>
-                    {gone ? 'Sold out' : `P${live?.price ?? tier.price}`}
+                  <button className="btn" disabled={soon || gone || loading} onClick={() => buy(tier.id)}>
+                    {soon ? 'Soon' : gone ? 'Sold out' : `P${live?.price ?? tier.price}`}
                   </button>
                 </div>
               )

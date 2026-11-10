@@ -130,7 +130,7 @@ export default function Home() {
   useEffect(
     () =>
       softScrollReveal(
-        '.home-immerse .highlight, .home-immerse .capability > div, .home-immerse .contact-split > div',
+        '.home-immerse .event-ticket, .home-immerse .capability > div',
         '.home-immerse',
       ),
     [],
@@ -192,17 +192,6 @@ export default function Home() {
             </div>
           </Link>
         ))}
-      </section>
-
-      <section className="contact-split">
-        <div>
-          <p className="kicker">Next up</p>
-          <h2 className="display lg">Next night</h2>
-          <p className="serif">Lineup, doors, and tickets for the next show.</p>
-          <Link className="btn" to={next ? `/events/${next.id}` : '/artists'}>
-            Get tickets
-          </Link>
-        </div>
       </section>
     </main>
   )

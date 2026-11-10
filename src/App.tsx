@@ -6,6 +6,7 @@ import { SoundProvider } from './sound'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 // Home ships in the main bundle; everything else loads on first visit.
+const About = lazy(() => import('./pages/About'))
 const VenueDetail = lazy(() => import('./pages/VenueDetail'))
 const ComingSoon = lazy(() => import('./pages/ComingSoon'))
 const EventDetail = lazy(() => import('./pages/EventDetail'))
@@ -15,6 +16,7 @@ const Order = lazy(() => import('./pages/Order'))
 const MyTickets = lazy(() => import('./pages/MyTickets'))
 const AdminOrders = lazy(() => import('./pages/AdminOrders'))
 const AdminScan = lazy(() => import('./pages/AdminScan'))
+const AdminSales = lazy(() => import('./pages/AdminSales'))
 
 // Buying (event pages, bag, checkout) opens in `npm run dev`, or in a build with
 // VITE_TICKETS_LIVE=true. Order links, ticket lookup and admin always work, so
@@ -39,11 +41,12 @@ export default function App() {
             <Route path="/order/:token" element={<Order />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
             <Route path="/admin/scan" element={<AdminScan />} />
+            <Route path="/admin/sales" element={<AdminSales />} />
             <Route path="/venues" element={<Navigate to="/" replace />} />
             <Route path="/venues/:id" element={<VenueDetail />} />
             <Route path="/shop" element={<ComingSoon label="Shop" />} />
             <Route path="/shop/:id" element={<ComingSoon label="Shop" />} />
-            <Route path="/about" element={<ComingSoon label="About" />} />
+            <Route path="/about" element={<About />} />
             <Route path="/bag" element={TICKETS_ENABLED ? <Bag /> : <ComingSoon label="Bag" />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
