@@ -300,15 +300,24 @@ class Bed {
     if (this.gain && this.ctx) {
       // Schedule the whole curve on the audio clock: smooth on iOS, and it keeps
       // running when the screen locks and animation frames stop.
-      const curve = new Float32Array(64)
-      for (let i = 0; i < curve.length; i++) {
-        curve[i] = from + (to - from) * ease(i / (curve.length - 1))
-      }
+      // (A chain of short linear ramps — setValueCurveAtTime throws if it touches
+      // another scheduled event, which left the gain stuck at 0.)
       const g = this.gain.gain
-      const now = this.ctx.currentTime
-      g.cancelScheduledValues(now)
-      g.setValueAtTime(from, now)
-      g.setValueCurveAtTime(curve, now, dur / 1000)
+      try {
+        const now = this.ctx.currentTime
+        g.cancelScheduledValues(now)
+        g.setValueAtTime(from, now)
+        const steps = 32
+        for (let i = 1; i <= steps; i++) {
+          const t = i / steps
+          g.linearRampToValueAtTime(from + (to - from) * ease(t), now + (dur / 1000) * t)
+        }
+      } catch (err) {
+        logSound(`gain fade failed: ${String(err)}`)
+        this.fading = true
+        finish()
+        return
+      }
       this.fadeTimer = window.setTimeout(finish, dur + 30)
       return
     }
@@ -332,8 +341,12 @@ class Bed {
     if (this.gain && this.ctx) {
       const g = this.gain.gain
       const v = g.value
-      g.cancelScheduledValues(this.ctx.currentTime)
-      g.setValueAtTime(v, this.ctx.currentTime)
+      try {
+        g.cancelScheduledValues(this.ctx.currentTime)
+        g.setValueAtTime(v, this.ctx.currentTime)
+      } catch {
+        g.value = v
+      }
     }
   }
 
@@ -344,8 +357,12 @@ class Bed {
   private setVol(v: number) {
     if (this.gain && this.ctx) {
       const g = this.gain.gain
-      g.cancelScheduledValues(this.ctx.currentTime)
-      g.setValueAtTime(v, this.ctx.currentTime)
+      try {
+        g.cancelScheduledValues(this.ctx.currentTime)
+        g.setValueAtTime(v, this.ctx.currentTime)
+      } catch {
+        g.value = v
+      }
     } else {
       this.file.volume = v
     }
@@ -477,7 +494,14 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       setLive(engine.live())
     }
 
+    // iOS only unlocks Web Audio on touchend/click, not pointerdown (where Enter fires).
+    const wake = () => {
+      if (onRef.current) engine.wakeGraph()
+    }
+
     window.addEventListener('pointerdown', kick, true)
+    window.addEventListener('touchend', wake, true)
+    window.addEventListener('click', wake, true)
     window.addEventListener('keydown', kick, true)
     window.addEventListener('pageshow', resume)
     window.addEventListener('focus', resume)
@@ -488,6 +512,8 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     return () => {
       window.clearInterval(boot)
       window.removeEventListener('pointerdown', kick, true)
+      window.removeEventListener('touchend', wake, true)
+      window.removeEventListener('click', wake, true)
       window.removeEventListener('keydown', kick, true)
       window.removeEventListener('pageshow', resume)
       window.removeEventListener('focus', resume)
