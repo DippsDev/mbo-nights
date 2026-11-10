@@ -92,6 +92,10 @@ class Bed {
   private index = 0
   private fadingOut = false
   private prefetched = -1
+  private fadeTimer = 0
+  /** Phones/tablets: volume runs through a Web Audio gain, because iOS ignores el.volume. */
+  private ctx: AudioContext | null = null
+  private gain: GainNode | null = null
 
   constructor(file: HTMLAudioElement) {
     this.file = file
@@ -163,7 +167,7 @@ class Bed {
     if (needsGestureUnlock() && !this.unlocked) return
     if (this.live()) return
     this.file.muted = false
-    if (!this.everPlayed) this.file.volume = 0
+    if (!this.everPlayed) this.setVol(0)
     this.play(() => this.startIntroFade(FADE_IN))
   }
 
@@ -174,6 +178,7 @@ class Bed {
     const el = this.file
     el.preload = 'auto'
     el.muted = false
+    this.wakeGraph()
 
     if (this.live()) {
       this.unlocked = true
@@ -183,9 +188,8 @@ class Bed {
 
     if (!this.everPlayed) {
       this.introFadeDone = false
-      cancelAnimationFrame(this.fileFade)
-      this.fading = false
-      el.volume = 0
+      this.stopFade()
+      this.setVol(0)
     }
     this.play(() => this.startIntroFade(FADE_IN))
   }
@@ -193,12 +197,11 @@ class Bed {
   mute() {
     this.wanted = false
     this.introFadeDone = false
-    cancelAnimationFrame(this.fileFade)
-    this.fading = false
+    this.stopFade()
     this.fadingOut = false
     const el = this.file
     // Cut immediately — fade-out feels broken on mobile Mute taps.
-    el.volume = 0
+    this.setVol(0)
     el.muted = true
     el.pause()
   }
@@ -207,6 +210,7 @@ class Bed {
   keepPlaying() {
     if (!this.wanted || !this.unlocked || this.live()) return
     logSound('resume after pause')
+    void this.ctx?.resume().catch(() => undefined)
     void this.file.play().catch(() => undefined)
   }
 
@@ -217,7 +221,7 @@ class Bed {
     const left = el.duration - el.currentTime
     if (!Number.isFinite(left) || el.duration < TRACK_FADE_OUT * 3) return
     // Warm the cache for the next file so it starts without a load gap.
-    if (left < 30 && this.prefetched !== this.index) {
+    if (left < 30 && this.prefetched !== this.index && !this.gain) {
       this.prefetched = this.index
       const warm = new Audio()
       warm.preload = 'auto'
@@ -235,17 +239,18 @@ class Bed {
   private next(early = false) {
     const el = this.file
     // Safari can fire a bogus `ended` early; just carry on with the same track.
-    if (!early && Number.isFinite(el.duration) && el.currentTime < el.duration - 1.5) {
+    // Only treat it as bogus when we're clearly mid-track: Safari misjudges MP3
+    // lengths, so a real end can arrive well before `duration`.
+    if (!early && Number.isFinite(el.duration) && el.currentTime < el.duration * 0.5) {
       if (this.wanted) void el.play().catch(() => undefined)
       return
     }
     this.index = (this.index + 1) % PLAYLIST.length
     logSound(`next track ${this.index}`)
-    cancelAnimationFrame(this.fileFade)
-    this.fading = false
+    this.stopFade()
     this.fadingOut = false
     this.introFadeDone = false
-    el.volume = 0
+    this.setVol(0)
     el.src = PLAYLIST[this.index]
     if (!this.wanted) return
     void el
@@ -260,10 +265,9 @@ class Bed {
 
   private startIntroFade(seconds: number) {
     if (!this.wanted) return
-    const el = this.file
-    if (this.introFadeDone || el.volume >= FILE_VOL * 0.98) {
+    if (this.introFadeDone || this.getVol() >= FILE_VOL * 0.98) {
       this.introFadeDone = true
-      el.volume = FILE_VOL
+      this.setVol(FILE_VOL)
       return
     }
     if (this.fading) return
@@ -279,26 +283,105 @@ class Bed {
     exact = false,
     easeOut = false,
   ) {
-    cancelAnimationFrame(this.fileFade)
+    this.stopFade()
     this.fading = true
-    const el = this.file
-    const from = el.volume
+    const from = this.getVol()
     const span = exact ? 1 : Math.max(0.04, Math.abs(to - from) / Math.max(0.04, FILE_VOL))
-    const start = performance.now()
     const dur = Math.max(80, seconds * 1000 * span)
+    const ease = (t: number) =>
+      easeOut ? 1 - (1 - t) ** 3 : t * t * t * (t * (t * 6 - 15) + 10)
+    const finish = () => {
+      if (!this.fading) return
+      this.fading = false
+      this.setVol(to)
+      done?.()
+    }
+
+    if (this.gain && this.ctx) {
+      // Schedule the whole curve on the audio clock: smooth on iOS, and it keeps
+      // running when the screen locks and animation frames stop.
+      const curve = new Float32Array(64)
+      for (let i = 0; i < curve.length; i++) {
+        curve[i] = from + (to - from) * ease(i / (curve.length - 1))
+      }
+      const g = this.gain.gain
+      const now = this.ctx.currentTime
+      g.cancelScheduledValues(now)
+      g.setValueAtTime(from, now)
+      g.setValueCurveAtTime(curve, now, dur / 1000)
+      this.fadeTimer = window.setTimeout(finish, dur + 30)
+      return
+    }
+
+    const el = this.file
+    const start = performance.now()
     const step = (now: number) => {
       if (!this.fading) return
       const t = Math.min(1, (now - start) / dur)
-      const eased = easeOut ? 1 - (1 - t) ** 3 : t * t * t * (t * (t * 6 - 15) + 10)
-      el.volume = Math.min(1, Math.max(0, from + (to - from) * eased))
+      el.volume = Math.min(1, Math.max(0, from + (to - from) * ease(t)))
       if (t < 1) this.fileFade = requestAnimationFrame(step)
-      else {
-        this.fading = false
-        el.volume = to
-        done?.()
-      }
+      else finish()
     }
     this.fileFade = requestAnimationFrame(step)
+  }
+
+  private stopFade() {
+    cancelAnimationFrame(this.fileFade)
+    window.clearTimeout(this.fadeTimer)
+    this.fading = false
+    if (this.gain && this.ctx) {
+      const g = this.gain.gain
+      const v = g.value
+      g.cancelScheduledValues(this.ctx.currentTime)
+      g.setValueAtTime(v, this.ctx.currentTime)
+    }
+  }
+
+  private getVol() {
+    return this.gain ? this.gain.gain.value : this.file.volume
+  }
+
+  private setVol(v: number) {
+    if (this.gain && this.ctx) {
+      const g = this.gain.gain
+      g.cancelScheduledValues(this.ctx.currentTime)
+      g.setValueAtTime(v, this.ctx.currentTime)
+    } else {
+      this.file.volume = v
+    }
+  }
+
+  /**
+   * Must run inside a tap. On phones/tablets, route the bed through a gain node
+   * (iOS ignores el.volume, so fades were hard cuts) and keep the context awake.
+   */
+  wakeGraph() {
+    if (!needsGestureUnlock()) return
+    if (!this.ctx) {
+      const AC =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+      if (!AC) return
+      try {
+        // iOS 16.4+: keep playing with the silent switch on, like a normal media element.
+        const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession
+        if (session) session.type = 'playback'
+        const ctx = new AC()
+        const gain = ctx.createGain()
+        const start = this.file.paused ? 0 : this.file.volume
+        gain.gain.value = start
+        ctx.createMediaElementSource(this.file).connect(gain)
+        gain.connect(ctx.destination)
+        this.file.volume = 1
+        this.ctx = ctx
+        this.gain = gain
+        logSound('web audio graph on')
+      } catch (err) {
+        logSound(`web audio failed: ${String(err)}`)
+        return
+      }
+    }
+    if (this.ctx.state !== 'running') void this.ctx.resume().catch(() => undefined)
   }
 }
 
@@ -366,6 +449,8 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     // A tap while the bed is stopped (but not muted) starts/resumes it.
     const kick = (event: Event) => {
       if (soundDebug) logSound(`tap live=${engine.live()} on=${onRef.current}`)
+      // iOS can suspend the audio context (calls, other apps); any tap wakes it.
+      if (onRef.current) engine.wakeGraph()
       if (!onRef.current || engine.live()) return
       if (event.target instanceof Element && event.target.closest('[data-sound-toggle]')) return
       // Intro owns the first unlock + fade on mobile.
