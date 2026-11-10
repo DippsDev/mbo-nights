@@ -1488,8 +1488,8 @@ html:not(.has-cursor) .cursor-glow {
   cursor: pointer;
 }
 
+/* Keeps catching taps while it fades so the Enter tap can't fall through to the hero. */
 .intro.is-out {
-  pointer-events: none;
   animation: introOut 0.7s ease forwards;
 }
 

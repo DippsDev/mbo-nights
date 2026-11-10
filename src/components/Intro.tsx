@@ -52,6 +52,15 @@ export default function Intro() {
   const enter = useCallback(() => {
     if (entered.current) return
     entered.current = true
+    // Enter fires on pointerdown, so the tap's click lands after the splash starts
+    // fading — on whatever sits underneath (the hero "Get tickets" link on phones).
+    // Swallow that one click so Enter only ever opens the home page.
+    const swallow = (e: MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    window.addEventListener('click', swallow, { capture: true, once: true })
+    window.setTimeout(() => window.removeEventListener('click', swallow, { capture: true }), 1000)
     start()
     forceHeroTop()
     setOut(true)
