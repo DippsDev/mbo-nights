@@ -8,6 +8,7 @@ import {
   getVenue,
   merchForNight,
 } from '../data'
+import { stubDate } from '../lib/date'
 import { isNarrow } from '../lib/motion'
 import { forceMuted, useMutedVideoRef } from '../lib/media'
 import { MAX_PER_TIER, stockKey, useStock } from '../lib/tickets'
@@ -100,6 +101,7 @@ export default function EventDetail() {
   const venue = getVenue(night.venueId)
   const lineup = artistsFor(night)
   const merch = merchForNight(night.id)
+  const when = stubDate(night.date)
 
   const buy = (tierId: string) => {
     const tier = night.tiers.find((t) => t.id === tierId)
@@ -174,6 +176,7 @@ export default function EventDetail() {
             <Link to={`/venues/${venue?.id}`}>{venue?.name}</Link>
           </p>
 
+          {/* One tear-off ticket per tier, in the homepage ticket style. */}
           <div className="tiers">
             {night.tiers.map((tier) => {
               const live = stock?.[stockKey(night.id, tier.id)]
@@ -181,11 +184,18 @@ export default function EventDetail() {
               const gone = Boolean(live) && (night.soldOut || left <= 0)
               const soon = !night.onSale
               const loading = !live && !soon
+              const locked = soon || gone
               return (
-                <div className="tier" key={tier.id}>
-                  <div>
-                    <strong>{tier.name}</strong>
-                    <div className="demo-note">
+                <article className={`tier-ticket${locked ? ' is-locked' : ''}`} key={tier.id}>
+                  <div className="tier-ticket-stub" aria-hidden>
+                    <span className="event-ticket-weekday">{when.weekday}</span>
+                    <span className="tier-ticket-day">{when.day}</span>
+                    <span className="event-ticket-month">{when.month}</span>
+                    <span className="tier-ticket-time">{night.time}</span>
+                  </div>
+                  <div className="tier-ticket-body">
+                    <h2 className="tier-ticket-name">{live?.name ?? tier.name}</h2>
+                    <p className="tier-ticket-left">
                       {soon
                         ? 'On sale soon'
                         : loading
@@ -193,14 +203,21 @@ export default function EventDetail() {
                             ? 'Can’t load — refresh'
                             : 'Checking…'
                           : gone
-                            ? 'Gone'
+                            ? 'Sold out'
                             : `${left} left`}
-                    </div>
+                    </p>
                   </div>
-                  <button className="btn" disabled={soon || gone || loading} onClick={() => buy(tier.id)}>
-                    {soon ? 'Soon' : gone ? 'Sold out' : `P${live?.price ?? tier.price}`}
-                  </button>
-                </div>
+                  <div className="tier-ticket-buy">
+                    <span className="tier-ticket-price">P{live?.price ?? tier.price}</span>
+                    <button
+                      className="btn"
+                      disabled={locked || loading}
+                      onClick={() => buy(tier.id)}
+                    >
+                      {soon ? 'Soon' : gone ? 'Sold out' : 'Add'}
+                    </button>
+                  </div>
+                </article>
               )
             })}
           </div>

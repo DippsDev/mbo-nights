@@ -1,19 +1,7 @@
 import { Link } from 'react-router-dom'
 import { artistsFor, canBuy, getVenue, nights, type Night } from '../data'
+import { stubDate } from '../lib/date'
 import { stockKey, useStock, type Stock } from '../lib/tickets'
-
-const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
-
-/** Splits '19 Sep 2026' into stub parts without relying on Date string parsing (Safari is strict). */
-function stubDate(date: string) {
-  const [day = '', month = '', year = ''] = date.split(' ')
-  const m = MONTHS.indexOf(month.slice(0, 3).toLowerCase())
-  const weekday =
-    m >= 0
-      ? new Date(Number(year), m, Number(day)).toLocaleDateString('en-GB', { weekday: 'short' })
-      : ''
-  return { day, month, year, weekday }
-}
 
 export default function HighlightReel() {
   // One stock call for every ticket; falls back to data.ts until it lands.
