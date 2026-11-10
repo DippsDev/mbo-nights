@@ -5,7 +5,10 @@
  */
 import { useCallback, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { supabase } from './supabase'
+// The Supabase client (~120 kB) is loaded on first use, so it stays out of the
+// first-paint bundle; the home page only needs it once stock is fetched.
+let client: Promise<typeof import('./supabase')['supabase']> | undefined
+const db = () => (client ??= import('./supabase').then((m) => m.supabase))
 
 export { TICKETS_ENABLED } from './flags'
 
@@ -106,7 +109,7 @@ function toOrder(raw: RawOrder): Order {
 }
 
 async function call<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.rpc(fn, args)
+  const { data, error } = await (await db()).rpc(fn, args)
   if (error) {
     // P0001 = a message raised on purpose by our SQL; safe to show.
     if (error.code === 'P0001') throw new TicketError(error.message)
@@ -199,20 +202,29 @@ export async function cancelOrder(token: string) {
 export function useSession() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
-    return () => data.subscription.unsubscribe()
+    let unsub: (() => void) | undefined
+    let live = true
+    void db().then((sb) => {
+      if (!live) return
+      void sb.auth.getSession().then(({ data }) => live && setSession(data.session))
+      const { data } = sb.auth.onAuthStateChange((_e, s) => live && setSession(s))
+      unsub = () => data.subscription.unsubscribe()
+    })
+    return () => {
+      live = false
+      unsub?.()
+    }
   }, [])
   return session
 }
 
 export async function signIn(email: string, password: string) {
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  const { error } = await (await db()).auth.signInWithPassword({ email, password })
   if (error) throw new TicketError('Wrong email or password.')
 }
 
 export async function signOut() {
-  await supabase.auth.signOut()
+  await (await db()).auth.signOut()
 }
 
 export async function isAdmin() {
