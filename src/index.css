@@ -3150,23 +3150,62 @@ html:not(.has-cursor) .cursor-glow {
   margin: 0;
 }
 
+/* Legal pages break out of the narrow buying-flow column so cards can sit side by side. */
+.page.flow.legal .page-hero,
+.page.flow.legal .section {
+  max-width: 82rem;
+}
+
+/* One bordered card per section; as many columns as fit (1 on phones, up to 4 on wide screens). */
 .legal-body {
   display: grid;
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.legal-card {
+  position: relative;
+  padding: 1.6rem 1.4rem 1.2rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.2s;
+}
+
+.legal-card:hover {
+  border-color: rgba(243, 238, 230, 0.28);
+}
+
+.legal-num {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 6vw, 3.2rem);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--acid);
 }
 
 .legal-body h2 {
-  margin: 0 0 0.7rem;
+  margin: 0 0 0.9rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--line);
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
 .legal-body p {
   margin: 0 0 0.8rem;
+  font-size: 0.95rem;
   line-height: 1.7;
   color: rgba(243, 238, 230, 0.82);
+}
+
+.legal-body p:last-child {
+  margin-bottom: 0;
 }
 
 /* Admin sales page: totals, then one block per night with a bar per tier. */

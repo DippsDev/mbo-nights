@@ -32,9 +32,13 @@ export default function Legal() {
           </div>
         ) : (
           <div className="legal-body">
-            {doc.sections.map((s) => (
-              <section key={s.heading}>
-                <h2>{s.heading}</h2>
+            {doc.sections.map((s, n) => (
+              <section key={s.heading} className="legal-card">
+                <span className="legal-num" aria-hidden="true">
+                  {String(n + 1).padStart(2, '0')}
+                </span>
+                {/* Card number replaces any "1. " typed into the heading. */}
+                <h2>{s.heading.replace(/^\d+\.\s*/, '')}</h2>
                 {s.paragraphs.map((p, i) => (
                   <p key={i}>{p}</p>
                 ))}
