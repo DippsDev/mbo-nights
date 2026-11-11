@@ -47,6 +47,7 @@ export default function About() {
       </div>
 
       <section className="about-copy">
+        <h1 className="sr-only">About MBO — More Bands On the way</h1>
         <p className="kicker">About</p>
         <p className="about-lede">
           MBO — More Bands OTW — is a Botswana-born event collective built for the youth, by the

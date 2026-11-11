@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /order/
+Disallow: /checkout
+Disallow: /bag
+Disallow: /tickets
+
+Sitemap: https://morebandsontheway.com/sitemap.xml

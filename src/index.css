@@ -3625,3 +3625,16 @@ html:not(.has-cursor) .cursor-glow {
     font-size: clamp(2rem, 6vw, 3rem);
   }
 }
+
+/* Visible to screen readers and crawlers only. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -9,6 +9,7 @@ import Cursor from './Cursor'
 import Footer from './Footer'
 import Intro from './Intro'
 import Menu from './Menu'
+import Seo from './Seo'
 
 export default function Layout() {
   const { count } = useCart()
@@ -144,6 +145,7 @@ export default function Layout() {
       <div className="page-veil" key={location.pathname}>
         {/* Lazy routes suspend here only — nav and footer stay put. */}
         <Suspense fallback={null}>
+          <Seo />
           <Outlet />
         </Suspense>
       </div>

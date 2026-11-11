@@ -149,6 +149,10 @@ export default function EventDetail() {
           )}
         </div>
         <div className="page-hero">
+          <h1 className="sr-only">
+            {night.title} — {night.date}
+            {venue ? ` at ${venue.name}` : ''}
+          </h1>
           <p className="kicker">
             {venue?.type} · {venue?.name}
           </p>

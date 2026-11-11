@@ -18,6 +18,7 @@ const AdminOrders = lazy(() => import('./pages/AdminOrders'))
 const AdminScan = lazy(() => import('./pages/AdminScan'))
 const AdminSales = lazy(() => import('./pages/AdminSales'))
 const Legal = lazy(() => import('./pages/Legal'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 // Buying (event pages, bag, checkout) opens in `npm run dev`, or in a build with
 // VITE_TICKETS_LIVE=true. Order links, ticket lookup and admin always work, so
@@ -51,7 +52,7 @@ export default function App() {
             <Route path="/legal" element={<Navigate to="/legal/terms" replace />} />
             <Route path="/legal/:slug" element={<Legal />} />
             <Route path="/bag" element={TICKETS_ENABLED ? <Bag /> : <ComingSoon label="Bag" />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
         </BrowserRouter>
