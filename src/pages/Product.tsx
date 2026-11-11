@@ -2,17 +2,21 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { useCart } from '../cart'
 import { getNight, getProduct } from '../data'
 
+/** Flip to true once checkout and the orders table can take merch. */
+const MERCH_ON_SALE = false
+
 export default function Product() {
   const { id } = useParams()
   const product = id ? getProduct(id) : undefined
   const { add } = useCart()
-  if (!product) return <Navigate to="/shop" replace />
+  // Placeholder slots have no page of their own yet.
+  if (!product || product.comingSoon) return <Navigate to="/shop" replace />
   const linked = product.nightId ? getNight(product.nightId) : undefined
   // Placeholder nights have no event page to point at yet.
   const night = linked && !linked.comingSoon ? linked : undefined
 
   const buy = () => {
-    if (product.soldOut) return
+    if (product.soldOut || !MERCH_ON_SALE) return
     add({
       key: `merch:${product.id}`,
       kind: 'merch',
@@ -42,8 +46,9 @@ export default function Product() {
               </Link>
             </p>
           )}
-          <button className="btn" disabled={product.soldOut} onClick={buy}>
-            {product.soldOut ? 'Sold out' : 'Add to bag'}
+          {/* Checkout only handles tickets so far; merch is browse-only until it does. */}
+          <button className="btn" disabled={product.soldOut || !MERCH_ON_SALE} onClick={buy}>
+            {product.soldOut ? 'Sold out' : MERCH_ON_SALE ? 'Add to bag' : 'Coming soon'}
           </button>
         </div>
       </div>

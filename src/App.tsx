@@ -9,6 +9,8 @@ import Home from './pages/Home'
 const About = lazy(() => import('./pages/About'))
 const Artists = lazy(() => import('./pages/Artists'))
 const ArtistDetail = lazy(() => import('./pages/ArtistDetail'))
+const Shop = lazy(() => import('./pages/Shop'))
+const Product = lazy(() => import('./pages/Product'))
 const VenueDetail = lazy(() => import('./pages/VenueDetail'))
 const ComingSoon = lazy(() => import('./pages/ComingSoon'))
 const EventDetail = lazy(() => import('./pages/EventDetail'))
@@ -48,8 +50,8 @@ export default function App() {
             <Route path="/admin/sales" element={<AdminSales />} />
             <Route path="/venues" element={<Navigate to="/" replace />} />
             <Route path="/venues/:id" element={<VenueDetail />} />
-            <Route path="/shop" element={<ComingSoon label="Shop" />} />
-            <Route path="/shop/:id" element={<ComingSoon label="Shop" />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/:id" element={<Product />} />
             <Route path="/about" element={<About />} />
             <Route path="/legal" element={<Navigate to="/legal/terms" replace />} />
             <Route path="/legal/:slug" element={<Legal />} />

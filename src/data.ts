@@ -58,6 +58,13 @@ export type Product = {
   drop: string
   soldOut?: boolean
   nightId?: string
+  /**
+   * A slot we know is coming but have no details for yet. Shows as a "Coming soon"
+   * ticket in the shop, with no product page. To launch it: fill in name, price,
+   * drop, image and teaser, then delete this flag.
+   */
+  comingSoon?: boolean
+  teaser?: string
 }
 
 export const BRAND = 'MBO'
@@ -158,7 +165,7 @@ export const artists: Artist[] = [
     name: 'MBO Rasta',
     role: 'Artist',
     bio: 'MBO Rasta brings the night in live — roots energy for Gaborone rooms that stay open late.',
-    image: '/img/team/member-02.jpg',
+    image: '/img/artists/mbo-rasta.jpg',
   },
 ]
 
@@ -212,7 +219,6 @@ export type TeamMember = {
 export const team: TeamMember[] = [
   { id: 'member-01', name: 'Kgosi', role: 'EL PATRON', image: '/img/team/member-01.jpg' },
   { id: 'member-02', name: 'MBO Rasta', role: 'BIG BOSS', image: '/img/team/member-02.jpg' },
-  { id: 'member-03', name: 'Leruo', role: 'EL JEFE', image: '/img/team/member-03.jpg' },
 ]
 
 export const nights: Night[] = [
@@ -276,38 +282,34 @@ export const nights: Night[] = [
   },
 ]
 
+// Placeholder slots until the first merch drop is confirmed. See `comingSoon` on Product.
 export const products: Product[] = [
   {
     id: 'product-01',
-    name: 'MBO Mark Tee',
-    price: 280,
-    drop: 'Core drop',
-    image: placeholder('MBO MARK TEE', 1200, 1200),
-    nightId: 'night-02',
+    name: 'Coming soon',
+    price: 0,
+    drop: 'Merch drop 01',
+    image: placeholder(' ', 1200, 1200),
+    comingSoon: true,
+    teaser: 'First MBO piece in the works — details land here first.',
   },
   {
     id: 'product-02',
-    name: 'On the Way Cap',
-    price: 220,
-    drop: 'Core drop',
-    image: placeholder('ON THE WAY CAP', 1200, 1200, '161616', 'f3eee6'),
+    name: 'Coming soon',
+    price: 0,
+    drop: 'Merch drop 02',
+    image: placeholder(' ', 1200, 1200, '161616', 'f3eee6'),
+    comingSoon: true,
+    teaser: 'Another one locking in. Watch this space.',
   },
   {
     id: 'product-03',
-    name: 'Ponds Live Poster',
-    price: 150,
-    drop: 'Night print',
-    image: placeholder('PONDS POSTER', 1200, 1200),
-    nightId: 'night-01',
-  },
-  {
-    id: 'product-04',
-    name: 'House of Habanos Hoodie',
-    price: 450,
-    drop: 'Night print',
-    soldOut: true,
-    image: placeholder('HABANOS HOODIE', 1200, 1200, '161616', 'ff5a3c'),
-    nightId: 'night-02',
+    name: 'Coming soon',
+    price: 0,
+    drop: 'Merch drop 03',
+    image: placeholder(' ', 1200, 1200, '161616', 'c9a27a'),
+    comingSoon: true,
+    teaser: 'More merch on the way.',
   },
 ]
 

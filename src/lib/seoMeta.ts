@@ -14,8 +14,10 @@ import {
   CHANNELS,
   getArtist,
   getNight,
+  getProduct,
   getVenue,
   nights,
+  products,
   venues,
 } from '../data'
 import { LEGAL, getLegal } from '../legal'
@@ -147,6 +149,18 @@ export function metaFor(path: string, ticketsLive: boolean): Meta {
       }
     }
   }
+  if (seg[0] === 'shop' && seg[1]) {
+    const product = getProduct(seg[1])
+    if (product?.comingSoon) {
+      return { title: `Coming soon | ${BRAND} Shop`, description: product.teaser || BRAND_TAGLINE, noindex: true }
+    }
+    if (product) {
+      return {
+        title: `${product.name} | ${BRAND} Shop`,
+        description: `${product.name} — ${product.drop} from ${BRAND}, P${product.price}.`,
+      }
+    }
+  }
   if (seg[0] === 'venues' && seg[1]) {
     const venue = getVenue(seg[1])
     if (venue) {
@@ -169,7 +183,7 @@ export function metaFor(path: string, ticketsLive: boolean): Meta {
         'MBO — More Bands On the way — books live music across Botswana, putting rising acts on stages in Gaborone.',
     },
     artists: { title: `Artists | ${BRAND}`, description: `The artists playing ${BRAND} nights in Gaborone.` },
-    shop: { title: `Shop | ${BRAND}`, description: `${BRAND} merch — coming soon.` },
+    shop: { title: `Shop | ${BRAND}`, description: `${BRAND} merch — tees, caps, prints and night drops.` },
     tickets: { title: `My Tickets | ${BRAND}`, description: `Find your ${BRAND} tickets.` },
     bag: { title: `Bag | ${BRAND}`, description: `Your ${BRAND} bag.` },
     checkout: { title: `Checkout | ${BRAND}`, description: `Checkout for ${BRAND} tickets.` },
@@ -190,6 +204,8 @@ export function prerenderRoutes() {
     '/about',
     '/artists',
     ...artists.map((a) => `/artists/${a.id}`),
+    '/shop',
+    ...products.filter((p) => !p.comingSoon).map((p) => `/shop/${p.id}`),
     ...nights.map((n) => `/events/${n.id}`),
     ...venues.map((v) => `/venues/${v.id}`),
     ...LEGAL.map((d) => `/legal/${d.slug}`),

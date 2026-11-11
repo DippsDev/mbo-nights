@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { team } from '../data'
 
@@ -23,7 +23,13 @@ export default function About() {
 
   return (
     <main className="page about">
-      <section className="about-team" aria-label="The MBO team" ref={rail} onScroll={onScroll}>
+      <section
+        className="about-team"
+        aria-label="The MBO team"
+        ref={rail}
+        onScroll={onScroll}
+        style={{ '--count': team.length } as CSSProperties}
+      >
         {team.map((member) => (
           <figure className="about-member" key={member.id}>
             <img src={member.image} alt={member.name} loading="lazy" decoding="async" />
