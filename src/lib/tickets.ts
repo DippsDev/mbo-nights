@@ -128,10 +128,32 @@ export type Stock = Record<string, TierStock>
 
 export const stockKey = (nightId: string, tierId: string) => `${nightId}:${tierId}`
 
+type StockRow = { event_id: string; tier_id: string; name: string; price: number; remaining: number }
+
+/**
+ * Plain REST call instead of the Supabase client: the homepage only needs stock,
+ * so it no longer downloads the ~55 KB client on first load.
+ */
+async function stockRows(): Promise<StockRow[]> {
+  const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
+  if (!url || !key) return call<StockRow[]>('tier_stock')
+  const res = await fetch(`${url}/rest/v1/rpc/tier_stock`, {
+    method: 'POST',
+    headers: { apikey: key, 'Content-Type': 'application/json' },
+    body: '{}',
+  })
+  if (!res.ok) {
+    console.error('[tickets] tier_stock', res.status, await res.text().catch(() => ''))
+    throw new TicketError(
+      navigator.onLine ? 'Something went wrong. Try again.' : 'You’re offline. Check your connection.',
+    )
+  }
+  return res.json()
+}
+
 export async function fetchStock(): Promise<Stock> {
-  const rows = await call<
-    { event_id: string; tier_id: string; name: string; price: number; remaining: number }[]
-  >('tier_stock')
+  const rows = await stockRows()
   return Object.fromEntries(
     rows.map((r) => [
       stockKey(r.event_id, r.tier_id),
