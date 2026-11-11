@@ -13,6 +13,8 @@ export type Venue = {
   name: string
   type: VenueType
   city: string
+  /** Street address for search results, e.g. 'Plot 123, Western Commercial Road'. */
+  address?: string
   image: string
   blurb: string
 }
@@ -156,28 +158,7 @@ export const artists: Artist[] = [
     name: 'MBO Rasta',
     role: 'Artist',
     bio: 'MBO Rasta brings the night in live — roots energy for Gaborone rooms that stay open late.',
-    image: placeholder('MBO RASTA', 1400, 1600),
-  },
-  {
-    id: 'artist-02',
-    name: 'Royal Musiq',
-    role: 'Artist',
-    bio: 'Royal Musiq on the bill — melodic runs and a floor that does not sit down.',
-    image: placeholder('ROYAL MUSIQ', 1400, 1600, '161616', 'f3eee6'),
-  },
-  {
-    id: 'artist-03',
-    name: 'W4DE',
-    role: 'Artist',
-    bio: 'W4DE for the peak hours — sharp selections made for packed Gabs nights.',
-    image: placeholder('W4DE', 1400, 1600),
-  },
-  {
-    id: 'artist-04',
-    name: 'Remy',
-    role: 'Artist',
-    bio: 'Remy closes the room soft or loud — whichever the night asks for.',
-    image: placeholder('REMY', 1400, 1600, '161616', 'c9a27a'),
+    image: '/img/team/member-02.jpg',
   },
 ]
 

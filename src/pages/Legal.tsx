@@ -1,4 +1,4 @@
-import { Link, Navigate, NavLink, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { getLegal, LEGAL } from '../legal'
 
 export default function Legal() {
@@ -15,14 +15,6 @@ export default function Legal() {
       </header>
 
       <section className="section" style={{ paddingTop: 0 }}>
-        <nav className="legal-tabs" aria-label="Legal pages">
-          {LEGAL.map((d) => (
-            <NavLink key={d.slug} to={`/legal/${d.slug}`}>
-              {d.title}
-            </NavLink>
-          ))}
-        </nav>
-
         {doc.sections.length === 0 ? (
           <div className="legal-empty">
             <p>We’re finalising this page. Check back soon.</p>

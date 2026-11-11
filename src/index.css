@@ -3115,29 +3115,6 @@ html:not(.has-cursor) .cursor-glow {
   font-size: clamp(2.4rem, 8vw, 4rem);
 }
 
-.legal-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 1.4rem;
-  padding-bottom: 1rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.legal-tabs a {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  transition: color 0.2s;
-}
-
-.legal-tabs a.active,
-.legal-tabs a:hover {
-  color: var(--acid);
-}
-
 .legal-empty {
   display: grid;
   gap: 1rem;
@@ -3626,7 +3603,6 @@ html:not(.has-cursor) .cursor-glow {
   .foot-col a,
   .foot-top,
   .foot-logo,
-  .legal-tabs a,
   .link-arrow,
   .bag-link {
     display: inline-flex;
@@ -3643,10 +3619,6 @@ html:not(.has-cursor) .cursor-glow {
     min-width: 44px;
     justify-content: flex-start;
     margin-block: -0.6rem;
-  }
-
-  .legal-tabs a {
-    padding-block: 0;
   }
 }
 
@@ -3676,4 +3648,31 @@ html:not(.has-cursor) .cursor-glow {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* One artist on the roster: a single centred card instead of a half-empty grid. */
+.card-grid.artists.solo {
+  grid-template-columns: minmax(0, 440px);
+  justify-content: center;
+}
+
+.card-grid.artists.solo .artist-card img {
+  height: auto;
+  max-height: none;
+  aspect-ratio: 4 / 5;
+}
+
+/* Tight display line-height clips the name against the card edge; give it room. */
+.artist-card .card-meta {
+  padding-bottom: 1rem;
+}
+
+.artist-card .display {
+  line-height: 1;
+}
+
+/* Portraits: keep faces in frame when the photo is cropped. */
+.artist-card img,
+.artist-media img {
+  object-position: 50% 12%;
 }
