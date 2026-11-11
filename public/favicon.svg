@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <text x="32" y="44" text-anchor="middle" font-size="30" font-weight="700" letter-spacing="-1"
+  <rect width="64" height="64" fill="#070707"/>
+  <text x="32" y="42" text-anchor="middle" font-size="26" font-weight="700" letter-spacing="-0.5"
         fill="#ffffff" font-family="'Oswald','Bahnschrift Condensed','Arial Narrow',Arial,sans-serif">MBO</text>
 </svg>

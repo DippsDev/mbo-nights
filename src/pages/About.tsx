@@ -32,7 +32,8 @@ export default function About() {
       >
         {team.map((member) => (
           <figure className="about-member" key={member.id}>
-            <img src={member.image} alt={member.name} loading="lazy" decoding="async" />
+            {/* First thing on the page: load now, not lazily. */}
+            <img src={member.image} alt={member.name} fetchPriority="high" decoding="async" />
             <figcaption>
               <span className="kicker">{member.role}</span>
               <span className="about-member-name">{member.name}</span>

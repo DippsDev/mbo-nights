@@ -21,11 +21,19 @@ export default function Artists() {
       </header>
       <section className="section" style={{ paddingTop: 0 }} ref={section}>
         <div className={`card-grid artists${artists.length === 1 ? ' solo' : ''}`}>
-          {artists.map((artist) => {
+          {artists.map((artist, i) => {
             const next = nightsForArtist(artist.id)[0]
+            // The first row is on screen straight away; only later cards wait.
+            const eager = i < 3
             return (
               <Link className="artist-card" key={artist.id} to={`/artists/${artist.id}`}>
-                <img src={artist.image} alt={artist.name} loading="lazy" decoding="async" />
+                <img
+                  src={artist.image}
+                  alt={artist.name}
+                  loading={eager ? 'eager' : 'lazy'}
+                  fetchPriority={eager ? 'high' : 'auto'}
+                  decoding="async"
+                />
                 <div className="card-meta">
                   <span className="tag">{next ? `Next · ${next.date}` : artist.role}</span>
                   <h2 className="display md">{artist.name}</h2>

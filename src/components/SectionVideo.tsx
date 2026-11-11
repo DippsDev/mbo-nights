@@ -34,12 +34,13 @@ export default function SectionVideo({
       forceMuted(video)
       if (video.paused) void video.play().catch(() => undefined)
     }
-    // Start loading a screen before the section arrives.
+    // Start loading about a screen and a half before the section arrives, so the
+    // clip has time to buffer on mobile data instead of sitting on its poster.
     const warm = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) setNear(true)
       },
-      { rootMargin: '300px 0px' },
+      { rootMargin: '150% 0px' },
     )
     // Some browsers (iOS Safari) pause off-screen video themselves; nudge it on return.
     const view = new IntersectionObserver(([entry]) => {
