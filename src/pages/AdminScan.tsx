@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import jsQR from 'jsqr'
 import AdminGate from '../components/AdminGate'
-import { nights } from '../data'
+import { announcedNights } from '../data'
 import {
   checkIn,
   doorCounts,
@@ -46,7 +46,9 @@ function buzz(ok: boolean) {
   }
 }
 
-export default function AdminScanPage() {
+const nights = announcedNights()
+
+export default function AdminScan() {
   return (
     <AdminGate>
       <Scanner />

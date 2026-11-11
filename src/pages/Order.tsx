@@ -26,9 +26,11 @@ function useCountdown(until: number) {
 
 function CopyRow({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = useState(false)
+  // Numbers are shown with spaces for reading but copied as plain digits.
+  const clean = /^[\d\s]+$/.test(value) ? value.replace(/\s/g, '') : value
   const copy = () => {
     void navigator.clipboard
-      ?.writeText(value)
+      ?.writeText(clean)
       .then(() => {
         setCopied(true)
         window.setTimeout(() => setCopied(false), 1500)
@@ -46,7 +48,15 @@ function CopyRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function AwaitingPayment({ order, refresh }: { order: OrderT; refresh: () => void }) {
+function AwaitingPayment({
+  order,
+  refresh,
+  onPaid,
+}: {
+  order: OrderT
+  refresh: () => void
+  onPaid: () => void
+}) {
   const { done, label } = useCountdown(order.expiresAt)
   const [note, setNote] = useState('')
   const [error, setError] = useState('')
@@ -62,6 +72,7 @@ function AwaitingPayment({ order, refresh }: { order: OrderT; refresh: () => voi
     setError('')
     try {
       await reportPaid(order.token, note)
+      onPaid()
       refresh()
     } catch (err) {
       setError(err instanceof TicketError ? err.message : 'Something went wrong. Try again.')
@@ -175,6 +186,27 @@ export default function Order() {
     return () => window.clearInterval(id)
   }, [checking, refresh])
 
+  // After "I've paid": once the order shows as awaiting confirmation, scroll to the
+  // footer's "Find my tickets" link and light it up so they know where to come back to.
+  const [justPaid, setJustPaid] = useState(false)
+  const pointAtFooterLink = justPaid && order?.status === 'awaiting_confirmation'
+  useEffect(() => {
+    if (!pointAtFooterLink) return
+    const link = document.getElementById('find-my-tickets')
+    if (!link) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const start = window.setTimeout(() => {
+      link.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' })
+      link.classList.add('is-spotlit')
+    }, 350)
+    const stop = window.setTimeout(() => link.classList.remove('is-spotlit'), 4200)
+    return () => {
+      window.clearTimeout(start)
+      window.clearTimeout(stop)
+      link.classList.remove('is-spotlit')
+    }
+  }, [pointAtFooterLink])
+
   if (order === undefined) {
     return (
       <main className="page flow">
@@ -208,7 +240,7 @@ export default function Order() {
   if (order.status === 'awaiting_payment') {
     return (
       <main className="page flow">
-        <AwaitingPayment order={order} refresh={refresh} />
+        <AwaitingPayment order={order} refresh={refresh} onPaid={() => setJustPaid(true)} />
       </main>
     )
   }
@@ -244,7 +276,7 @@ export default function Order() {
   const copy: Record<string, { title: string; body: string }> = {
     awaiting_confirmation: {
       title: 'Checking payment',
-      body: 'Thanks — we’re matching your Pay2Cell payment. Your tickets appear on this page once it’s confirmed, usually within a few hours. Bookmark this page, or find it later with your reference and cell number.',
+      body: 'Thanks — we’re matching your Pay2Cell payment. Your tickets appear here once it’s confirmed, usually within a few hours. To get back to them later, use Find my tickets at the bottom of every page with your reference and cell number.',
     },
     rejected: {
       title: 'Payment not found',
@@ -268,9 +300,16 @@ export default function Order() {
       </header>
       <section className="section checkout-wrap" style={{ paddingTop: 0 }}>
         <OrderLines order={order} />
-        <Link className="btn" to="/">
-          Back home
-        </Link>
+        <div className="order-actions">
+          {order.status === 'awaiting_confirmation' && (
+            <Link className="btn" to="/tickets">
+              Find my tickets
+            </Link>
+          )}
+          <Link className={order.status === 'awaiting_confirmation' ? 'link-arrow' : 'btn'} to="/">
+            Back home →
+          </Link>
+        </div>
       </section>
     </main>
   )

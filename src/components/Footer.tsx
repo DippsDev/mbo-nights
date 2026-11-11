@@ -55,7 +55,9 @@ export default function Footer() {
             )}
             {TICKETS_ENABLED && (
               <li>
-                <Link to="/tickets">Find my tickets</Link>
+                <Link id="find-my-tickets" to="/tickets">
+                  Find my tickets
+                </Link>
               </li>
             )}
             <li>

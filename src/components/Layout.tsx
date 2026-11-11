@@ -4,6 +4,7 @@ import { useCart } from '../cart'
 import { reducedMotion } from '../lib/motion'
 import { useSound } from '../sound'
 import BagIcon from './BagIcon'
+import BagSlip from './BagSlip'
 import Cursor from './Cursor'
 import Footer from './Footer'
 import Intro from './Intro'
@@ -18,6 +19,19 @@ export default function Layout() {
   const [atTop, setAtTop] = useState(true)
   const [overHero, setOverHero] = useState(true)
   const close = useCallback(() => setOpen(false), [])
+
+  // Nudge the bag icon whenever something new lands in it.
+  const [bumped, setBumped] = useState(false)
+  const [seenCount, setSeenCount] = useState(count)
+  if (count !== seenCount) {
+    setSeenCount(count)
+    if (count > seenCount) setBumped(true)
+  }
+  useEffect(() => {
+    if (!bumped) return
+    const t = window.setTimeout(() => setBumped(false), 700)
+    return () => window.clearTimeout(t)
+  }, [bumped, seenCount])
 
   const goHomeTop = (event: MouseEvent<HTMLAnchorElement>) => {
     close()
@@ -107,7 +121,7 @@ export default function Layout() {
             {on ? 'Mute' : 'Sound'}
           </button>
           <Link
-            className="bag-link"
+            className={`bag-link${bumped ? ' is-bumped' : ''}`}
             to="/bag"
             aria-label={count > 0 ? `Bag, ${count} items` : 'Bag'}
           >
@@ -125,6 +139,7 @@ export default function Layout() {
         </div>
       </header>
       <Menu open={open} onClose={close} />
+      <BagSlip />
       {home ? null : <div className="nav-spacer" aria-hidden />}
       <div className="page-veil" key={location.pathname}>
         {/* Lazy routes suspend here only — nav and footer stay put. */}

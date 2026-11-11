@@ -7,21 +7,17 @@ import {
   getNight,
   getVenue,
   merchForNight,
+  SHOP_OPEN,
 } from '../data'
 import { stubDate } from '../lib/date'
-import { isNarrow } from '../lib/motion'
 import { forceMuted, useMutedVideoRef } from '../lib/media'
 import { MAX_PER_TIER, stockKey, useStock } from '../lib/tickets'
 
 export default function EventDetail() {
   const { id } = useParams()
   const night = id ? getNight(id) : undefined
-  const { add, items } = useCart()
+  const { add, items, notify } = useCart()
   const { stock, error: stockError } = useStock()
-  const [note, setNote] = useState('')
-  const [mobile, setMobile] = useState(() =>
-    typeof window !== 'undefined' ? isNarrow() : false,
-  )
   const [ready, setReady] = useState(false)
   const [videoRef, attachVideo] = useMutedVideoRef()
 
@@ -29,21 +25,13 @@ export default function EventDetail() {
   const [clipFailed, setClipFailed] = useState(false)
   const [posterFailed, setPosterFailed] = useState(false)
   const clip = night?.clips[0]
-  const showClip = Boolean(clip && mobile && !clipFailed)
+  const showClip = Boolean(clip && !clipFailed)
   const poster =
     clip && !posterFailed ? clip.replace(/\.mp4$/i, '.jpg') : night?.image || ''
 
+  // Warm cache as soon as this night has a clip (even before play).
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 799px)')
-    const sync = () => setMobile(mq.matches)
-    sync()
-    mq.addEventListener('change', sync)
-    return () => mq.removeEventListener('change', sync)
-  }, [])
-
-  // Warm cache as soon as this night has a mobile clip (even before play).
-  useEffect(() => {
-    if (!clip || !mobile) return
+    if (!clip) return
     const link = document.createElement('link')
     link.rel = 'preload'
     link.as = 'video'
@@ -56,7 +44,7 @@ export default function EventDetail() {
     return () => {
       link.remove()
     }
-  }, [clip, mobile])
+  }, [clip])
 
   useEffect(() => {
     const video = videoRef.current
@@ -96,7 +84,7 @@ export default function EventDetail() {
     }
   }, [showClip, clip, videoRef])
 
-  if (!night) return <Navigate to="/" replace />
+  if (!night || night.comingSoon) return <Navigate to="/" replace />
 
   const venue = getVenue(night.venueId)
   const lineup = artistsFor(night)
@@ -110,8 +98,11 @@ export default function EventDetail() {
     const inBag = items.find((i) => i.key === `ticket:${night.id}:${tier.id}`)?.qty ?? 0
     const max = Math.min(MAX_PER_TIER, live.remaining)
     if (inBag >= max) {
-      setNote(max === 0 ? 'Sold out' : `Max ${max} in your bag`)
-      window.setTimeout(() => setNote(''), 1800)
+      notify(
+        'limit',
+        max === 0 ? `${tier.name} is sold out` : `Max ${max} ${tier.name} per order`,
+        max === 0 ? undefined : `You already have ${inBag} in your bag`,
+      )
       return
     }
     add({
@@ -123,8 +114,6 @@ export default function EventDetail() {
       price: live.price,
       image: night.image,
     })
-    setNote(`${tier.name} added`)
-    window.setTimeout(() => setNote(''), 1800)
   }
 
   return (
@@ -222,7 +211,7 @@ export default function EventDetail() {
             })}
           </div>
 
-          {merch.length > 0 && (
+          {SHOP_OPEN && merch.length > 0 && (
             <div>
               <p className="kicker">Related merch</p>
               {merch.map((p) => (
@@ -236,7 +225,6 @@ export default function EventDetail() {
         </div>
       </div>
 
-      {note && <div className="toast">{note}</div>}
     </main>
   )
 }

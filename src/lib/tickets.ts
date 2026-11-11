@@ -13,7 +13,7 @@ const db = () => (client ??= import('./supabase').then((m) => m.supabase))
 export { TICKETS_ENABLED } from './flags'
 
 export const PAY2CELL = {
-  number: import.meta.env.VITE_PAY2CELL_NUMBER || '7X XXX XXX',
+  number: import.meta.env.VITE_PAY2CELL_NUMBER || '78 756 059',
   name: import.meta.env.VITE_PAY2CELL_NAME || 'MBO Nights',
 }
 

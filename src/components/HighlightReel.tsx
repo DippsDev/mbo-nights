@@ -37,33 +37,33 @@ function EventTicket({ night, stock }: { night: Night; stock: Stock | null }) {
   })
   const from = Math.min(...tiers.map((t) => t.price))
   const allGone = tiers.length > 0 && tiers.every((t) => t.left === 0)
+  // A slot with no details yet: no date, lineup, venue or prices, and no event page.
+  const soon = Boolean(night.comingSoon)
   const buyable = canBuy(night) && !allGone
-  const status = night.soldOut || allGone ? 'Sold out' : 'On sale soon'
+  const status = soon ? 'Coming soon' : night.soldOut || allGone ? 'Sold out' : 'On sale soon'
   // Placeholder art is an inline SVG; real posters are files.
   const hasArt = !night.image.startsWith('data:')
 
   return (
-    <article className={`event-ticket${buyable ? '' : ' is-locked'}`}>
+    <article className={`event-ticket${buyable ? '' : ' is-locked'}${soon ? ' is-soon' : ''}`}>
       <div className="event-ticket-stub">
-        <span className="event-ticket-weekday">{weekday}</span>
-        <span className="event-ticket-day">{day}</span>
-        <span className="event-ticket-month">
-          {month} {year}
-        </span>
-        <span className="event-ticket-time">{night.time}</span>
+        <span className="event-ticket-weekday">{soon ? 'Date' : weekday}</span>
+        <span className="event-ticket-day">{soon ? 'TBA' : day}</span>
+        {!soon && (
+          <span className="event-ticket-month">
+            {month} {year}
+          </span>
+        )}
+        {!soon && <span className="event-ticket-time">{night.time}</span>}
       </div>
 
       <div className="event-ticket-body">
-        <p className="kicker">
-          {venue?.type} · {venue?.city}
-        </p>
-        <h2 className="display">
-          <Link to={href}>{night.title}</Link>
-        </h2>
+        <p className="kicker">{soon ? 'Next night · Gaborone' : `${venue?.type} · ${venue?.city}`}</p>
+        <h2 className="display">{soon ? night.title : <Link to={href}>{night.title}</Link>}</h2>
         <p className="serif">{night.teaser}</p>
         <p className="event-ticket-meta">
-          {names}
-          {venue?.name ? ` · ${venue.name}` : ''}
+          {soon ? 'Lineup, venue and tickets to be announced' : names}
+          {!soon && venue?.name ? ` · ${venue.name}` : ''}
         </p>
         <div className="event-ticket-actions">
           {!buyable ? (
@@ -75,9 +75,6 @@ function EventTicket({ night, stock }: { night: Night; stock: Stock | null }) {
               Get tickets
             </Link>
           )}
-          <Link className="event-ticket-link" to={href}>
-            View details
-          </Link>
           {Number.isFinite(from) && <span className="event-ticket-price">From P{from}</span>}
         </div>
       </div>
@@ -89,25 +86,32 @@ function EventTicket({ night, stock }: { night: Night; stock: Stock | null }) {
         {/* Phones: the art area doubles as the ticket face — date and prices. */}
         <div className="event-ticket-face">
           <div className="face-date">
-            <span className="face-day">{day}</span>
+            <span className="face-day">{soon ? 'TBA' : day}</span>
             <span className="face-date-parts">
-              <span>{weekday}</span>
-              <span>
-                {month} {year}
+              <span>{soon ? 'Date' : weekday}</span>
+              <span>{soon ? 'to be announced' : `${month} ${year}`}</span>
+            </span>
+            {!soon && (
+              <span className="face-time">
+                <ClockIcon />
+                {night.time}
               </span>
-            </span>
-            <span className="face-time">
-              <ClockIcon />
-              {night.time}
-            </span>
+            )}
           </div>
           <ul className="face-tiers">
-            {tiers.map((t) => (
-              <li key={t.id} className={t.left === 0 ? 'is-out' : undefined}>
-                <span className="face-tier-name">{t.name}</span>
-                <span className="face-tier-price">P{t.price}</span>
+            {soon ? (
+              <li>
+                <span className="face-tier-name">Tickets</span>
+                <span className="face-tier-price">TBA</span>
               </li>
-            ))}
+            ) : (
+              tiers.map((t) => (
+                <li key={t.id} className={t.left === 0 ? 'is-out' : undefined}>
+                  <span className="face-tier-name">{t.name}</span>
+                  <span className="face-tier-price">P{t.price}</span>
+                </li>
+              ))
+            )}
           </ul>
         </div>
       </div>

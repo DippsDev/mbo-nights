@@ -37,6 +37,13 @@ export type Night = {
   soldOut?: boolean
   /** Only nights with this set can be bought; the rest show "On sale soon". */
   onSale?: boolean
+  /**
+   * A slot we know is coming but have no details for yet. Shows as a "Coming soon"
+   * ticket on the home page and is hidden from event, venue, artist and door pages.
+   * To announce it: fill in title, artistIds, venueId, date, time, teaser and tiers,
+   * then delete this flag.
+   */
+  comingSoon?: boolean
   teaser: string
   tiers: TicketTier[]
 }
@@ -236,8 +243,8 @@ export const nights: Night[] = [
     date: '19 Sep 2026',
     time: '20:00',
     image: placeholder(' ', 1800, 1200),
-    // MBO Rasta clip paused for now — restore '/video/nights/DippsDevM2.mp4' to turn it back on.
-    clips: [],
+    // Muted H.264 loop cut from IMG_8964.MOV (the .jpg beside it is the poster frame).
+    clips: ['/video/nights/night-01.mp4'],
     onSale: true,
     teaser:
       'MBO Rasta opens at The Ponds — supper first, then the floor takes over.',
@@ -246,54 +253,45 @@ export const nights: Night[] = [
       { id: 'vip', name: 'VIP', price: 280, remaining: 20 },
     ],
   },
+  // Placeholder slots until the CEO sends the event list. See `comingSoon` on Night.
   {
     id: 'night-02',
-    title: 'House of Habanos',
-    artistIds: ['artist-02'],
-    venueId: 'venue-01',
-    date: '03 Oct 2026',
-    time: '22:00',
+    title: 'Coming soon',
+    artistIds: [],
+    venueId: '',
+    date: '',
+    time: '',
     image: placeholder(' ', 1800, 1200, '161616', 'f3eee6'),
-    clips: ['/video/nights/night-02-artist.mp4', '/video/nights/night-02-event.mp4'],
-    onSale: true,
-    teaser:
-      'Royal Musiq takes House of Habanos past midnight — no chill-out, just the run.',
-    tiers: [
-      { id: 'general', name: 'General', price: 150, remaining: 180 },
-      { id: 'vip', name: 'VIP', price: 280, remaining: 40 },
-    ],
+    clips: [],
+    comingSoon: true,
+    teaser: 'Next night locking in — lineup, room and date land here first.',
+    tiers: [],
   },
   {
     id: 'night-03',
-    title: 'Bahama Live',
-    artistIds: ['artist-03'],
-    venueId: 'venue-03',
-    date: '17 Oct 2026',
-    time: '21:00',
-    image: placeholder(' ', 1800, 1200),
-    clips: ['/video/nights/night-03-artist.mp4', '/video/nights/night-03-event.mp4'],
-    teaser:
-      'W4DE at Bahama Lounge — one of the loudest rooms on the Gabs calendar.',
-    tiers: [
-      { id: 'general', name: 'General', price: 180, remaining: 100 },
-      { id: 'vip', name: 'VIP', price: 320, remaining: 24 },
-    ],
+    title: 'Coming soon',
+    artistIds: [],
+    venueId: '',
+    date: '',
+    time: '',
+    image: placeholder(' ', 1800, 1200, '161616', 'c9a27a'),
+    clips: [],
+    comingSoon: true,
+    teaser: 'Another room, another act — details drop as soon as they are locked.',
+    tiers: [],
   },
   {
     id: 'night-04',
-    title: '50two Sessions',
-    artistIds: ['artist-04'],
-    venueId: 'venue-04',
-    date: '31 Oct 2026',
-    time: '21:30',
-    image: placeholder(' ', 1800, 1200, '161616', 'c9a27a'),
-    clips: ['/video/nights/night-04-artist.mp4', '/video/nights/night-04-event.mp4'],
-    teaser:
-      'Remy on the iTowers rooftop at Table50two — city lights and a late last song.',
-    tiers: [
-      { id: 'general', name: 'General', price: 160, remaining: 60 },
-      { id: 'vip', name: 'VIP', price: 350, remaining: 18 },
-    ],
+    title: 'Coming soon',
+    artistIds: [],
+    venueId: '',
+    date: '',
+    time: '',
+    image: placeholder(' ', 1800, 1200, '161616', 'd6ff4b'),
+    clips: [],
+    comingSoon: true,
+    teaser: 'More bands on the way. Watch this space.',
+    tiers: [],
   },
 ]
 
@@ -352,20 +350,28 @@ export function artistsFor(night: Night) {
   return night.artistIds.map((id) => getArtist(id)).filter(Boolean) as Artist[]
 }
 
+/** Nights with real details — placeholders flagged `comingSoon` are left out. */
+export function announcedNights() {
+  return nights.filter((n) => !n.comingSoon)
+}
+
 export function nightsForArtist(artistId: string) {
-  return nights.filter((n) => n.artistIds.includes(artistId))
+  return announcedNights().filter((n) => n.artistIds.includes(artistId))
 }
 
 export function nightsForVenue(venueId: string) {
-  return nights.filter((n) => n.venueId === venueId)
+  return announcedNights().filter((n) => n.venueId === venueId)
 }
+
+/** Flip to true once the shop is live; gates merch cross-sells on event pages. */
+export const SHOP_OPEN = false
 
 export function merchForNight(nightId: string) {
   return products.filter((p) => p.nightId === nightId)
 }
 
 export function canBuy(night: Night) {
-  return Boolean(night.onSale) && !night.soldOut
+  return !night.comingSoon && Boolean(night.onSale) && !night.soldOut
 }
 
 export function nextOpenNight() {

@@ -759,7 +759,8 @@ video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  /* Portrait clips: keep the band just below centre in view, where faces sit. */
+  object-position: center 52%;
 }
 
 .media-frame .event-still {
@@ -1251,6 +1252,36 @@ video {
   color: var(--cream);
 }
 
+/* Lit up briefly after a customer taps "I've paid", so they see where their tickets live. */
+.foot-col a.is-spotlit {
+  color: var(--acid);
+  animation: footSpot 1.4s ease-in-out 3;
+}
+
+@keyframes footSpot {
+  0%,
+  100% {
+    text-shadow: none;
+  }
+  50% {
+    text-shadow: 0 0 14px rgba(214, 255, 75, 0.75);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foot-col a.is-spotlit {
+    animation: none;
+  }
+}
+
+.order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.6rem;
+  margin-top: 1.4rem;
+}
+
 @media (any-hover: hover) {
   .foot-col a:hover,
   .foot-top:hover {
@@ -1295,19 +1326,193 @@ video {
   object-fit: cover;
 }
 
-.toast {
+/* Bag slip: a small tear-off ticket that drops in under the header bag icon. */
+.bag-slip {
+  --slip-stub: 2.9rem;
+  --slip-notch: 0.42rem;
   position: fixed;
-  bottom: 5.2rem;
-  left: 50%;
-  transform: translateX(-50%);
+  top: calc(var(--nav-h) + env(safe-area-inset-top) + 0.2rem);
+  right: max(1.4rem, env(safe-area-inset-right));
   z-index: 45;
+  display: grid;
+  grid-template-columns: var(--slip-stub) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 0.9rem;
+  width: min(22rem, calc(100vw - 2rem));
+  padding-right: 0.95rem;
+  background: var(--bg-2);
+  color: var(--cream);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  transform-origin: top right;
+  animation: slipIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  -webkit-mask:
+    radial-gradient(circle at var(--slip-stub) 0, transparent var(--slip-notch), #000 calc(var(--slip-notch) + 0.5px)),
+    radial-gradient(circle at var(--slip-stub) 100%, transparent var(--slip-notch), #000 calc(var(--slip-notch) + 0.5px));
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle at var(--slip-stub) 0, transparent var(--slip-notch), #000 calc(var(--slip-notch) + 0.5px)),
+    radial-gradient(circle at var(--slip-stub) 100%, transparent var(--slip-notch), #000 calc(var(--slip-notch) + 0.5px));
+  mask-composite: intersect;
+}
+
+.bag-slip.is-leaving {
+  animation: slipOut 0.32s ease-in both;
+}
+
+.bag-slip-stub {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  min-height: 3.6rem;
+  border-right: 1px dashed rgba(243, 238, 230, 0.28);
   background: var(--acid);
   color: #111;
-  padding: 0.55rem 0.9rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.bag-slip.is-limit .bag-slip-stub {
+  background: var(--copper);
+}
+
+.bag-slip-body {
+  display: grid;
+  gap: 0.1rem;
+  padding-block: 0.6rem;
+  min-width: 0;
+}
+
+.bag-slip-kicker {
+  font-size: 0.58rem;
   font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--acid);
+}
+
+.bag-slip.is-limit .bag-slip-kicker {
+  color: var(--copper);
+}
+
+.bag-slip-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bag-slip-detail {
+  font-size: 0.7rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bag-slip-link {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cream);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  text-decoration-color: var(--line);
+  white-space: nowrap;
+}
+
+.bag-slip-link:hover {
+  text-decoration-color: var(--acid);
+}
+
+@keyframes slipIn {
+  from {
+    opacity: 0;
+    transform: translateY(-0.9rem) rotate(-2.5deg) scale(0.96);
+  }
+  60% {
+    transform: translateY(0.15rem) rotate(0.6deg) scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes slipOut {
+  to {
+    opacity: 0;
+    transform: translateY(-0.6rem) rotate(1.5deg);
+  }
+}
+
+/* Header bag icon nudges and its count pops when something new lands. */
+.bag-link.is-bumped svg {
+  animation: bagBump 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bag-link.is-bumped span {
+  animation: bagCount 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes bagBump {
+  0% {
+    transform: none;
+  }
+  30% {
+    transform: translateY(-3px) rotate(-8deg);
+  }
+  60% {
+    transform: translateY(0) rotate(6deg) scale(1.08);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes bagCount {
+  0% {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.4);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bag-slip {
+    animation: slipFade 0.2s ease both;
+  }
+
+  .bag-slip.is-leaving {
+    animation: slipFadeOut 0.2s ease both;
+  }
+
+  .bag-link.is-bumped svg,
+  .bag-link.is-bumped span {
+    animation: none;
+  }
+}
+
+@keyframes slipFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes slipFadeOut {
+  to {
+    opacity: 0;
+  }
 }
 
 .demo-note {
@@ -1423,6 +1628,13 @@ video {
   .media-frame video,
   .media-frame .atmosphere {
     height: 100%;
+    min-height: calc(100svh - var(--nav-h) - 1px);
+    max-height: none;
+  }
+
+  /* With a clip, the frame itself carries the height (its children are absolute). */
+  .media-frame:has(.event-clip) {
+    height: auto;
     min-height: calc(100svh - var(--nav-h) - 1px);
     max-height: none;
   }
@@ -1818,22 +2030,6 @@ html:not(.has-cursor) .cursor-glow {
   cursor: not-allowed;
 }
 
-.event-ticket-link {
-  color: var(--cream);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  text-decoration: underline;
-  text-underline-offset: 0.35em;
-  text-decoration-color: var(--line);
-  transition: text-decoration-color 0.2s ease;
-}
-
-.event-ticket-link:hover {
-  text-decoration-color: var(--acid);
-}
-
 .event-ticket-price {
   margin-left: auto;
   font-family: var(--font-display);
@@ -1904,6 +2100,30 @@ html:not(.has-cursor) .cursor-glow {
   color: var(--muted);
   border: 1px solid var(--line);
   opacity: 1;
+}
+
+/* Coming-soon slots: a quieter, hatched ticket with no real details on it yet. */
+.event-ticket.is-soon {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--bg-2) 0 14px,
+    rgba(243, 238, 230, 0.025) 14px 28px
+  );
+}
+
+.event-ticket.is-soon .event-ticket-day,
+.event-ticket.is-soon .face-day,
+.event-ticket.is-soon .event-ticket-body .display,
+.event-ticket.is-soon .face-tier-price {
+  color: var(--muted);
+}
+
+.event-ticket.is-soon .event-ticket-art img {
+  filter: grayscale(1) brightness(0.55);
+}
+
+.event-ticket.is-soon .event-ticket-actions .btn {
+  border-style: dashed;
 }
 
 /* Phones and small tablets: one tall ticket per event, artwork on top,
@@ -2097,7 +2317,7 @@ html:not(.has-cursor) .cursor-glow {
     color: var(--muted);
   }
 
-  /* Reference order: centred "View details", then a full-width buy button. */
+  /* Phones: a full-width buy button. */
   .event-ticket-actions {
     flex-direction: column-reverse;
     align-items: stretch;
@@ -2107,10 +2327,6 @@ html:not(.has-cursor) .cursor-glow {
   .event-ticket-actions .btn {
     width: 100%;
     padding-block: 1rem;
-  }
-
-  .event-ticket-actions .event-ticket-link {
-    align-self: center;
   }
 
   .event-ticket-actions .event-ticket-price {
@@ -2477,12 +2693,9 @@ html:not(.has-cursor) .cursor-glow {
     padding-inline: 1.05rem;
   }
 
-  .toast {
-    bottom: calc(5.2rem + env(safe-area-inset-bottom));
-    left: 1rem;
+  .bag-slip {
     right: 1rem;
-    transform: none;
-    text-align: center;
+    width: calc(100vw - 2rem);
   }
 
   .site-foot {
@@ -3376,7 +3589,6 @@ html:not(.has-cursor) .cursor-glow {
   .foot-logo,
   .legal-tabs a,
   .link-arrow,
-  .event-ticket-link,
   .bag-link {
     display: inline-flex;
     align-items: center;
@@ -3390,6 +3602,7 @@ html:not(.has-cursor) .cursor-glow {
 
   .foot-col a {
     min-width: 44px;
+    justify-content: flex-start;
     margin-block: -0.6rem;
   }
 

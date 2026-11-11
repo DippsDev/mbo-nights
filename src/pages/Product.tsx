@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useCart } from '../cart'
 import { getNight, getProduct } from '../data'
@@ -7,9 +6,10 @@ export default function Product() {
   const { id } = useParams()
   const product = id ? getProduct(id) : undefined
   const { add } = useCart()
-  const [note, setNote] = useState('')
   if (!product) return <Navigate to="/shop" replace />
-  const night = product.nightId ? getNight(product.nightId) : undefined
+  const linked = product.nightId ? getNight(product.nightId) : undefined
+  // Placeholder nights have no event page to point at yet.
+  const night = linked && !linked.comingSoon ? linked : undefined
 
   const buy = () => {
     if (product.soldOut) return
@@ -22,8 +22,6 @@ export default function Product() {
       price: product.price,
       image: product.image,
     })
-    setNote('Added to bag')
-    window.setTimeout(() => setNote(''), 1800)
   }
 
   return (
@@ -49,7 +47,6 @@ export default function Product() {
           </button>
         </div>
       </div>
-      {note && <div className="toast">{note}</div>}
     </main>
   )
 }
