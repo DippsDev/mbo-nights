@@ -3,6 +3,9 @@ import { artistsFor, canBuy, getVenue, nights, type Night } from '../data'
 import { stubDate } from '../lib/date'
 import { stockKey, useStock, type Stock } from '../lib/tickets'
 
+// Coming-soon cards all look alike — no real title, teaser or price leaks early.
+const SOON_TEASER = 'Next night locking in — lineup, room and date land here first.'
+
 export default function HighlightReel() {
   // One stock call for every ticket; falls back to data.ts until it lands.
   const { stock } = useStock()
@@ -59,8 +62,8 @@ function EventTicket({ night, stock }: { night: Night; stock: Stock | null }) {
 
       <div className="event-ticket-body">
         <p className="kicker">{soon ? 'Next night · Gaborone' : `${venue?.type} · ${venue?.city}`}</p>
-        <h2 className="display">{soon ? night.title : <Link to={href}>{night.title}</Link>}</h2>
-        <p className="serif">{night.teaser}</p>
+        <h2 className="display">{soon ? 'Coming soon' : <Link to={href}>{night.title}</Link>}</h2>
+        <p className="serif">{soon ? SOON_TEASER : night.teaser}</p>
         <p className="event-ticket-meta">
           {soon ? 'Lineup, venue and tickets to be announced' : names}
           {!soon && venue?.name ? ` · ${venue.name}` : ''}
@@ -75,12 +78,12 @@ function EventTicket({ night, stock }: { night: Night; stock: Stock | null }) {
               Get tickets
             </Link>
           )}
-          {Number.isFinite(from) && <span className="event-ticket-price">From P{from}</span>}
+          {!soon && Number.isFinite(from) && <span className="event-ticket-price">From P{from}</span>}
         </div>
       </div>
 
       <div className={`event-ticket-art${hasArt ? ' has-art' : ''}`}>
-        <img src={night.image} alt={night.title} loading="lazy" decoding="async" />
+        <img src={night.image} alt={soon ? 'Coming soon' : night.title} loading="lazy" decoding="async" />
         {!buyable && <span className="event-ticket-flag">{status}</span>}
 
         {/* Phones: the art area doubles as the ticket face — date and prices. */}

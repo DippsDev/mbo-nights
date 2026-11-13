@@ -168,10 +168,15 @@ export default function Home() {
             <button className="btn ghost" type="button" data-sound-toggle onPointerDown={toggle}>
               {on ? 'Mute' : 'Sound on'}
             </button>
-            {next && (
+            {next ? (
               <Link className="btn" to={`/events/${next.id}`}>
                 Get tickets
               </Link>
+            ) : (
+              // No night on sale yet: keep the CTA visible but inert.
+              <span className="btn" aria-disabled>
+                Get tickets
+              </span>
             )}
           </div>
         </div>

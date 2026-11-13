@@ -2030,7 +2030,8 @@ html:not(.has-cursor) .cursor-glow {
   gap: 0.8rem 1.3rem;
 }
 
-.event-ticket-actions .btn[aria-disabled] {
+.event-ticket-actions .btn[aria-disabled],
+.hero-meta .btn[aria-disabled] {
   opacity: 0.4;
   cursor: not-allowed;
 }
