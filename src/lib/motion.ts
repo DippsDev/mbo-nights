@@ -1,12 +1,3 @@
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-gsap.registerPlugin(ScrollTrigger)
-gsap.config({ force3D: true, nullTargetWarn: false })
-ScrollTrigger.config({
-  ignoreMobileResize: true,
-})
-
 /**
  * Deliberately ignores the OS `prefers-reduced-motion` setting: Windows often
  * reports it (Animation effects off / best-performance mode) and it was
@@ -33,29 +24,41 @@ export function isNarrow() {
 
 /**
  * Simple scroll reveal: each element fades up once as it enters the viewport.
- * Time-based (not scrubbed), so it never fights the scroll position.
+ * Pure CSS transition (`.reveal` / `.is-in` in index.css) toggled by an
+ * IntersectionObserver — no animation library on the critical path.
  */
 export function softScrollReveal(
   roots: Element | Element[] | NodeListOf<Element> | string,
-  scope?: Element | string | object,
+  scope?: Element | string,
 ) {
   if (reducedMotion()) return () => undefined
 
-  const ctx = gsap.context(() => {
-    gsap.utils.toArray<HTMLElement>(roots).forEach((el) => {
-      gsap.from(el, {
-        y: 24,
-        opacity: 0,
-        duration: 0.8,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: el,
-          start: 'top 90%',
-          once: true,
-        },
-      })
-    })
-  }, scope)
+  const base: ParentNode =
+    typeof scope === 'string' ? (document.querySelector(scope) ?? document) : (scope ?? document)
+  const els: Element[] =
+    typeof roots === 'string'
+      ? Array.from(base.querySelectorAll(roots))
+      : roots instanceof Element
+        ? [roots]
+        : Array.from(roots)
 
-  return () => ctx.revert()
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue
+        entry.target.classList.add('is-in')
+        io.unobserve(entry.target)
+      }
+    },
+    { rootMargin: '0px 0px -10% 0px' },
+  )
+  for (const el of els) {
+    el.classList.add('reveal')
+    io.observe(el)
+  }
+
+  return () => {
+    io.disconnect()
+    for (const el of els) el.classList.remove('reveal', 'is-in')
+  }
 }

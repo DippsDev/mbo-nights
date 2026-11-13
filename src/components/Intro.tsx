@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSound } from '../sound'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 function lockPageScroll() {
   const y = window.scrollY
@@ -29,11 +28,6 @@ function forceHeroTop() {
   document.documentElement.scrollTop = 0
   document.body.scrollTop = 0
   window.scrollTo(0, 0)
-  try {
-    ScrollTrigger.refresh()
-  } catch {
-    /* plugin may not be ready */
-  }
 }
 
 export default function Intro() {

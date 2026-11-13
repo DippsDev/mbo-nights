@@ -9,7 +9,6 @@ import HighlightReel from '../components/HighlightReel'
 import SectionVideo from '../components/SectionVideo'
 import { softScrollReveal } from '../lib/motion'
 import { useSound } from '../sound'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { forceMuted, useMutedVideoRef } from '../lib/media'
 
 const HERO_CLIP_DESKTOP = '/video/DippsDevHero.mp4'
@@ -88,7 +87,6 @@ export default function Home() {
 
     const onEntered = () => {
       window.scrollTo(0, 0)
-      ScrollTrigger.refresh()
       play()
     }
 

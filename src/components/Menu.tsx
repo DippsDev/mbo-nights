@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { gsap } from 'gsap'
 import { useCart } from '../cart'
 import { reducedMotion } from '../lib/motion'
 import { TICKETS_ENABLED } from '../lib/flags'
@@ -23,7 +22,7 @@ export default function Menu({
   const location = useLocation()
   const overlay = useRef<HTMLDivElement>(null)
   const nav = useRef<HTMLElement>(null)
-  const tween = useRef<gsap.core.Timeline | null>(null)
+  const running = useRef<Animation[]>([])
   const seen = useRef(false)
   const locked = useRef(false)
   const scrollY = useRef(0)
@@ -36,59 +35,83 @@ export default function Menu({
     const el = overlay.current
     const menu = nav.current
     if (!el || !menu) return
-    const items = menu.querySelectorAll('a, .menu-disabled')
-    const reduce = reducedMotion()
+    const items = Array.from(menu.querySelectorAll<HTMLElement>('a, .menu-disabled'))
 
-    tween.current?.kill()
-    tween.current = null
-
-    if (!seen.current) {
-      seen.current = true
-      gsap.set(el, { autoAlpha: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none' })
-      gsap.set(items, { autoAlpha: open ? 1 : 0, y: open ? 0 : 36 })
-      return
-    }
-
-    if (open) {
-      if (reduce) {
-        gsap.set(el, { autoAlpha: 1, pointerEvents: 'auto' })
-        gsap.set(items, { autoAlpha: 1, y: 0 })
-        return
+    // Freeze whatever is mid-flight where it is, then drop the old animations.
+    for (const a of running.current) {
+      try {
+        a.commitStyles()
+      } catch {
+        /* element not rendered */
       }
+      a.cancel()
+    }
+    running.current = []
 
-      tween.current = gsap
-        .timeline({ defaults: { ease: 'power3.out' } })
-        .set(el, { pointerEvents: 'auto' })
-        .to(el, { autoAlpha: 1, duration: 0.4, ease: 'power2.out' }, 0)
-        .fromTo(
-          items,
-          { autoAlpha: 0, y: 36 },
-          { autoAlpha: 1, y: 0, duration: 0.58, stagger: 0.055 },
-          0.08,
-        )
+    const setOverlay = (on: boolean) => {
+      el.style.opacity = on ? '1' : '0'
+      el.style.visibility = on ? 'visible' : 'hidden'
+      el.style.pointerEvents = on ? 'auto' : 'none'
+    }
+    const setItems = (on: boolean, y: number) => {
+      for (const item of items) {
+        item.style.opacity = on ? '1' : '0'
+        item.style.transform = on ? 'none' : `translate3d(0, ${y}px, 0)`
+      }
+    }
+    const play = (target: HTMLElement, frames: Keyframe[], opts: KeyframeAnimationOptions) => {
+      const a = target.animate(frames, { fill: 'both', ...opts })
+      running.current.push(a)
+      return a
+    }
+
+    if (!seen.current || reducedMotion()) {
+      seen.current = true
+      setOverlay(open)
+      setItems(open, open ? 0 : 36)
       return
     }
 
-    if (reduce) {
-      gsap.set(el, { autoAlpha: 0, pointerEvents: 'none' })
-      gsap.set(items, { autoAlpha: 0, y: 24 })
-      return
-    }
-
-    tween.current = gsap
-      .timeline({ defaults: { ease: 'power2.in' } })
-      .set(el, { pointerEvents: 'none' })
-      .to(
-        items,
-        {
-          autoAlpha: 0,
-          y: 18,
-          duration: 0.28,
-          stagger: { each: 0.035, from: 'end' },
-        },
-        0,
+    const outExpo = 'cubic-bezier(0.22, 1, 0.36, 1)'
+    if (open) {
+      setOverlay(true)
+      setItems(true, 0)
+      play(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 400, easing: 'ease-out' })
+      items.forEach((item, i) =>
+        play(
+          item,
+          [
+            { opacity: 0, transform: 'translate3d(0, 36px, 0)' },
+            { opacity: 1, transform: 'none' },
+          ],
+          { duration: 580, delay: 80 + i * 55, easing: outExpo },
+        ),
       )
-      .to(el, { autoAlpha: 0, duration: 0.42, ease: 'power2.inOut' }, 0.06)
+      return
+    }
+
+    el.style.pointerEvents = 'none'
+    items.forEach((item, i) =>
+      play(
+        item,
+        [
+          { opacity: 1, transform: 'none' },
+          { opacity: 0, transform: 'translate3d(0, 18px, 0)' },
+        ],
+        { duration: 280, delay: (items.length - 1 - i) * 35, easing: 'ease-in' },
+      ),
+    )
+    const fade = play(el, [{ opacity: 1 }, { opacity: 0 }], {
+      duration: 420,
+      delay: 60,
+      easing: 'ease-in-out',
+    })
+    fade.onfinish = () => {
+      setOverlay(false)
+      setItems(false, 18)
+      for (const a of running.current) a.cancel()
+      running.current = []
+    }
   }, [open])
 
   useEffect(() => {
