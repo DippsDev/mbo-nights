@@ -94,6 +94,15 @@ function prerenderMeta(): Plugin {
           if (!noindex) indexed.push(url)
         }
 
+        // Any URL Vercel can't match gets dist/404.html with a real 404 status.
+        // It boots the app, which renders the branded NotFound page for unknown paths.
+        const notFound = template
+          .replace(/(<title>)[^<]*(<\/title>)/, '$1Page not found | MBO$2')
+          .replace(/(<meta name="robots" content=")[^"]*(")/, '$1noindex, nofollow$2')
+          .replace(/\s*<link rel="canonical"[^>]*>/, '')
+        if (notFound === template) throw new Error('prerender-meta: could not build 404.html')
+        await fs.writeFile(path.join(outDir, '404.html'), notFound)
+
         const today = new Date().toISOString().slice(0, 10)
         const sitemap =
           '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +

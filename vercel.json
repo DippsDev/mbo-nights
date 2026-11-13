@@ -1,6 +1,15 @@
 {
   "cleanUrls": true,
-  "rewrites": [{ "source": "/((?!.*\\.).*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/order/:path*", "destination": "/" },
+    { "source": "/admin/:path*", "destination": "/" },
+    { "source": "/tickets", "destination": "/" },
+    { "source": "/checkout", "destination": "/" },
+    { "source": "/bag", "destination": "/" },
+    { "source": "/events", "destination": "/" },
+    { "source": "/venues", "destination": "/" },
+    { "source": "/legal", "destination": "/" }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",

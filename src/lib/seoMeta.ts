@@ -190,7 +190,13 @@ export function metaFor(path: string, ticketsLive: boolean): Meta {
     order: { title: `Your Order | ${BRAND}`, description: `Your ${BRAND} order.` },
     admin: { title: `Admin | ${BRAND}`, description: `${BRAND} admin.` },
   }
-  if (seg.length === 0) return { title: DEFAULT_TITLE, description: BRAND_TAGLINE, jsonLd: ORG_LD }
+  if (seg.length === 0)
+    return {
+      title: `${DEFAULT_TITLE} | Live Music & Tickets in Gaborone`,
+      description:
+        'Live music nights in Gaborone, Botswana. MBO puts new bands on real stages — see upcoming nights, lineups and get tickets.',
+      jsonLd: ORG_LD,
+    }
   const hit = fixed[seg[0]]
   if (hit) return { ...hit, noindex }
   // Anything else renders the 404 page.
