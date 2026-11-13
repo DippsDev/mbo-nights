@@ -56,12 +56,24 @@ const ORG_LD = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: DEFAULT_TITLE,
-  alternateName: BRAND,
+  alternateName: [BRAND, BRAND_FULL, 'MBO Nights', 'mbonights', 'morebandsotw', 'MBO Botswana'],
   url: `${SITE_URL}/`,
+  '@id': `${SITE_URL}/#org`,
+  image: DEFAULT_IMAGE,
+  address: { '@type': 'PostalAddress', addressLocality: 'Gaborone', addressCountry: 'BW' },
   logo: `${SITE_URL}/icon-512.png`,
   description: BRAND_BODY,
   areaServed: 'Botswana',
   sameAs: CHANNELS.map((c) => c.href).filter((h) => h.startsWith('http')),
+}
+
+const WEBSITE_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'MBO Nights',
+  alternateName: [BRAND_FULL, 'mbonights', 'morebandsotw'],
+  url: `${SITE_URL}/`,
+  publisher: { '@id': `${SITE_URL}/#org` },
 }
 
 function placeLd(venue: VenueT) {
@@ -192,10 +204,10 @@ export function metaFor(path: string, ticketsLive: boolean): Meta {
   }
   if (seg.length === 0)
     return {
-      title: `${DEFAULT_TITLE} | Live Music & Tickets in Gaborone`,
+      title: `MBO Nights — ${BRAND_FULL} | Live Music in Gaborone, Botswana`,
       description:
-        'Live music nights in Gaborone, Botswana. MBO puts new bands on real stages — see upcoming nights, lineups and get tickets.',
-      jsonLd: ORG_LD,
+        'MBO Nights (More Bands On the Way) — live music nights in Gaborone, Botswana. New bands on real stages — see upcoming nights, lineups and tickets.',
+      jsonLd: [ORG_LD, WEBSITE_LD],
     }
   const hit = fixed[seg[0]]
   if (hit) return { ...hit, noindex }
