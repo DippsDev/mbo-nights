@@ -3509,6 +3509,46 @@ fieldset.field legend {
   margin-top: 0.6rem;
 }
 
+/* Send tickets: WhatsApp is the main action; invoice and link sit as equal secondaries. */
+.send-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  width: 100%;
+  max-width: 30rem;
+}
+
+.send-buttons .btn {
+  justify-content: center;
+  text-align: center;
+  padding-inline: 0.6rem;
+}
+
+.send-buttons .send-main,
+.send-buttons .admin-invoice-note {
+  grid-column: 1 / -1;
+}
+
+.admin-actions:has(> .send-buttons) {
+  display: block;
+}
+
+.admin-banner-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+}
+
+.admin-banner-head .link-arrow {
+  background: none;
+  border: 0;
+  padding: 0.2rem 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .admin-confirm {
   margin-top: 0.8rem;
   padding: 0.9rem 1rem;
