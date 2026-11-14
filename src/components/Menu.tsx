@@ -188,14 +188,19 @@ export default function Menu({
           <span className="menu-index">0{links.length + 1}</span>
           <span className="menu-label">Bag{count > 0 ? ` (${count})` : ''}</span>
         </NavLink>
+        {/* Always open: customers must reach unpaid orders and issued tickets even while sales are off. */}
+        <NavLink to="/tickets" onClick={onClose}>
+          <span className="menu-index">0{links.length + 2}</span>
+          <span className="menu-label">My tickets</span>
+        </NavLink>
         {TICKETS_ENABLED ? (
           <NavLink to="/admin/orders" onClick={onClose}>
-            <span className="menu-index">0{links.length + 2}</span>
+            <span className="menu-index">0{links.length + 3}</span>
             <span className="menu-label">Administrator</span>
           </NavLink>
         ) : (
           <button type="button" className="menu-disabled" disabled>
-            <span className="menu-index">0{links.length + 2}</span>
+            <span className="menu-index">0{links.length + 3}</span>
             <span className="menu-label">Administrator</span>
           </button>
         )}

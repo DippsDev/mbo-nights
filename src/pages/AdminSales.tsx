@@ -49,11 +49,11 @@ function AdminSales() {
   const capacity = rows.reduce((n, r) => n + r.capacity, 0)
 
   return (
-    <main className="page sales-page">
+    <main className="page shop-page sales-page">
       <header className="page-hero">
         <p className="kicker">Administrator</p>
         <h1 className="display lg">Sales</h1>
-        <p className="demo-note">Confirmed tickets per night. Updates every 30 seconds.</p>
+        <p className="serif">Confirmed tickets per night. Updates every 30 seconds.</p>
         <div className="admin-actions">
           <Link className="btn ghost" to="/admin/orders">
             ← Orders
@@ -64,7 +64,7 @@ function AdminSales() {
         </div>
       </header>
 
-      <section className="section sales" style={{ paddingTop: 0 }}>
+      <section className="section shop-section sales">
         {error && (
           <p className="form-error" role="alert">
             {error}
@@ -86,25 +86,36 @@ function AdminSales() {
           </div>
         </div>
 
-        {byNight(rows).map((n) => (
-          <div className="sales-night" key={n.id}>
-            <h2 className="sales-night-title">{n.title}</h2>
-            {n.tiers.map((t) => (
-              <div className="sales-tier" key={t.tierName}>
-                <span className="sales-tier-name">{t.tierName}</span>
-                <span className="sales-bar" aria-hidden>
-                  <span style={{ width: pct(t.sold, t.capacity) }} />
-                  <span className="is-held" style={{ width: pct(t.held, t.capacity) }} />
-                </span>
-                <span className="sales-tier-count">
-                  {t.sold}
-                  <small>/{t.capacity}</small>
-                  {t.held > 0 && <em>{t.held} held</em>}
-                </span>
-              </div>
-            ))}
-          </div>
-        ))}
+        <div className="product-boxes">
+          {byNight(rows).map((n) => {
+            const nSold = n.tiers.reduce((x, t) => x + t.sold, 0)
+            const nCap = n.tiers.reduce((x, t) => x + t.capacity, 0)
+            return (
+              <article className="product-box sales-night" key={n.id}>
+                <div className="product-box-body">
+                  <p className="kicker">
+                    {nSold} of {nCap} sold
+                  </p>
+                  <h2 className="display">{n.title}</h2>
+                  {n.tiers.map((t) => (
+                    <div className="sales-tier" key={t.tierName}>
+                      <span className="sales-tier-name">{t.tierName}</span>
+                      <span className="sales-bar" aria-hidden>
+                        <span style={{ width: pct(t.sold, t.capacity) }} />
+                        <span className="is-held" style={{ width: pct(t.held, t.capacity) }} />
+                      </span>
+                      <span className="sales-tier-count">
+                        {t.sold}
+                        <small>/{t.capacity}</small>
+                        {t.held > 0 && <em>{t.held} held</em>}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            )
+          })}
+        </div>
       </section>
     </main>
   )

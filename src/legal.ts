@@ -150,7 +150,7 @@ export const LEGAL: LegalDoc[] = [
       {
         heading: 'Order problems',
         paragraphs: [
-          'If you paid but did not receive your tickets, use “Find my tickets” with your order reference and phone number.',
+          'If you paid but did not receive your tickets, use “Find my tickets” with the cell number and email you booked with, or your order reference.',
           'If that does not help, contact us through the footer. Approved refunds are paid to the number you paid from within 14 days.',
         ],
       },

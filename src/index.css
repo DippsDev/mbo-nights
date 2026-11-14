@@ -2731,7 +2731,7 @@ html:not(.has-cursor) .cursor-glow {
 
   .menu-overlay a,
   .menu-overlay .menu-disabled {
-    font-size: clamp(1.85rem, 10.5vw, 2.8rem);
+    --menu-size: clamp(1.85rem, 10.5vw, 2.8rem);
   }
 
   .highlights {
@@ -2860,7 +2860,7 @@ html:not(.has-cursor) .cursor-glow {
 
   .menu-overlay a,
   .menu-overlay .menu-disabled {
-    font-size: clamp(2.2rem, 6.4vw, 4.4rem);
+    --menu-size: clamp(2.2rem, 6.4vw, 4.4rem);
   }
 
   .lineup li {
@@ -3014,6 +3014,120 @@ html:not(.has-cursor) .cursor-glow {
 .checkout-total {
   font-family: var(--font-display);
   font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+fieldset.field {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+fieldset.field legend {
+  padding: 0;
+  margin-bottom: 0.6rem;
+}
+
+/* Every method on one row, equal widths; two-word names stack inside their button. */
+.pay-methods {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 0.4rem;
+}
+
+.pay-method {
+  padding: 0.6rem 0.4rem;
+  line-height: 1.2;
+  text-align: center;
+  border: 1px solid var(--line);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: clamp(0.65rem, 2.2vw, 0.8rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.pay-method:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Phones: five columns are too narrow for whole words, so the row scrolls sideways. */
+@media (max-width: 520px) {
+  .pay-methods {
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding-bottom: 2px; /* keeps the focus outline from being clipped */
+  }
+  .pay-methods::-webkit-scrollbar {
+    display: none;
+  }
+  .pay-method {
+    scroll-snap-align: start;
+    white-space: nowrap;
+    padding: 0.6rem 0.8rem;
+  }
+}
+
+.pay-method.is-on {
+  border-color: var(--acid);
+  color: var(--acid);
+}
+
+/* Phones list only the newest 3 device orders (6 on wider screens). */
+@media (max-width: 799px) {
+  .device-orders .my-order:nth-child(n + 4) {
+    display: none;
+  }
+}
+
+.my-orders {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.my-order {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+}
+
+.my-order:hover,
+.my-order:focus-visible {
+  border-color: var(--acid);
+}
+
+.my-order-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.my-order-status {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.my-order.is-awaiting_payment .my-order-status,
+.my-order.is-confirmed .my-order-status {
+  color: var(--acid);
+}
+
+.my-order-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -3197,14 +3311,6 @@ html:not(.has-cursor) .cursor-glow {
   gap: 2rem;
 }
 
-/* Header and content share one centred column on wide screens. */
-.sales-page .page-hero,
-.sales-page .sales {
-  width: 100%;
-  max-width: 44rem;
-  margin-inline: auto;
-  box-sizing: border-box;
-}
 
 .sales-totals {
   display: grid;
@@ -3401,6 +3507,33 @@ html:not(.has-cursor) .cursor-glow {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.6rem;
+}
+
+.admin-confirm {
+  margin-top: 0.8rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--acid);
+  border-left-width: 3px;
+}
+
+.admin-confirm.is-reject {
+  border-color: var(--line);
+  border-left-color: var(--muted);
+}
+
+.admin-confirm p {
+  margin: 0;
+}
+
+.admin-confirm .admin-actions {
+  align-items: center;
+}
+
+.admin-cancel {
+  background: none;
+  border: 0;
+  padding: 0.5rem 0.4rem;
+  cursor: pointer;
 }
 
 .tag.status-awaiting_payment {
@@ -3798,4 +3931,628 @@ html:not(.has-cursor) .cursor-glow {
 
 .product-box.is-soon .btn {
   border-style: dashed;
+}
+
+/* Seven menu items: keep the whole list on screen on short displays
+   (laptops, phones in landscape) by capping the size to the viewport height. */
+.menu-overlay a,
+.menu-overlay .menu-disabled {
+  font-size: min(var(--menu-size, clamp(2.6rem, 8vw, 6.5rem)), 9.5svh);
+}
+
+/* Form pages on desktop (checkout, payment, order status, my tickets) use the
+   Shop page's layout: heading block top-left, content underneath, same gutters
+   and heading size. Phones and tablets keep the centred single column. */
+@media (min-width: 800px) {
+  .page.flow:has(> .checkout-wrap) > .page-hero,
+  .page.flow:has(> .checkout-wrap) > .checkout-wrap {
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  .page.flow:has(> .checkout-wrap) > .page-hero {
+    padding-top: 2rem;
+  }
+
+  /* Same heading size as Shop (see the .display.lg rules for these widths). */
+  .page.flow:has(> .checkout-wrap) > .page-hero .display.lg {
+    font-size: clamp(2.2rem, 5.6vw, 4.2rem);
+  }
+
+  /* Like .shop-section: no top gap, so content sits right under the intro. */
+  .page.flow:has(> .checkout-wrap) > .checkout-wrap {
+    padding-top: 0 !important;
+    padding-bottom: 4.5rem;
+  }
+
+  /* Simple status pages (no split) stay a readable width. */
+  .page.flow:has(> .checkout-wrap) > .checkout-wrap > :not(.checkout-split) {
+    max-width: 40rem;
+  }
+}
+
+/* Checkout + payment: inputs/payment details on the left, order summary and the
+   main button in a panel on the right that stays in view while scrolling. */
+.checkout-split,
+.checkout-main,
+.checkout-side {
+  display: grid;
+  gap: 1.1rem;
+  align-content: start;
+}
+
+.checkout-split {
+  gap: 1.4rem;
+}
+
+.field-pair {
+  display: grid;
+  gap: 1.1rem;
+}
+
+@media (min-width: 600px) {
+  .field-pair {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1000px) {
+  .checkout-split {
+    grid-template-columns: minmax(0, 3fr) minmax(18rem, 2fr);
+    column-gap: clamp(2rem, 4vw, 4rem);
+    align-items: start;
+    max-width: 72rem;
+  }
+
+  /* Fit the whole step on one laptop screen: smaller heading, tighter rows. */
+  .page.flow:has(> .checkout-wrap) > .page-hero {
+    padding: 1.6rem 2.4rem 1.6rem;
+  }
+
+  .page.flow:has(> .checkout-wrap) > .page-hero .display.lg {
+    font-size: clamp(2.6rem, 4.4vw, 4.6rem);
+    margin: 0.3rem 0 0.4rem;
+  }
+
+  .checkout-split .pay-row {
+    padding: 0.6rem 1rem;
+  }
+
+  .checkout-split .pay-row strong {
+    font-size: 1.2rem;
+  }
+
+  .checkout-split .checkout-main,
+  .checkout-split .checkout-side {
+    gap: 0.9rem;
+  }
+
+  /* The panel's own border replaces the summary's top rule. */
+  .checkout-side > .order-summary {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .checkout-side {
+    position: sticky;
+    top: calc(var(--nav-h, 5rem) + 1.5rem);
+    padding: 1.4rem;
+    border: 1px solid var(--line);
+  }
+}
+
+
+.admin-invoice-note {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+/* ---- Ticket deck: swipe through passes one at a time ------------------- */
+
+.pass-deck {
+  display: grid;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.pass-deck-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pass-deck-bar .kicker {
+  margin: 0;
+}
+
+.pass-deck-nav {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.pass-deck-nav button {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--cream);
+  font: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.pass-deck-nav button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pass-deck-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.pass-deck-track::-webkit-scrollbar {
+  display: none;
+}
+
+.pass-deck-slide {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: grid;
+  min-width: 0;
+}
+
+.pass-deck-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pass-deck-dots button {
+  width: 0.55rem;
+  height: 0.55rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--line);
+  cursor: pointer;
+}
+
+.pass-deck-dots button.on {
+  background: var(--acid);
+}
+
+@media print {
+  .pass-deck-bar,
+  .pass-deck-dots {
+    display: none;
+  }
+
+  .pass-deck-track {
+    grid-auto-flow: row;
+    overflow: visible;
+  }
+}
+
+/* Deck motion: neighbours ease back while swiping; "View all" unfolds via view transitions. */
+.pass-deck-slide {
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pass-deck:not(.is-all) .pass-deck-slide:not(.is-active) {
+  transform: scale(0.94);
+  opacity: 0.45;
+}
+
+.pass-deck-toggle {
+  width: auto !important;
+  padding: 0 0.9rem;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pass-deck.is-all .pass-deck-track {
+  grid-auto-flow: row;
+  grid-auto-columns: auto;
+  gap: 1.2rem;
+  overflow: visible;
+  scroll-snap-type: none;
+}
+
+/* Tap a pass to open the scan view. */
+.pass-tap,
+.pass-deck-slide {
+  cursor: zoom-in;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pass-tap:active .pass,
+.pass-deck-slide.is-active:active .pass {
+  transform: scale(0.985);
+}
+
+.pass {
+  transition: transform 0.15s ease;
+}
+
+.pass-deck-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* ---- Scan view: full-screen QR that slides up from the bottom --------- */
+
+.scan-view {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  background: rgb(0 0 0 / 0.7);
+  backdrop-filter: blur(6px);
+  animation: scan-dim-in 0.3s ease both;
+}
+
+.scan-sheet {
+  width: 100%;
+  max-width: 30rem;
+  max-height: 100dvh;
+  overflow-y: auto;
+  display: grid;
+  gap: 1rem;
+  padding: 1.2rem 1rem calc(1.4rem + env(safe-area-inset-bottom));
+  background: var(--bg-2);
+  border-top: 3px solid var(--acid);
+  animation: scan-slide-in 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.scan-view.is-closing {
+  animation: scan-dim-out 0.28s ease both;
+}
+
+.scan-view.is-closing .scan-sheet {
+  animation: scan-slide-out 0.28s cubic-bezier(0.55, 0, 0.75, 0) both;
+}
+
+.scan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scan-head .kicker {
+  margin: 0;
+}
+
+.scan-close {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--cream);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.scan-qr {
+  justify-self: center;
+  width: min(100%, 22rem);
+  padding: 0.6rem;
+  background: #fff;
+  animation: scan-qr-in 0.5s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.scan-qr img,
+.scan-qr-blank {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  image-rendering: pixelated;
+}
+
+.scan-code {
+  justify-self: center;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.scan-info {
+  text-align: center;
+}
+
+.scan-info .display {
+  margin: 0 0 0.3rem;
+}
+
+.scan-info p {
+  margin: 0;
+}
+
+.scan-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.scan-nav button {
+  min-height: 2.9rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--cream);
+  font: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.scan-nav button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@keyframes scan-slide-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes scan-slide-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes scan-dim-in {
+  from {
+    background: rgb(0 0 0 / 0);
+    backdrop-filter: blur(0);
+  }
+}
+
+@keyframes scan-dim-out {
+  to {
+    background: rgb(0 0 0 / 0);
+    backdrop-filter: blur(0);
+  }
+}
+
+@keyframes scan-qr-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-view,
+  .scan-sheet,
+  .scan-qr {
+    animation-duration: 0.01ms !important;
+  }
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.55s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Cards that were off-screen in the deck fade and rise in, one after another. */
+::view-transition-new(*):only-child {
+  animation: pass-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+::view-transition-old(*):only-child {
+  animation: pass-fade 0.25s ease both;
+}
+
+@keyframes pass-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem) scale(0.97);
+  }
+}
+
+@keyframes pass-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pass-deck-slide {
+    transition: none;
+  }
+}
+
+/* Confirmed order, desktop: copy on the left, tickets on the right. */
+@media (min-width: 900px) {
+  .page.flow.order-confirmed {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 30rem);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1.4rem;
+  }
+
+  .page.flow.order-confirmed .page-hero,
+  .page.flow.order-confirmed .section {
+    max-width: none;
+    margin: 0;
+  }
+
+  .page.flow.order-confirmed .page-hero {
+    padding-inline: 0;
+  }
+
+  .page.flow.order-confirmed .section {
+    padding-top: 3rem !important;
+    padding-inline: 0;
+  }
+}
+
+/* "View all" on desktop: tickets spread across the page as a grid of compact cards. */
+@media (min-width: 900px) {
+  .page.flow.order-confirmed:has(.pass-deck.is-all) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .pass-deck.is-all .pass-deck-track {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-flow: row;
+    gap: 1.6rem;
+  }
+
+  .pass-deck.is-all .pass {
+    grid-template-columns: 1fr;
+    align-content: start;
+    height: 100%;
+  }
+
+  .pass-deck.is-all .pass .display.md {
+    font-size: clamp(2.2rem, 3vw, 3rem);
+  }
+
+  .pass-deck.is-all .pass-qr {
+    order: -1;
+  }
+
+  .pass-deck.is-all .pass-qr img,
+  .pass-deck.is-all .pass-qr-blank {
+    width: 100%;
+    max-width: 16rem;
+  }
+}
+
+
+/* Sales uses the Shop layout: hero on top, then a grid of night cards. */
+.sales-page .sales-totals {
+  margin-bottom: 1.25rem;
+}
+
+.sales-night .product-box-body {
+  gap: 0.9rem;
+}
+
+.sales-night .display {
+  margin: 0 0 0.4rem;
+}
+
+/* My tickets uses the Shop layout: hero on top, orders as a grid of cards, lookup below. */
+.tickets-section {
+  display: grid;
+  gap: 1.4rem;
+}
+
+/* Phones: the lookup form (and its results) come before "On this device". */
+@media (max-width: 799px) {
+  .tickets-section > .tickets-lookup {
+    order: -2;
+    margin-top: 0;
+  }
+
+  .tickets-section > .my-orders {
+    order: -1;
+  }
+}
+
+.tickets-section .my-order {
+  padding: 1.25rem;
+  gap: 0.5rem;
+}
+
+.tickets-section .my-order .link-arrow {
+  margin-top: auto;
+  padding-top: 0.6rem;
+}
+
+.tickets-lookup {
+  display: grid;
+  gap: 1.6rem;
+  margin-top: 1.6rem;
+  padding: clamp(1.25rem, 3vw, 2.4rem);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--acid);
+  background: var(--bg-2);
+}
+
+.tickets-lookup-copy {
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+}
+
+.tickets-lookup-copy .kicker,
+.tickets-lookup-copy p {
+  margin: 0;
+}
+
+.tickets-lookup-copy .display {
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  line-height: 0.95;
+}
+
+.tickets-lookup-copy .serif {
+  max-width: 26rem;
+  color: var(--muted);
+}
+
+.tickets-lookup-form {
+  display: grid;
+  gap: 1.4rem;
+}
+
+@media (min-width: 900px) {
+  .tickets-lookup {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: center;
+  }
+}
+
+/* Admin orders uses the Shop layout: hero on top, orders as a grid of cards. */
+.orders-section {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.orders-section .admin-tools {
+  margin-bottom: 0;
+}
+
+.orders-page .admin-order {
+  gap: 0.5rem;
+  padding: 1.25rem;
+}
+
+.orders-page .admin-order .admin-order-head {
+  flex-wrap: wrap;
+}
+
+/* Keep each card's buttons lined up along the bottom edge. */
+.orders-page .admin-order > .admin-actions:last-child,
+.orders-page .admin-order > .admin-confirm:last-child {
+  margin-top: auto;
+  padding-top: 0.6rem;
+}
+
+.orders-page .admin-order .admin-actions {
+  flex-wrap: wrap;
 }

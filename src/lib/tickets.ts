@@ -12,10 +12,95 @@ const db = () => (client ??= import('./supabase').then((m) => m.supabase))
 
 export { TICKETS_ENABLED } from './flags'
 
-export const PAY2CELL = {
-  number: import.meta.env.VITE_PAY2CELL_NUMBER || '78 756 059',
-  name: import.meta.env.VITE_PAY2CELL_NAME || 'MBO Nights',
+const env = import.meta.env
+const PAY_NAME = env.VITE_PAY2CELL_NAME || 'MBO Nights'
+
+export type PayMethod = {
+  id: string
+  label: string
+  /** Shown greyed out and can't be picked (e.g. not available yet). */
+  disabled?: boolean
+  /** One line on how to send it. */
+  how: string
+  /** Label/value rows shown with Copy buttons (amount and reference are added by the page). */
+  rows: [string, string][]
+  /** What the "sent from" field asks for. */
+  fromLabel: string
 }
+
+/**
+ * Every way a client can pay. A method only shows when its account is set in
+ * the env, so adding one is just adding its VITE_ keys. The client's choice is
+ * saved in the order's payment note for whoever confirms it.
+ */
+export const PAY_METHODS: PayMethod[] = (
+  [
+    {
+      id: 'pay2cell',
+      label: 'FNB Pay2Cell',
+      how: 'In the FNB app or *130#, send with Pay2Cell.',
+      rows: [
+        ['Send to', env.VITE_PAY2CELL_NUMBER || '78 756 059'],
+        ['Name', PAY_NAME],
+      ],
+      fromLabel: 'Sent from a different number? (optional)',
+    },
+    {
+      id: 'orange',
+      disabled: true,
+      label: 'Orange Money',
+      how: 'Dial *145# or use the Orange Money app → Send money.',
+      rows: [
+        ['Send to', env.VITE_ORANGE_MONEY_NUMBER ?? ''],
+        ['Name', env.VITE_ORANGE_MONEY_NAME || PAY_NAME],
+      ],
+      fromLabel: 'Sent from a different number? (optional)',
+    },
+    {
+      id: 'myzaka',
+      disabled: true,
+      label: 'Mascom MyZaka',
+      how: 'Dial *167# → Send money.',
+      rows: [
+        ['Send to', env.VITE_MYZAKA_NUMBER ?? ''],
+        ['Name', env.VITE_MYZAKA_NAME || PAY_NAME],
+      ],
+      fromLabel: 'Sent from a different number? (optional)',
+    },
+    {
+      id: 'smega',
+      disabled: true,
+      label: 'BTC Smega',
+      how: 'Dial *173# → Send money.',
+      rows: [
+        ['Send to', env.VITE_SMEGA_NUMBER ?? ''],
+        ['Name', env.VITE_SMEGA_NAME || PAY_NAME],
+      ],
+      fromLabel: 'Sent from a different number? (optional)',
+    },
+    {
+      id: 'eft',
+      label: 'Bank transfer',
+      how: 'Any bank, by app or branch. Same-bank transfers clear fastest.',
+      rows: [
+        ['Bank', env.VITE_BANK_NAME ?? ''],
+        ['Account', env.VITE_BANK_ACCOUNT ?? ''],
+        ['Branch', env.VITE_BANK_BRANCH ?? ''],
+        ['Holder', env.VITE_BANK_HOLDER || PAY_NAME],
+      ],
+      fromLabel: 'Account name you paid from (optional)',
+    },
+  ] satisfies PayMethod[]
+)
+  // Skip a method whose number/account isn't set. Branch may be blank.
+  .map((m) => ({ ...m, rows: m.rows.filter(([k, v]) => v || k === 'Name' || k === 'Holder') }))
+  .filter((m) => m.rows.some(([k]) => k === 'Send to' || k === 'Account'))
+
+/** The method with this id, or the first usable one if it's unknown, disabled or not set up. */
+export const payMethod = (id?: string | null) =>
+  PAY_METHODS.find((m) => m.id === id && !m.disabled) ??
+  PAY_METHODS.find((m) => !m.disabled) ??
+  PAY_METHODS[0]
 
 /** Must match the interval in create_order(). */
 export const HOLD_MINUTES = 120
@@ -68,6 +153,8 @@ export type Order = {
   paymentNote?: string
   reportedPaidAt?: number
   resolvedAt?: number
+  /** When the emailed invoice last went out (unset = never). */
+  invoiceSentAt?: number
   tickets: Ticket[]
 }
 
@@ -84,8 +171,9 @@ export function ticketRef(item: { key: string }) {
 type RawTicket = Omit<Ticket, 'checkedInAt'> & { checkedInAt: string | null }
 type RawOrder = Omit<
   Order,
-  'createdAt' | 'expiresAt' | 'reportedPaidAt' | 'resolvedAt' | 'paymentNote' | 'tickets'
+  'createdAt' | 'expiresAt' | 'reportedPaidAt' | 'resolvedAt' | 'invoiceSentAt' | 'paymentNote' | 'tickets'
 > & {
+  invoiceSentAt?: string | null
   createdAt: string
   expiresAt: string
   reportedPaidAt: string | null
@@ -103,6 +191,7 @@ function toOrder(raw: RawOrder): Order {
     expiresAt: Date.parse(raw.expiresAt),
     reportedPaidAt: ms(raw.reportedPaidAt),
     resolvedAt: ms(raw.resolvedAt),
+    invoiceSentAt: ms(raw.invoiceSentAt ?? null),
     paymentNote: raw.paymentNote ?? undefined,
     tickets: raw.tickets.map((t) => ({ ...t, checkedInAt: ms(t.checkedInAt) })),
   }
@@ -211,6 +300,45 @@ export async function findOrder(ref: string, phone: string): Promise<string | un
   return (await call<string | null>('find_order', { p_ref: ref, p_phone: phone })) ?? undefined
 }
 
+/** Every order booked with this cell number AND email, newest first. */
+export async function findOrders(phone: string, email: string): Promise<Order[]> {
+  return (await call<RawOrder[]>('find_orders', { p_phone: phone, p_email: email })).map(toOrder)
+}
+
+/* Orders placed on this device, so a customer can get back to them without a
+   reference. Only the secret order link is kept; details are always fetched. */
+const SAVED_KEY = 'mbo:orders'
+
+export function savedOrderTokens(): string[] {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(SAVED_KEY) ?? '[]')
+    return Array.isArray(v) ? v.filter((t): t is string => typeof t === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+/** How many orders "On this device" shows; older ones are forgotten. */
+export const DEVICE_ORDER_LIMIT = 6
+
+/** Replaces the saved list, e.g. after dropping old or deleted orders. */
+export function keepOrderTokens(tokens: string[]) {
+  try {
+    localStorage.setItem(SAVED_KEY, JSON.stringify(tokens))
+  } catch {
+    /* private mode etc. */
+  }
+}
+
+export function saveOrderToken(token: string) {
+  try {
+    const next = [token, ...savedOrderTokens().filter((t) => t !== token)].slice(0, 20)
+    localStorage.setItem(SAVED_KEY, JSON.stringify(next))
+  } catch {
+    /* private mode etc. — lookup by number still works */
+  }
+}
+
 export async function reportPaid(token: string, paymentNote: string) {
   return toOrder(await call<RawOrder>('report_paid', { p_token: token, p_note: paymentNote }))
 }
@@ -259,6 +387,27 @@ export async function listOrders(): Promise<Order[]> {
 
 export async function confirmOrder(ref: string) {
   return toOrder(await call<RawOrder>('admin_confirm', { p_ref: ref }))
+}
+
+/** Emails the buyer their invoice (supabase/functions/send-invoice). Confirmed orders only. */
+export async function sendInvoice(ref: string): Promise<Order> {
+  const { data, error } = await (await db()).functions.invoke<{ order?: RawOrder; error?: string }>(
+    'send-invoice',
+    { body: { ref } },
+  )
+  if (error) {
+    // The function's own { error } message, when it sent one.
+    let msg = 'Couldn’t send the invoice. Try again.'
+    try {
+      const body = await (error as { context?: Response }).context?.json()
+      if (body?.error) msg = body.error
+    } catch {
+      /* not JSON — function not deployed, offline, etc. */
+    }
+    throw new TicketError(msg)
+  }
+  if (!data?.order) throw new TicketError('Couldn’t send the invoice. Try again.')
+  return toOrder(data.order)
 }
 
 export async function rejectOrder(ref: string) {
