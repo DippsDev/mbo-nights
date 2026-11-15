@@ -305,40 +305,6 @@ export async function findOrders(phone: string, email: string): Promise<Order[]>
   return (await call<RawOrder[]>('find_orders', { p_phone: phone, p_email: email })).map(toOrder)
 }
 
-/* Orders placed on this device, so a customer can get back to them without a
-   reference. Only the secret order link is kept; details are always fetched. */
-const SAVED_KEY = 'mbo:orders'
-
-export function savedOrderTokens(): string[] {
-  try {
-    const v: unknown = JSON.parse(localStorage.getItem(SAVED_KEY) ?? '[]')
-    return Array.isArray(v) ? v.filter((t): t is string => typeof t === 'string') : []
-  } catch {
-    return []
-  }
-}
-
-/** How many orders "On this device" shows; older ones are forgotten. */
-export const DEVICE_ORDER_LIMIT = 6
-
-/** Replaces the saved list, e.g. after dropping old or deleted orders. */
-export function keepOrderTokens(tokens: string[]) {
-  try {
-    localStorage.setItem(SAVED_KEY, JSON.stringify(tokens))
-  } catch {
-    /* private mode etc. */
-  }
-}
-
-export function saveOrderToken(token: string) {
-  try {
-    const next = [token, ...savedOrderTokens().filter((t) => t !== token)].slice(0, 20)
-    localStorage.setItem(SAVED_KEY, JSON.stringify(next))
-  } catch {
-    /* private mode etc. — lookup by number still works */
-  }
-}
-
 export async function reportPaid(token: string, paymentNote: string) {
   return toOrder(await call<RawOrder>('report_paid', { p_token: token, p_note: paymentNote }))
 }

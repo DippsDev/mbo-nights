@@ -6,7 +6,6 @@ import {
   cancelOrder,
   getOrder,
   payMethod,
-  saveOrderToken,
   reportPaid,
   STATUS_LABEL,
   TicketError,
@@ -200,8 +199,6 @@ export default function Order() {
     getOrder(token)
       .then((o) => {
         setOrder(o ?? null);
-        // Remember it on this device so it shows under My tickets.
-        if (o) saveOrderToken(o.token);
         setLoadError(false);
       })
       .catch(() => setLoadError(true));

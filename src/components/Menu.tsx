@@ -6,9 +6,10 @@ import { TICKETS_ENABLED } from '../lib/flags'
 
 const links = [
   ['/', 'Home'],
-  ['/artists', 'Artists'],
+  ['/bag', 'Bag'],
   ['/shop', 'Shop'],
   ['/about', 'About'],
+  ['/artists', 'Artists'],
 ] as const
 
 export default function Menu({
@@ -181,26 +182,24 @@ export default function Menu({
         {links.map(([to, label], i) => (
           <NavLink key={to} to={to} onClick={onClose}>
             <span className="menu-index">0{i + 1}</span>
-            <span className="menu-label">{label}</span>
+            <span className="menu-label">
+              {to === '/bag' && count > 0 ? `${label} (${count})` : label}
+            </span>
           </NavLink>
         ))}
-        <NavLink to="/bag" onClick={onClose}>
-          <span className="menu-index">0{links.length + 1}</span>
-          <span className="menu-label">Bag{count > 0 ? ` (${count})` : ''}</span>
-        </NavLink>
         {/* Always open: customers must reach unpaid orders and issued tickets even while sales are off. */}
         <NavLink to="/tickets" onClick={onClose}>
-          <span className="menu-index">0{links.length + 2}</span>
+          <span className="menu-index">0{links.length + 1}</span>
           <span className="menu-label">My tickets</span>
         </NavLink>
         {TICKETS_ENABLED ? (
           <NavLink to="/admin/orders" onClick={onClose}>
-            <span className="menu-index">0{links.length + 3}</span>
+            <span className="menu-index">0{links.length + 2}</span>
             <span className="menu-label">Administrator</span>
           </NavLink>
         ) : (
           <button type="button" className="menu-disabled" disabled>
-            <span className="menu-index">0{links.length + 3}</span>
+            <span className="menu-index">0{links.length + 2}</span>
             <span className="menu-label">Administrator</span>
           </button>
         )}

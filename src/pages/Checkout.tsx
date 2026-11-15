@@ -6,7 +6,6 @@ import {
   createOrder,
   HOLD_MINUTES,
   payMethod,
-  saveOrderToken,
   TicketError,
   ticketRef,
 } from "../lib/tickets";
@@ -36,7 +35,6 @@ export default function Checkout() {
         { name, phone, email },
         tickets.map((i) => ({ ...ticketRef(i), qty: i.qty })),
       );
-      saveOrderToken(order.token);
       tickets.forEach((i) => remove(i.key));
       navigate(`/order/${order.token}?pay=${pay.id}`, { replace: true });
     } catch (err) {

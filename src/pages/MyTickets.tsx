@@ -1,17 +1,14 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import {
   findOrder,
   findOrders,
-  getOrder,
-  savedOrderTokens,
-  keepOrderTokens,
-  DEVICE_ORDER_LIMIT,
-  saveOrderToken,
   STATUS_LABEL,
   TicketError,
   type Order,
 } from "../lib/tickets";
+import { stubDate } from "../lib/date";
 
 /** What the customer should do next, per status. */
 const NEXT: Record<Order["status"], string> = {
@@ -22,65 +19,163 @@ const NEXT: Record<Order["status"], string> = {
   expired: "View order",
 };
 
-function OrderList({ orders }: { orders: Order[] }) {
+/** Orders grouped by what the customer needs to do; closed ones fold away. */
+const GROUPS: {
+  id: string;
+  title: string;
+  note: string;
+  statuses: Order["status"][];
+  closed?: boolean;
+}[] = [
+  {
+    id: "confirmed",
+    title: "Your tickets",
+    note: "Paid and confirmed. Open one to show your QR codes at the door.",
+    statuses: ["confirmed"],
+  },
+  {
+    id: "pay",
+    title: "To pay",
+    note: "Seats are held until the timer runs out. Pay to keep them.",
+    statuses: ["awaiting_payment"],
+  },
+  {
+    id: "checking",
+    title: "Being checked",
+    note: "You have paid. We are matching your payment, usually within a few hours.",
+    statuses: ["awaiting_confirmation"],
+  },
+  {
+    id: "closed",
+    title: "Past orders",
+    note: "Expired or cancelled. These hold no seats.",
+    statuses: ["rejected", "expired"],
+    closed: true,
+  },
+];
+
+function OrderTicket({ order }: { order: Order }) {
+  const first = order.lines[0];
+  const { day, month, weekday } = stubDate(first?.date ?? "");
+  const seats = order.lines.reduce((n, l) => n + l.qty, 0);
+  const titles = [...new Set(order.lines.map((l) => l.title))].join(" · ");
+  const tiers = order.lines.map((l) => `${l.qty}× ${l.tierName}`).join(", ");
+  const dead = order.status === "rejected" || order.status === "expired";
   return (
-    <div className="product-boxes my-orders">
-      {orders.map((o) => {
-        const seats = o.lines.reduce((n, l) => n + l.qty, 0);
-        const titles = [...new Set(o.lines.map((l) => l.title))].join(", ");
-        return (
-          <Link
-            key={o.token}
-            to={`/order/${o.token}`}
-            className={`product-box my-order is-${o.status}`}
-          >
-            <span className="my-order-top">
-              <span className="kicker">{o.ref}</span>
-              <span className="my-order-status">{STATUS_LABEL[o.status]}</span>
-            </span>
-            <strong className="my-order-title">{titles || "Order"}</strong>
-            <span className="demo-note">
-              {seats} ticket{seats === 1 ? "" : "s"} · P{o.total} ·{" "}
-              {new Date(o.createdAt).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "short",
-              })}
-            </span>
-            <span className="link-arrow">{NEXT[o.status]} →</span>
-          </Link>
+    <Link
+      to={`/order/${order.token}`}
+      className={`order-ticket is-${order.status}${dead ? " is-dead" : ""}`}
+    >
+      <span className="order-ticket-stub">
+        <span className="order-ticket-small">{weekday}</span>
+        <span className="order-ticket-day">{day || "—"}</span>
+        <span className="order-ticket-small">{month}</span>
+        {first?.time && <span className="order-ticket-time">{first.time}</span>}
+      </span>
+      <span className="order-ticket-body">
+        <span className="order-ticket-top">
+          <span className="kicker">{order.ref}</span>
+          <span className="order-ticket-status">{STATUS_LABEL[order.status]}</span>
+        </span>
+        <strong className="display">{titles || "Order"}</strong>
+        <span className="order-ticket-meta">
+          {tiers}
+          {first?.venue ? ` · ${first.venue}` : ""}
+        </span>
+        <span className="order-ticket-foot">
+          <span className="link-arrow">{NEXT[order.status]} →</span>
+          <span className="order-ticket-price">
+            {seats} ticket{seats === 1 ? "" : "s"} · P{order.total}
+          </span>
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+function OrderGroups({ orders }: { orders: Order[] }) {
+  return (
+    <div className="order-groups">
+      {GROUPS.map((g) => {
+        const list = orders.filter((o) => g.statuses.includes(o.status));
+        if (list.length === 0) return null;
+        const head = (
+          <>
+            <h2 className="order-group-title">
+              {g.title} <span className="order-group-count">{list.length}</span>
+            </h2>
+            <p className="order-group-note">{g.note}</p>
+          </>
+        );
+        const body = (
+          <div className="order-tickets">
+            {list.map((o) => (
+              <OrderTicket key={o.token} order={o} />
+            ))}
+          </div>
+        );
+        return g.closed ? (
+          <details key={g.id} className="order-group is-closed">
+            <summary>{head}</summary>
+            {body}
+          </details>
+        ) : (
+          <section key={g.id} className="order-group">
+            {head}
+            {body}
+          </section>
         );
       })}
     </div>
   );
 }
 
-function useDeviceOrders() {
-  const [tokens] = useState(savedOrderTokens);
-  const [orders, setOrders] = useState<Order[] | undefined>(
-    tokens.length ? undefined : [],
-  );
+/** Pop-up with the customer's orders, grouped. Esc, the ✕ or the backdrop closes it. */
+function OrdersPopup({ orders, onClose }: { orders: Order[]; onClose: () => void }) {
+  const [closing, setClosing] = useState(false);
+  const close = () => {
+    if (closing) return;
+    setClosing(true);
+    window.setTimeout(onClose, 240);
+  };
+
   useEffect(() => {
-    if (tokens.length === 0) return;
-    void Promise.all(
-      tokens.map((t) => getOrder(t).catch(() => null)),
-    ).then((list) => {
-      // null = couldn't load (offline etc.); don't forget orders over a bad connection.
-      const failed = list.some((o) => o === null);
-      // Newest 6 by order date; forget the rest (and any that no longer exist).
-      const keep = list
-        .filter((o): o is Order => Boolean(o))
-        .sort((a, b) => b.createdAt - a.createdAt)
-        .slice(0, DEVICE_ORDER_LIMIT);
-      if (!failed) keepOrderTokens(keep.map((o) => o.token));
-      setOrders(keep);
-    });
-  }, [tokens]);
-  return orders;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = overflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  });
+
+  return createPortal(
+    <div
+      className={`orders-popup${closing ? " is-closing" : ""}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Your orders"
+      onClick={close}
+    >
+      <div className="orders-popup-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="orders-popup-head">
+          <p className="kicker">
+            {orders.length} order{orders.length === 1 ? "" : "s"} found
+          </p>
+          <button type="button" className="orders-popup-close" onClick={close} aria-label="Close">
+            ✕
+          </button>
+        </div>
+        <OrderGroups orders={orders} />
+      </div>
+    </div>,
+    document.body,
+  );
 }
 
 export default function MyTickets() {
   const navigate = useNavigate();
-  const device = useDeviceOrders();
 
   const [mode, setMode] = useState<"contact" | "ref">("contact");
   const [ref, setRef] = useState("");
@@ -101,7 +196,6 @@ export default function MyTickets() {
         setError("No order matches that reference and number.");
       } else {
         const list = await findOrders(phone, email);
-        list.forEach((o) => saveOrderToken(o.token));
         setFound(list);
         if (list.length === 0)
           setError("No orders match that number and email.");
@@ -129,20 +223,9 @@ export default function MyTickets() {
       </header>
 
       <section className="section shop-section tickets-section">
-        {device && device.length > 0 && (
-          <>
-            <h2 className="kicker">On this device</h2>
-            <div className="device-orders">
-              <OrderList orders={device} />
-            </div>
-          </>
-        )}
-
         <div className="tickets-lookup">
           <div className="tickets-lookup-copy">
-            <h2 className="kicker">
-              {device?.length ? "Look up an order" : "Find your orders"}
-            </h2>
+            <h2 className="kicker">Look up an order</h2>
             <p className="display">Find an order</p>
             <p className="serif">
               Use the cell number and email you booked with, or your order
@@ -226,7 +309,9 @@ export default function MyTickets() {
           </div>
         </div>
 
-        {found && found.length > 0 && <OrderList orders={found} />}
+        {found && found.length > 0 && (
+          <OrdersPopup orders={found} onClose={() => setFound(undefined)} />
+        )}
       </section>
     </main>
   );

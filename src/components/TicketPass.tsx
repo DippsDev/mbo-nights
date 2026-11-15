@@ -14,6 +14,10 @@ export default function TicketPass({
   count: number
 }) {
   const [qr, setQr] = useState('')
+  const used = ticket.checkedInAt
+  const usedAt = used
+    ? new Date(used).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : ''
 
   useEffect(() => {
     let live = true
@@ -31,7 +35,7 @@ export default function TicketPass({
   }, [ticket.code])
 
   return (
-    <article className="pass">
+    <article className={`pass${used ? ' is-used' : ''}`}>
       <div className="pass-copy">
         <p className="kicker">
           {ticket.tierName} · {index + 1} of {count}
@@ -48,6 +52,12 @@ export default function TicketPass({
         {qr ? <img src={qr} alt={`QR code for ticket ${ticket.code}`} /> : <div className="pass-qr-blank" />}
         <code>{ticket.code}</code>
       </div>
+      {used && (
+        <div className="pass-stamp" aria-label={`Scanned at the door, ${usedAt}`}>
+          <span className="pass-stamp-word">Scanned</span>
+          <span className="pass-stamp-time">{usedAt}</span>
+        </div>
+      )}
     </article>
   )
 }

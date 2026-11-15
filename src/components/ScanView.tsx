@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import QRCode from 'qrcode'
 import type { Ticket } from '../lib/tickets'
 
-const CLOSE_MS = 280
+const CLOSE_MS = 260
 
 /** Full-screen, high-contrast view of one ticket's QR so it's quick to scan at the door. */
 export default function ScanView({
@@ -72,47 +72,27 @@ export default function ScanView({
     return () => void lock?.release().catch(() => undefined)
   }, [])
 
+  // Swipe left/right to move between tickets; a tap (no swipe) closes.
+  const [startX, setStartX] = useState<number | null>(null)
+  const onPointerUp = (e: React.PointerEvent) => {
+    const dx = startX === null ? 0 : e.clientX - startX
+    setStartX(null)
+    if (Math.abs(dx) > 40) {
+      setI((n) => Math.max(0, Math.min(count - 1, n + (dx < 0 ? 1 : -1))))
+    } else close()
+  }
+
   return createPortal(
     <div
       className={`scan-view${closing ? ' is-closing' : ''}`}
       role="dialog"
       aria-modal="true"
-      aria-label={`Ticket ${i + 1} of ${count}`}
-      onClick={close}
+      aria-label={`Ticket ${i + 1} of ${count}. Tap to close.`}
+      onPointerDown={(e) => setStartX(e.clientX)}
+      onPointerUp={onPointerUp}
     >
-      <div className="scan-sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="scan-head">
-          <p className="kicker">
-            {t.tierName} · {i + 1} of {count}
-          </p>
-          <button type="button" className="scan-close" onClick={close} aria-label="Close">
-            ✕
-          </button>
-        </div>
-
-        <div className="scan-qr" key={t.code}>
-          {qr ? <img src={qr} alt={`QR code for ticket ${t.code}`} /> : <div className="scan-qr-blank" />}
-        </div>
-        <code className="scan-code">{t.code}</code>
-
-        <div className="scan-info">
-          <h2 className="display md">{t.title}</h2>
-          <p>
-            {t.date} · {t.time} · {t.venue}
-          </p>
-          <p className="demo-note">{holder}</p>
-        </div>
-
-        {count > 1 && (
-          <div className="scan-nav">
-            <button type="button" onClick={() => setI(i - 1)} disabled={i === 0}>
-              ← Prev
-            </button>
-            <button type="button" onClick={() => setI(i + 1)} disabled={i === count - 1}>
-              Next →
-            </button>
-          </div>
-        )}
+      <div className="scan-qr" key={t.code}>
+        {qr ? <img src={qr} alt={`QR code for ticket ${t.code}`} draggable={false} /> : <div className="scan-qr-blank" />}
       </div>
     </div>,
     document.body,

@@ -1325,7 +1325,8 @@ video {
   align-items: center;
 }
 
-.bag-row img {
+.bag-row .bag-art {
+  display: block;
   width: 72px;
   height: 72px;
   object-fit: cover;
@@ -2948,6 +2949,17 @@ html:not(.has-cursor) .cursor-glow {
   border-color: var(--acid);
 }
 
+/* Keep browser autofill from tinting the fields. */
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--cream);
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-2) inset;
+  box-shadow: 0 0 0 1000px var(--bg-2) inset;
+  caret-color: currentColor;
+  transition: background-color 9999s ease-out 0s;
+}
+
 .field input::placeholder {
   color: var(--muted);
   opacity: 0.6;
@@ -3082,56 +3094,6 @@ fieldset.field legend {
   color: var(--acid);
 }
 
-/* Phones list only the newest 3 device orders (6 on wider screens). */
-@media (max-width: 799px) {
-  .device-orders .my-order:nth-child(n + 4) {
-    display: none;
-  }
-}
-
-.my-orders {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.my-order {
-  display: grid;
-  gap: 0.35rem;
-  padding: 1rem;
-  border: 1px solid var(--line);
-  color: inherit;
-  text-decoration: none;
-}
-
-.my-order:hover,
-.my-order:focus-visible {
-  border-color: var(--acid);
-}
-
-.my-order-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.my-order-status {
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.my-order.is-awaiting_payment .my-order-status,
-.my-order.is-confirmed .my-order-status {
-  color: var(--acid);
-}
-
-.my-order-title {
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
 .pay-box {
   display: grid;
   border: 1px solid var(--acid);
@@ -3175,12 +3137,13 @@ fieldset.field legend {
 }
 
 .pass {
+  position: relative;
+  overflow: hidden;
   display: grid;
   gap: 1.2rem;
   padding: 1.4rem;
   background: var(--bg-2);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--acid);
 }
 
 .pass .display {
@@ -4232,67 +4195,39 @@ fieldset.field legend {
   color: var(--muted);
 }
 
-/* ---- Scan view: full-screen QR that slides up from the bottom --------- */
+/* ---- Scan view: just the QR, centred, popping up over a dimmed page ---- */
 
 .scan-view {
   position: fixed;
   inset: 0;
   z-index: 1000;
   display: grid;
-  align-items: end;
-  justify-items: center;
-  background: rgb(0 0 0 / 0.7);
-  backdrop-filter: blur(6px);
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(0 0 0 / 0.82);
+  backdrop-filter: blur(8px);
+  touch-action: pan-y;
+  cursor: pointer;
   animation: scan-dim-in 0.3s ease both;
 }
 
-.scan-sheet {
-  width: 100%;
-  max-width: 30rem;
-  max-height: 100dvh;
-  overflow-y: auto;
-  display: grid;
-  gap: 1rem;
-  padding: 1.2rem 1rem calc(1.4rem + env(safe-area-inset-bottom));
-  background: var(--bg-2);
-  border-top: 3px solid var(--acid);
-  animation: scan-slide-in 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
 .scan-view.is-closing {
-  animation: scan-dim-out 0.28s ease both;
-}
-
-.scan-view.is-closing .scan-sheet {
-  animation: scan-slide-out 0.28s cubic-bezier(0.55, 0, 0.75, 0) both;
-}
-
-.scan-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.scan-head .kicker {
-  margin: 0;
-}
-
-.scan-close {
-  width: 2.75rem;
-  height: 2.75rem;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--cream);
-  font-size: 1rem;
-  cursor: pointer;
+  animation: scan-dim-out 0.26s ease both;
 }
 
 .scan-qr {
-  justify-self: center;
-  width: min(100%, 22rem);
-  padding: 0.6rem;
+  width: min(86vw, 70vh, 26rem);
+  padding: 0.9rem;
   background: #fff;
-  animation: scan-qr-in 0.5s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgb(0 0 0 / 0.55);
+  animation:
+    scan-pop-in 0.75s linear both,
+    scan-glow 1.1s 0.35s ease-out both;
+}
+
+.scan-view.is-closing .scan-qr {
+  animation: scan-pop-out 0.26s cubic-bezier(0.55, 0, 0.75, 0) both;
 }
 
 .scan-qr img,
@@ -4301,59 +4236,50 @@ fieldset.field legend {
   width: 100%;
   aspect-ratio: 1;
   image-rendering: pixelated;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
-.scan-code {
-  justify-self: center;
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-}
-
-.scan-info {
-  text-align: center;
-}
-
-.scan-info .display {
-  margin: 0 0 0.3rem;
-}
-
-.scan-info p {
-  margin: 0;
-}
-
-.scan-nav {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
-}
-
-.scan-nav button {
-  min-height: 2.9rem;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--cream);
-  font: inherit;
-  font-size: 0.8rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.scan-nav button:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-@keyframes scan-slide-in {
-  from {
-    transform: translateY(100%);
+/* Springy pop: shoots up from tiny and tilted, overshoots, settles with a wobble. */
+@keyframes scan-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.15) rotate(-12deg) translateY(60px);
+    animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.12) rotate(3deg) translateY(0);
+    animation-timing-function: ease-in-out;
+  }
+  65% {
+    transform: scale(0.95) rotate(-1.5deg);
+    animation-timing-function: ease-in-out;
+  }
+  82% {
+    transform: scale(1.03) rotate(0.5deg);
+    animation-timing-function: ease-out;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
   }
 }
 
-@keyframes scan-slide-out {
+/* A burst of acid-green light rings out as it lands. */
+@keyframes scan-glow {
+  0% {
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.55), 0 0 0 0 rgb(214 255 75 / 0.75);
+  }
+  100% {
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.55), 0 0 0 40px rgb(214 255 75 / 0);
+  }
+}
+
+@keyframes scan-pop-out {
   to {
-    transform: translateY(100%);
+    opacity: 0;
+    transform: scale(0.8);
   }
 }
 
@@ -4371,16 +4297,8 @@ fieldset.field legend {
   }
 }
 
-@keyframes scan-qr-in {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .scan-view,
-  .scan-sheet,
   .scan-qr {
     animation-duration: 0.01ms !important;
   }
@@ -4495,41 +4413,17 @@ fieldset.field legend {
   margin: 0 0 0.4rem;
 }
 
-/* My tickets uses the Shop layout: hero on top, orders as a grid of cards, lookup below. */
+/* My tickets uses the Shop layout: hero on top, lookup, then orders grouped as tickets. */
 .tickets-section {
   display: grid;
   gap: 1.4rem;
 }
 
-/* Phones: the lookup form (and its results) come before "On this device". */
-@media (max-width: 799px) {
-  .tickets-section > .tickets-lookup {
-    order: -2;
-    margin-top: 0;
-  }
-
-  .tickets-section > .my-orders {
-    order: -1;
-  }
-}
-
-.tickets-section .my-order {
-  padding: 1.25rem;
-  gap: 0.5rem;
-}
-
-.tickets-section .my-order .link-arrow {
-  margin-top: auto;
-  padding-top: 0.6rem;
-}
-
 .tickets-lookup {
   display: grid;
   gap: 1.6rem;
-  margin-top: 1.6rem;
   padding: clamp(1.25rem, 3vw, 2.4rem);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--acid);
   background: var(--bg-2);
 }
 
@@ -4595,4 +4489,409 @@ fieldset.field legend {
 
 .orders-page .admin-order .admin-actions {
   flex-wrap: wrap;
+}
+
+/* My tickets: orders as tear-off tickets (date stub | details), grouped by status. */
+.order-groups {
+  display: grid;
+  gap: 2.6rem;
+  margin-top: 2.4rem;
+}
+
+.order-group {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.order-group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.order-group-count {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--acid);
+  color: var(--acid);
+  font-size: 0.85rem;
+}
+
+.order-group-note {
+  margin: 0 0 0.8rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.order-group.is-closed summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.order-group.is-closed summary::-webkit-details-marker {
+  display: none;
+}
+
+.order-group.is-closed .order-group-title::after {
+  content: "+";
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.order-group.is-closed[open] .order-group-title::after {
+  content: "\2212";
+}
+
+.order-group.is-closed .order-group-count {
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.order-tickets {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 1000px) {
+  .order-tickets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.order-ticket {
+  --stub: 6rem;
+  --notch: 0.75rem;
+  --perf: rgba(243, 238, 230, 0.22);
+  display: grid;
+  grid-template-columns: var(--stub) minmax(0, 1fr);
+  min-height: 10.5rem;
+  background: var(--bg-2);
+  color: var(--cream);
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  -webkit-mask:
+    radial-gradient(circle at var(--stub) 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at var(--stub) 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at 100% 50%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle at var(--stub) 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at var(--stub) 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at 100% 50%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
+  mask-composite: intersect;
+}
+
+.order-ticket:hover,
+.order-ticket:focus-visible {
+  background: #1d1d1d;
+}
+
+.order-ticket-stub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 1rem 0.4rem;
+  border-right: 2px dashed var(--perf);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.order-ticket-small {
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  color: var(--muted);
+}
+
+.order-ticket-day {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 2.6rem;
+  line-height: 0.9;
+}
+
+.order-ticket-time {
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid var(--acid);
+  color: var(--acid);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.order-ticket-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 1.2rem 1.8rem 1.2rem 1.4rem;
+}
+
+.order-ticket-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.order-ticket-top .kicker {
+  margin: 0;
+}
+
+.order-ticket-status {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--muted);
+}
+
+.order-ticket.is-confirmed .order-ticket-status,
+.order-ticket.is-awaiting_payment .order-ticket-status {
+  color: var(--acid);
+}
+
+.order-ticket-body .display {
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  line-height: 0.95;
+}
+
+.order-ticket-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.order-ticket-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+}
+
+.order-ticket-price {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  color: var(--copper);
+}
+
+.order-ticket.is-dead {
+  opacity: 0.55;
+}
+
+.order-ticket.is-dead .order-ticket-time {
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+@media (max-width: 520px) {
+  .order-ticket {
+    --stub: 4.6rem;
+  }
+
+  .order-ticket-day {
+    font-size: 2rem;
+  }
+
+  .order-ticket-body {
+    padding: 1rem 1.3rem 1rem 1rem;
+  }
+
+  .order-ticket-top {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .order-ticket-status {
+    text-align: left;
+  }
+}
+
+/* Used tickets: a big tilted "Scanned" watermark across the pass. */
+.pass.is-used .pass-copy,
+.pass.is-used .pass-qr {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+.pass-stamp {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.2rem;
+  pointer-events: none;
+  transform: rotate(-24deg);
+  color: rgb(214 255 75 / 0.6);
+}
+
+.pass-stamp-word {
+  padding: 0.05em 0.35em;
+  border: 4px double currentColor;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.8rem, 12vw, 4.6rem);
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  mix-blend-mode: screen;
+}
+
+.pass-stamp-time {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* My tickets: search results open in a pop-up over the page. */
+.orders-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: clamp(0.75rem, 3vw, 2.5rem);
+  background: rgb(0 0 0 / 0.78);
+  backdrop-filter: blur(8px);
+  animation: scan-dim-in 0.3s ease both;
+}
+
+.orders-popup.is-closing {
+  animation: scan-dim-out 0.24s ease both;
+}
+
+.orders-popup-panel {
+  width: min(100%, 68rem);
+  max-height: calc(100dvh - 2 * clamp(0.75rem, 3vw, 2.5rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(1.1rem, 3vw, 2.2rem);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 90px rgb(0 0 0 / 0.6);
+  transform-origin: 50% 80%;
+  animation:
+    orders-popup-in 0.8s linear both,
+    orders-popup-glow 1.2s 0.3s ease-out both;
+}
+
+.orders-popup.is-closing .orders-popup-panel {
+  animation: orders-popup-out 0.24s cubic-bezier(0.55, 0, 0.75, 0) both;
+}
+
+.orders-popup-head {
+  position: sticky;
+  top: calc(-1 * clamp(1.1rem, 3vw, 2.2rem));
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: calc(-1 * clamp(1.1rem, 3vw, 2.2rem)) calc(-1 * clamp(1.1rem, 3vw, 2.2rem)) 0;
+  padding: 0.9rem clamp(1.1rem, 3vw, 2.2rem);
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.orders-popup-head .kicker {
+  margin: 0;
+}
+
+.orders-popup-close {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--cream);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.orders-popup-close:hover,
+.orders-popup-close:focus-visible {
+  border-color: var(--acid);
+  color: var(--acid);
+}
+
+.orders-popup .order-groups {
+  margin-top: 1.6rem;
+}
+
+.orders-popup .order-group {
+  animation: orders-group-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.orders-popup .order-group:nth-child(1) { animation-delay: 0.3s; }
+.orders-popup .order-group:nth-child(2) { animation-delay: 0.4s; }
+.orders-popup .order-group:nth-child(3) { animation-delay: 0.5s; }
+.orders-popup .order-group:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes orders-group-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+}
+
+/* Springs up from small and low, overshoots, then wobbles into place. */
+@keyframes orders-popup-in {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) translateY(120px) scale(0.6) rotateX(18deg);
+    animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+  45% {
+    opacity: 1;
+    transform: perspective(1200px) translateY(-14px) scale(1.04) rotateX(-4deg);
+    animation-timing-function: ease-in-out;
+  }
+  68% {
+    transform: perspective(1200px) translateY(6px) scale(0.985) rotateX(1.5deg);
+    animation-timing-function: ease-in-out;
+  }
+  85% {
+    transform: perspective(1200px) translateY(-2px) scale(1.005);
+    animation-timing-function: ease-out;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Acid-green edge glow that flares as it lands, then fades. */
+@keyframes orders-popup-glow {
+  0% {
+    border-color: var(--acid);
+    box-shadow: 0 30px 90px rgb(0 0 0 / 0.6), 0 0 0 0 rgb(214 255 75 / 0.6);
+  }
+  100% {
+    box-shadow: 0 30px 90px rgb(0 0 0 / 0.6), 0 0 0 32px rgb(214 255 75 / 0);
+  }
+}
+
+@keyframes orders-popup-out {
+  to {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orders-popup,
+  .orders-popup-panel,
+  .orders-popup .order-group {
+    animation-duration: 0.01ms !important;
+  }
 }
