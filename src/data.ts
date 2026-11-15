@@ -233,6 +233,8 @@ export const nights: Night[] = [
     // Muted H.264 loop cut from IMG_8964.MOV (the .jpg beside it is the poster frame).
     clips: ['/video/nights/night-01.mp4'],
     onSale: true,
+    // Paused: shows as "Coming soon" like the slots below. Delete to put it back on sale.
+    comingSoon: true,
     teaser:
       'MBO Rasta opens at The Ponds — supper first, then the floor takes over.',
     tiers: [
