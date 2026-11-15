@@ -54,7 +54,6 @@ export default function PassDeck({ tickets, holder }: { tickets: Ticket[]; holde
       <ScanView
         tickets={tickets}
         start={scan}
-        holder={holder}
         onClose={(last) => {
           setScan(null)
           if (!all) go(last)

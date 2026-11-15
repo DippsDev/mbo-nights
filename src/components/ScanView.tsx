@@ -9,12 +9,10 @@ const CLOSE_MS = 260
 export default function ScanView({
   tickets,
   start,
-  holder,
   onClose,
 }: {
   tickets: Ticket[]
   start: number
-  holder: string
   onClose: (last: number) => void
 }) {
   const [i, setI] = useState(start)
