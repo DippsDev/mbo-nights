@@ -6,4 +6,4 @@ Disallow: /checkout
 Disallow: /bag
 Disallow: /tickets
 
-Sitemap: https://morebandsontheway.com/sitemap.xml
+Sitemap: https://www.morebandsontheway.com/sitemap.xml

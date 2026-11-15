@@ -22,7 +22,8 @@ import {
 } from '../data'
 import { LEGAL, getLegal } from '../legal'
 
-export const SITE_URL = 'https://morebandsontheway.com'
+// www is the live host (non-www 301s to it), so canonicals must use it too.
+export const SITE_URL = 'https://www.morebandsontheway.com'
 export const DEFAULT_IMAGE = `${SITE_URL}/IMG_1990-scaled.jpeg`
 const DEFAULT_TITLE = `${BRAND} — ${BRAND_FULL}`
 
@@ -204,7 +205,7 @@ export function metaFor(path: string, ticketsLive: boolean): Meta {
   }
   if (seg.length === 0)
     return {
-      title: `MBO Nights — ${BRAND_FULL} | Live Music in Gaborone, Botswana`,
+      title: 'MBO Nights | Live Music in Gaborone, Botswana',
       description:
         'MBO Nights (More Bands On the Way) — live music nights in Gaborone, Botswana. New bands on real stages — see upcoming nights, lineups and tickets.',
       jsonLd: [ORG_LD, WEBSITE_LD],
@@ -232,3 +233,54 @@ export function prerenderRoutes() {
 
 /** Canonical URL for a path (no trailing slash except the home page). */
 export const canonical = (path: string) => `${SITE_URL}${path === '/' ? '/' : path.replace(/\/$/, '')}`
+
+const h = (t: string) =>
+  t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+/**
+ * Plain HTML written inside #root at build time so crawlers that don't run
+ * JavaScript see a heading, real text and links. React replaces it on mount.
+ */
+export function bodyFor(path: string, ticketsLive: boolean): string {
+  const { title, description } = metaFor(path, ticketsLive)
+  const heading = title.split(' | ')[0].split(' — ')[0]
+  const nav = [
+    ['/', 'Home'],
+    ['/about', 'About MBO'],
+    ['/artists', 'Artists'],
+    ['/shop', 'Shop'],
+    ...venues.map((v) => [`/venues/${v.id}`, `${v.name}, ${v.city}`]),
+    ...artists.map((a) => [`/artists/${a.id}`, a.name]),
+    ...LEGAL.map((d) => [`/legal/${d.slug}`, d.title]),
+  ]
+  const links = nav.map(([href, label]) => `<li><a href="${href}">${h(label)}</a></li>`).join('')
+  const ext = CHANNELS.filter((c) => c.href.startsWith('http'))
+    .map((c) => `<li><a href="${h(c.href)}" rel="noopener">${h(c.label)}</a></li>`)
+    .join('')
+
+  let main = `<p>${h(description)}</p>`
+  if (path === '/') {
+    const upcoming = nights
+      .filter(isAnnounced)
+      .map((n) => {
+        const v = getVenue(n.venueId)
+        return `<li><a href="/events/${n.id}">${h(n.title)}</a> — ${h(n.date)}${v ? `, ${h(v.name)}` : ''}</li>`
+      })
+      .join('')
+    main = `
+<p>${h(BRAND_BODY)}</p>
+<h2>Live music nights in Gaborone</h2>
+<p>MBO Nights is where Botswana's next wave of bands plays for real crowds. We book rising artists into restaurant stages and late club floors across Gaborone, then handle the night: the lineup, the sound, the tickets and the door. If you love hearing a band before everyone else does, this is your room.</p>
+<p>${h(BRAND_TAGLINE)} Every MBO night pairs a venue we trust with acts worth the trip — roots, soul, rock, jazz and everything between. Supper comes first at some rooms; at others the floor takes over from the first song.</p>
+<h2>Upcoming nights and tickets</h2>
+${upcoming ? `<ul>${upcoming}</ul>` : '<p>New dates are on the way. Follow MBO to hear first when tickets go on sale.</p>'}
+<p>Tickets are sold online and scanned at the door, so you can buy ahead, keep your pass on your phone and walk straight in.</p>
+<h2>Venues</h2>
+<ul>${venues.map((v) => `<li><a href="/venues/${v.id}">${h(v.name)}</a> — ${h(v.blurb)}</li>`).join('')}</ul>
+<h2>Artists</h2>
+<ul>${artists.map((a) => `<li><a href="/artists/${a.id}">${h(a.name)}</a> — ${h(a.bio)}</li>`).join('')}</ul>
+<h2>For bands and venues</h2>
+<p>Are you a band looking for a stage, or a venue that wants live music in Gaborone? MBO — More Bands On the way — works with both. Read more <a href="/about">about MBO</a> and get in touch.</p>`
+  }
+  return `<div class="seo-static"><header><nav aria-label="Main"><ul>${links}</ul></nav></header><main><h1>${h(heading)}</h1>${main}</main>${ext ? `<footer><ul>${ext}</ul></footer>` : ''}</div>`
+}

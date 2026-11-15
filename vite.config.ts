@@ -63,6 +63,7 @@ function prerenderMeta(): Plugin {
             route: string,
             ticketsLive: boolean,
           ) => { title: string; description: string; noindex?: boolean; jsonLd?: object }
+          bodyFor: (route: string, ticketsLive: boolean) => string
         }
         const indexed: string[] = []
 
@@ -83,6 +84,8 @@ function prerenderMeta(): Plugin {
           html = set(html, /(<meta property="og:url" content=")[^"]*(")/, url)
           html = set(html, /(<meta name="twitter:title" content=")[^"]*(")/, title)
           html = set(html, /(<meta name="twitter:description" content=")[^"]*(")/, description)
+          if (!html.includes('<div id="root"></div>')) throw new Error('prerender-meta: #root not found')
+          html = html.replace('<div id="root"></div>', () => `<div id="root">${seo.bodyFor(route, ticketsLive)}</div>`)
           if (jsonLd) {
             const json = JSON.stringify(jsonLd).replace(/</g, '\\u003c')
             html = html.replace('</head>', `<script id="seo-jsonld" type="application/ld+json">${json}</script>\n</head>`)
