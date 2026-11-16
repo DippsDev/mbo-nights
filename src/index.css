@@ -4337,9 +4337,10 @@ fieldset.field legend {
   }
 }
 
-/* Confirmed order, desktop: copy on the left, tickets on the right. */
+/* Confirmed order (and Help), desktop: copy on the left, content on the right. */
 @media (min-width: 900px) {
-  .page.flow.order-confirmed {
+  .page.flow.order-confirmed,
+  .page.flow.help-page {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 30rem);
     gap: clamp(2rem, 5vw, 5rem);
@@ -4350,16 +4351,20 @@ fieldset.field legend {
   }
 
   .page.flow.order-confirmed .page-hero,
-  .page.flow.order-confirmed .section {
+  .page.flow.order-confirmed .section,
+  .page.flow.help-page .page-hero,
+  .page.flow.help-page .section {
     max-width: none;
     margin: 0;
   }
 
-  .page.flow.order-confirmed .page-hero {
+  .page.flow.order-confirmed .page-hero,
+  .page.flow.help-page .page-hero {
     padding-inline: 0;
   }
 
-  .page.flow.order-confirmed .section {
+  .page.flow.order-confirmed .section,
+  .page.flow.help-page .section {
     padding-top: 3rem !important;
     padding-inline: 0;
   }
@@ -4920,4 +4925,60 @@ fieldset.field legend {
 
 .scan-qr.is-used .pass-stamp-time {
   font-size: 0.9rem;
+}
+
+/* Help page FAQ */
+.help-faq {
+  display: grid;
+  max-width: 46rem;
+}
+
+.help-faq details {
+  border-top: 1px solid var(--line, rgb(255 255 255 / 0.12));
+  padding: 1.1rem 0;
+}
+
+.help-faq details:last-child {
+  border-bottom: 1px solid var(--line, rgb(255 255 255 / 0.12));
+}
+
+.help-faq summary {
+  font-weight: 600;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.help-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.help-faq summary::after {
+  content: '+';
+  color: var(--acid);
+}
+
+.help-faq details[open] summary::after {
+  content: '–';
+}
+
+.help-faq p {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.help-faq a {
+  color: var(--acid);
+}
+
+.order-help {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.order-help a {
+  color: var(--acid);
 }

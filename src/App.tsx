@@ -21,6 +21,7 @@ const MyTickets = lazy(() => import('./pages/MyTickets'))
 const AdminOrders = lazy(() => import('./pages/AdminOrders'))
 const AdminScan = lazy(() => import('./pages/AdminScan'))
 const AdminSales = lazy(() => import('./pages/AdminSales'))
+const Help = lazy(() => import('./pages/Help'))
 const Legal = lazy(() => import('./pages/Legal'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/artists" element={<Artists />} />
             <Route path="/artists/:id" element={<ArtistDetail />} />
             <Route path="/tickets" element={<MyTickets />} />
+            <Route path="/help" element={<Help />} />
             <Route path="/checkout" element={live(<Checkout />)} />
             <Route path="/order/:token" element={<Order />} />
             <Route path="/admin/orders" element={<AdminOrders />} />

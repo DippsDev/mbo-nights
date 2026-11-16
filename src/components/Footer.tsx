@@ -63,6 +63,9 @@ export default function Footer() {
             <li>
               <Link to="/bag">Bag</Link>
             </li>
+            <li>
+              <Link to="/help">Help</Link>
+            </li>
           </ul>
         </nav>
 

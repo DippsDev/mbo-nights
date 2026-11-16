@@ -7,6 +7,7 @@ import { TICKETS_ENABLED } from '../lib/flags'
 const links = [
   ['/', 'Home'],
   ['/bag', 'Bag'],
+  ['/help', 'Help'],
   ['/shop', 'Shop'],
   ['/about', 'About'],
   ['/artists', 'Artists'],

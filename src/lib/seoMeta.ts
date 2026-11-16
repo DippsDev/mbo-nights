@@ -198,6 +198,7 @@ export function metaFor(path: string, ticketsLive: boolean): Meta {
     artists: { title: `Artists | ${BRAND}`, description: `The artists playing ${BRAND} nights in Gaborone.` },
     shop: { title: `Shop | ${BRAND}`, description: `${BRAND} merch — tees, caps, prints and night drops.` },
     tickets: { title: `My Tickets | ${BRAND}`, description: `Find your ${BRAND} tickets.` },
+    help: { title: `Help | ${BRAND}`, description: `Get help with your ${BRAND} order or tickets — message us on WhatsApp.` },
     bag: { title: `Bag | ${BRAND}`, description: `Your ${BRAND} bag.` },
     checkout: { title: `Checkout | ${BRAND}`, description: `Checkout for ${BRAND} tickets.` },
     order: { title: `Your Order | ${BRAND}`, description: `Your ${BRAND} order.` },
@@ -221,6 +222,7 @@ export function prerenderRoutes() {
   return [
     '/',
     '/about',
+    '/help',
     '/artists',
     ...artists.map((a) => `/artists/${a.id}`),
     '/shop',

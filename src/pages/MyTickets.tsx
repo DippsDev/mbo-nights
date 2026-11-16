@@ -295,7 +295,8 @@ export default function MyTickets() {
               )}
               {error && (
                 <p className="form-error" role="alert">
-                  {error}
+                  {error}{" "}
+                  <Link to="/help">Can’t find your order? Get help →</Link>
                 </p>
               )}
               <button className="btn" type="submit" disabled={busy}>

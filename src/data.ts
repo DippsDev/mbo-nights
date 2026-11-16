@@ -82,7 +82,7 @@ export const BRAND_BODY =
 export const CHANNELS: { label: string; href: string }[] = [
   { label: 'Instagram', href: '' },
   { label: 'TikTok', href: '' },
-  { label: 'WhatsApp', href: '' },
+  { label: 'WhatsApp', href: 'https://wa.me/26775362329' },
   { label: 'Email', href: '' },
 ]
 

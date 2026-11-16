@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import PayMethodPicker from "../components/PayMethodPicker";
 import PassDeck from "../components/PassDeck";
+import { CONFIRM_WITHIN_HOURS, helpLink } from "../lib/help";
 import {
   cancelOrder,
   getOrder,
@@ -318,11 +319,11 @@ export default function Order() {
   const copy: Record<string, { title: string; body: string }> = {
     awaiting_confirmation: {
       title: "Checking payment",
-      body: "Thanks — we’re matching your payment. Your tickets appear here once it’s confirmed, usually within a few hours. To get back to them later, use Find my tickets at the bottom of every page with your cell number and email.",
+      body: `Thanks — we’re matching your payment. Your tickets appear here once it’s confirmed, usually within a few hours and always within ${CONFIRM_WITHIN_HOURS} hours. To get back to them later, use Find my tickets at the bottom of every page with your cell number and email.`,
     },
     rejected: {
       title: "Payment not found",
-      body: "We couldn’t match a payment to this order. If you did pay, contact us with your reference and the number you paid from.",
+      body: "We couldn’t match a payment to this order. If you did pay, message us on WhatsApp with your reference and the number you paid from.",
     },
     expired: {
       title: "Expired",
@@ -330,6 +331,18 @@ export default function Order() {
     },
   };
   const c = copy[order.status];
+  const since = order.reportedPaidAt ?? order.createdAt;
+  const overdue =
+    order.status === "awaiting_confirmation" &&
+    Date.now() - since > CONFIRM_WITHIN_HOURS * 3600_000;
+  const help = helpLink(
+    order.status === "awaiting_confirmation"
+      ? "I paid but my tickets aren’t confirmed yet"
+      : order.status === "rejected"
+        ? "my payment was marked not found"
+        : "my order expired",
+    { Reference: order.ref, Phone: order.buyer.phone },
+  );
 
   return (
     <main className="page flow">
@@ -342,6 +355,14 @@ export default function Order() {
       </header>
       <section className="section checkout-wrap" style={{ paddingTop: 0 }}>
         <OrderLines order={order} />
+        <p className="order-help" role={overdue ? "alert" : undefined}>
+          {overdue
+            ? `It’s been over ${CONFIRM_WITHIN_HOURS} hours. Sorry for the wait — `
+            : "Something wrong? "}
+          <a href={help} target="_blank" rel="noopener noreferrer">
+            Message us on WhatsApp →
+          </a>
+        </p>
         <div className="order-actions">
           {order.status === "awaiting_confirmation" && (
             <Link className="btn" to="/tickets">
