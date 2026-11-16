@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
 import { BRAND_KICKER, artists, nightsForArtist } from '../data'
 import { softScrollReveal } from '../lib/motion'
 
@@ -26,7 +25,7 @@ export default function Artists() {
             // The first row is on screen straight away; only later cards wait.
             const eager = i < 3
             return (
-              <Link className="artist-card" key={artist.id} to={`/artists/${artist.id}`}>
+              <div className="artist-card" key={artist.id}>
                 <img
                   src={artist.image}
                   alt={artist.name}
@@ -38,7 +37,7 @@ export default function Artists() {
                   <span className="tag">{next ? `Next · ${next.date}` : artist.role}</span>
                   <h2 className="display md">{artist.name}</h2>
                 </div>
-              </Link>
+              </div>
             )
           })}
         </div>

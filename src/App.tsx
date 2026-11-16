@@ -8,7 +8,6 @@ import Home from './pages/Home'
 // Home ships in the main bundle; everything else loads on first visit.
 const About = lazy(() => import('./pages/About'))
 const Artists = lazy(() => import('./pages/Artists'))
-const ArtistDetail = lazy(() => import('./pages/ArtistDetail'))
 const Shop = lazy(() => import('./pages/Shop'))
 const Product = lazy(() => import('./pages/Product'))
 const VenueDetail = lazy(() => import('./pages/VenueDetail'))
@@ -42,7 +41,7 @@ export default function App() {
             <Route path="/events" element={<Navigate to="/" replace />} />
             <Route path="/events/:id" element={live(<EventDetail />)} />
             <Route path="/artists" element={<Artists />} />
-            <Route path="/artists/:id" element={<ArtistDetail />} />
+            <Route path="/artists/:id" element={<Navigate to="/artists" replace />} />
             <Route path="/tickets" element={<MyTickets />} />
             <Route path="/help" element={<Help />} />
             <Route path="/checkout" element={live(<Checkout />)} />

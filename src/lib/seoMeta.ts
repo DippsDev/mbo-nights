@@ -224,7 +224,6 @@ export function prerenderRoutes() {
     '/about',
     '/help',
     '/artists',
-    ...artists.map((a) => `/artists/${a.id}`),
     '/shop',
     ...products.filter((p) => !p.comingSoon).map((p) => `/shop/${p.id}`),
     ...nights.map((n) => `/events/${n.id}`),
@@ -252,7 +251,6 @@ export function bodyFor(path: string, ticketsLive: boolean): string {
     ['/artists', 'Artists'],
     ['/shop', 'Shop'],
     ...venues.map((v) => [`/venues/${v.id}`, `${v.name}, ${v.city}`]),
-    ...artists.map((a) => [`/artists/${a.id}`, a.name]),
     ...LEGAL.map((d) => [`/legal/${d.slug}`, d.title]),
   ]
   const links = nav.map(([href, label]) => `<li><a href="${href}">${h(label)}</a></li>`).join('')
@@ -280,7 +278,7 @@ ${upcoming ? `<ul>${upcoming}</ul>` : '<p>New dates are on the way. Follow MBO t
 <h2>Venues</h2>
 <ul>${venues.map((v) => `<li><a href="/venues/${v.id}">${h(v.name)}</a> — ${h(v.blurb)}</li>`).join('')}</ul>
 <h2>Artists</h2>
-<ul>${artists.map((a) => `<li><a href="/artists/${a.id}">${h(a.name)}</a> — ${h(a.bio)}</li>`).join('')}</ul>
+<ul>${artists.map((a) => `<li>${h(a.name)} — ${h(a.bio)}</li>`).join('')}</ul>
 <h2>For bands and venues</h2>
 <p>Are you a band looking for a stage, or a venue that wants live music in Gaborone? MBO — More Bands On the way — works with both. Read more <a href="/about">about MBO</a> and get in touch.</p>`
   }

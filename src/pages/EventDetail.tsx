@@ -159,7 +159,7 @@ export default function EventDetail() {
           <ul className="lineup">
             {lineup.map((artist) => (
               <li key={artist.id}>
-                <Link to={`/artists/${artist.id}`}>{artist.name}</Link>
+                {artist.name}
               </li>
             ))}
           </ul>
