@@ -5,6 +5,9 @@ import type { Ticket } from '../lib/tickets'
 
 const CLOSE_MS = 260
 
+const fmtUsed = (at: string | number) =>
+  new Date(at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+
 /** Full-screen, high-contrast view of one ticket's QR so it's quick to scan at the door. */
 export default function ScanView({
   tickets,
@@ -89,8 +92,14 @@ export default function ScanView({
       onPointerDown={(e) => setStartX(e.clientX)}
       onPointerUp={onPointerUp}
     >
-      <div className="scan-qr" key={t.code}>
+      <div className={`scan-qr${t.checkedInAt ? ' is-used' : ''}`} key={t.code}>
         {qr ? <img src={qr} alt={`QR code for ticket ${t.code}`} draggable={false} /> : <div className="scan-qr-blank" />}
+        {t.checkedInAt && (
+          <div className="pass-stamp" aria-label={`Scanned at the door, ${fmtUsed(t.checkedInAt)}`}>
+            <span className="pass-stamp-word">Scanned</span>
+            <span className="pass-stamp-time">{fmtUsed(t.checkedInAt)}</span>
+          </div>
+        )}
       </div>
     </div>,
     document.body,

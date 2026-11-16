@@ -1665,7 +1665,7 @@ html:not(.has-cursor) .cursor-glow {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 90;
+  z-index: 10001; /* above modals (z-index 1000) */
   pointer-events: none;
   border-radius: 50%;
   translate: -50% -50%;
@@ -4894,4 +4894,30 @@ fieldset.field legend {
   .orders-popup .order-group {
     animation-duration: 0.01ms !important;
   }
+}
+
+/* Scan view for a used ticket: grey out the QR and stamp it "Scanned". */
+.scan-qr {
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-qr.is-used img,
+.scan-qr.is-used .scan-qr-blank {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+.scan-qr.is-used .pass-stamp {
+  color: #5f7a00;
+}
+
+.scan-qr.is-used .pass-stamp-word {
+  mix-blend-mode: normal;
+  background: rgb(255 255 255 / 0.55);
+  font-size: clamp(3rem, 16vw, 6rem);
+}
+
+.scan-qr.is-used .pass-stamp-time {
+  font-size: 0.9rem;
 }
