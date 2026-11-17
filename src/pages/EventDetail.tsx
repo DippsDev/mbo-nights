@@ -25,7 +25,7 @@ export default function EventDetail() {
   const [clipFailed, setClipFailed] = useState(false)
   const [posterFailed, setPosterFailed] = useState(false)
   const clip = night?.clips[0]
-  const showClip = Boolean(clip && !clipFailed && !NO_INLINE_VIDEO)
+  const showClip = Boolean(clip && !clipFailed)
   const poster =
     clip && !posterFailed ? clip.replace(/\.mp4$/i, '.jpg') : night?.image || ''
 
@@ -48,7 +48,7 @@ export default function EventDetail() {
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video || !showClip) return
+    if (!video || !showClip || NO_INLINE_VIDEO) return
 
     setReady(false)
 
@@ -124,7 +124,7 @@ export default function EventDetail() {
             <>
               <img
                 className={`event-still${ready ? ' is-hidden' : ''}`}
-                src={poster}
+                src={NO_INLINE_VIDEO && !posterFailed ? clip : poster}
                 alt=""
                 aria-hidden
                 fetchPriority="high"

@@ -61,6 +61,8 @@ export default function SectionVideo({
     }
   }, [ref, still])
 
+  // TikTok iOS: Safari plays an MP4 in <img> inline, muted and looping, with no fullscreen.
+  if (NO_INLINE_VIDEO && !failed) return <img src={src} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />
   if (still || failed) return <img src={image} alt="" loading="lazy" decoding="async" />
 
   return (

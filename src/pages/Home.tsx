@@ -140,7 +140,8 @@ export default function Home() {
       <section className="hero spotlight-hero">
         <img
           className={`hero-still${ready ? ' is-hidden' : ''}`}
-          src={hero.poster}
+          // TikTok iOS: Safari plays an MP4 in <img> inline, muted and looping, with no fullscreen.
+          src={NO_INLINE_VIDEO ? hero.src : hero.poster}
           alt=""
           aria-hidden
           fetchPriority="high"

@@ -25,7 +25,7 @@ function Art({ item }: { item: CartItem }) {
       />
     )
   }
-  return <img className="bag-art" src={night && !night.image.startsWith('data:') ? night.image : item.image} alt="" />
+  return <img className="bag-art" src={NO_INLINE_VIDEO && clip ? clip : night && !night.image.startsWith('data:') ? night.image : item.image} alt="" />
 }
 
 export default function Bag() {
