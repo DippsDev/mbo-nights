@@ -27,8 +27,50 @@ export function useMutedVideoRef() {
     forceMuted(el)
     // iOS pauses a video when the viewer leaves native fullscreen; resume the background loop.
     el.addEventListener('webkitendfullscreen', () => void el.play().catch(() => {}))
+    const stop = keepPlaying(el)
+    return () => {
+      stop()
+      ref.current = null
+    }
   }, [])
   return [ref, attach] as const
+}
+
+const WATCH_MS = 2000
+
+/**
+ * Watchdog for background loops: while the video is on screen and the tab is visible,
+ * restart it if the browser paused it (low power, memory, audio session) or if playback
+ * stalled on a slow network. Off-screen pauses by the pages are left alone.
+ */
+export function keepPlaying(video: HTMLVideoElement) {
+  // Any play() there opens fullscreen; those pages show the clip as an <img> instead.
+  if (NO_INLINE_VIDEO) return () => {}
+  let visible = false
+  let last = -1
+  const io = new IntersectionObserver(([entry]) => {
+    visible = Boolean(entry?.isIntersecting)
+  })
+  io.observe(video)
+  const timer = window.setInterval(() => {
+    if (document.hidden || !visible || !video.currentSrc) {
+      last = -1
+      return
+    }
+    forceMuted(video)
+    if (video.paused) {
+      void video.play().catch(() => undefined)
+    } else if (video.currentTime === last) {
+      // Stuck for a full interval: drop the stalled request and start the loop again.
+      video.load()
+      void video.play().catch(() => undefined)
+    }
+    last = video.currentTime
+  }, WATCH_MS)
+  return () => {
+    window.clearInterval(timer)
+    io.disconnect()
+  }
 }
 
 /**
