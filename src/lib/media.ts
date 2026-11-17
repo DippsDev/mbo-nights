@@ -9,6 +9,9 @@ export function forceMuted(video: HTMLVideoElement) {
   video.muted = true
   video.defaultMuted = true
   video.setAttribute('muted', '')
+  // In-app browsers (TikTok, Instagram on iOS) ignore `playsinline` and go fullscreen without the prefixed one.
+  video.setAttribute('playsinline', '')
+  video.setAttribute('webkit-playsinline', '')
 }
 
 /**
@@ -20,7 +23,10 @@ export function useMutedVideoRef() {
   const ref = useRef<HTMLVideoElement | null>(null)
   const attach = useCallback((el: HTMLVideoElement | null) => {
     ref.current = el
-    if (el) forceMuted(el)
+    if (!el) return
+    forceMuted(el)
+    // iOS pauses a video when the viewer leaves native fullscreen; resume the background loop.
+    el.addEventListener('webkitendfullscreen', () => void el.play().catch(() => {}))
   }, [])
   return [ref, attach] as const
 }

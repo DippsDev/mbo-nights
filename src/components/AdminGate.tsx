@@ -21,7 +21,7 @@ function Login() {
   }
 
   return (
-    <main className="page flow">
+    <main className="page flow help-page">
       <header className="page-hero">
         <p className="kicker">Administrator</p>
         <h1 className="display lg">Sign in</h1>

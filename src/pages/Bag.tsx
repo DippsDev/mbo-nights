@@ -2,14 +2,17 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCart, type CartItem } from '../cart'
 import { MAX_PER_TIER, stockKey, ticketRef, useStock } from '../lib/tickets'
 import { getNight } from '../data'
+import { useMutedVideoRef } from '../lib/media'
 
 /** Bag art: the night's video loop (poster frame while it loads), else its poster. */
 function Art({ item }: { item: CartItem }) {
   const night = item.kind === 'ticket' ? getNight(item.refId) : undefined
   const clip = night?.clips[0]
+  const [, attachVideo] = useMutedVideoRef()
   if (night && clip) {
     return (
       <video
+        ref={attachVideo}
         className="bag-art"
         src={clip}
         poster={clip.replace(/\.[^.]+$/, '.jpg')}

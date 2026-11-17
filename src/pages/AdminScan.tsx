@@ -12,6 +12,7 @@ import {
   type CheckInResult,
   type DoorCounts,
 } from '../lib/tickets'
+import { forceMuted } from '../lib/media'
 
 const NIGHT_KEY = 'mbo.door.night'
 /** Ignore the same QR for this long so one held-up phone isn't scanned twice. */
@@ -153,6 +154,7 @@ function Scanner() {
       const video = videoRef.current
       if (!video) return
       video.srcObject = stream
+      forceMuted(video)
       await video.play()
       setCamera('on')
 
