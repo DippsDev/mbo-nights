@@ -10,7 +10,7 @@ import {
   SHOP_OPEN,
 } from '../data'
 import { stubDate } from '../lib/date'
-import { forceMuted, useMutedVideoRef } from '../lib/media'
+import { forceMuted, NO_INLINE_VIDEO, useMutedVideoRef } from '../lib/media'
 import { MAX_PER_TIER, stockKey, useStock } from '../lib/tickets'
 
 export default function EventDetail() {
@@ -25,7 +25,7 @@ export default function EventDetail() {
   const [clipFailed, setClipFailed] = useState(false)
   const [posterFailed, setPosterFailed] = useState(false)
   const clip = night?.clips[0]
-  const showClip = Boolean(clip && !clipFailed)
+  const showClip = Boolean(clip && !clipFailed && !NO_INLINE_VIDEO)
   const poster =
     clip && !posterFailed ? clip.replace(/\.mp4$/i, '.jpg') : night?.image || ''
 

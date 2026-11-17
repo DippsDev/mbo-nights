@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { forceMuted, useMutedVideoRef } from '../lib/media'
+import { forceMuted, NO_INLINE_VIDEO, useMutedVideoRef } from '../lib/media'
 import { reducedMotion } from '../lib/motion'
 
 /**
@@ -20,7 +20,7 @@ export default function SectionVideo({
   const [near, setNear] = useState(false)
   const [failed, setFailed] = useState(false)
   const [ready, setReady] = useState(false)
-  const still = reducedMotion()
+  const still = reducedMotion() || NO_INLINE_VIDEO
   const poster = src.replace(/\.mp4$/i, '.jpg')
 
   useEffect(() => {

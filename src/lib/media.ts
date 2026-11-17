@@ -30,3 +30,12 @@ export function useMutedVideoRef() {
   }, [])
   return [ref, attach] as const
 }
+
+/**
+ * TikTok's iOS in-app browser disables inline playback for the whole webview, so any
+ * play() opens native fullscreen no matter what attributes the video has. Show stills there.
+ */
+export const NO_INLINE_VIDEO =
+  typeof navigator !== 'undefined' &&
+  /iPhone|iPad|iPod/i.test(navigator.userAgent) &&
+  /musical_ly|BytedanceWebview|TikTok|trill_/i.test(navigator.userAgent)

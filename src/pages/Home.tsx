@@ -9,7 +9,7 @@ import HighlightReel from '../components/HighlightReel'
 import SectionVideo from '../components/SectionVideo'
 import { softScrollReveal } from '../lib/motion'
 import { useSound } from '../sound'
-import { forceMuted, useMutedVideoRef } from '../lib/media'
+import { forceMuted, NO_INLINE_VIDEO, useMutedVideoRef } from '../lib/media'
 
 const HERO_CLIP_DESKTOP = '/video/DippsDevHero.mp4'
 const HERO_CLIP_MOBILE = '/video/DippsDevMobile.mp4'
@@ -71,7 +71,7 @@ export default function Home() {
 
   useEffect(() => {
     const video = videoRef.current
-    if (!video) return
+    if (!video || NO_INLINE_VIDEO) return
 
     forceMuted(video)
     const play = () => {
