@@ -1881,7 +1881,7 @@ html:not(.has-cursor) .cursor-glow {
 
 .page-veil {
   /* Opacity only — any transform here breaks GSAP ScrollTrigger pinning on desktop. */
-  animation: page-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-in 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes page-in {
@@ -2516,7 +2516,7 @@ html:not(.has-cursor) .cursor-glow {
   }
 
   .page-veil {
-    animation-duration: 0.42s;
+    animation-duration: 0.22s;
   }
 
   .sticky-buy {

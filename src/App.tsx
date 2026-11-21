@@ -24,6 +24,26 @@ const Help = lazy(() => import('./pages/Help'))
 const Legal = lazy(() => import('./pages/Legal'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
+// Fetch the public pages' code once the browser is idle, so the first tap on a
+// link opens the page instantly instead of waiting for its download. Admin pages stay on demand.
+if (typeof window !== 'undefined') {
+  const warm = () => {
+    for (const load of [
+      () => import('./pages/EventDetail'),
+      () => import('./pages/Artists'),
+      () => import('./pages/About'),
+      () => import('./pages/Shop'),
+      () => import('./pages/VenueDetail'),
+      () => import('./pages/MyTickets'),
+      () => import('./pages/Help'),
+      () => import('./pages/Bag'),
+      () => import('./pages/ComingSoon'),
+    ]) void load().catch(() => undefined)
+  }
+  const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback
+  window.addEventListener('load', () => (idle ? idle(warm) : window.setTimeout(warm, 1500)), { once: true })
+}
+
 // Buying (event pages, bag, checkout) opens in `npm run dev`, or in a build with
 // VITE_TICKETS_LIVE=true. Order links, ticket lookup and admin always work, so
 // tickets can be issued and scanned before public sales open.

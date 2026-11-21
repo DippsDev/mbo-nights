@@ -222,6 +222,7 @@ export default function EventDetail() {
                         className="btn ghost tier-ticket-map"
                         aria-label={`Find location: ${venue.name}`}
                         href={googleDirections(venue.coords)}
+                        onClick={(e) => directionsFromHere(e, venue.coords!)}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -312,6 +313,26 @@ const OUT_MS = 400
 function googleDirections(coords: string) {
   // No origin = the visitor's current location; dir_action=navigate starts turn-by-turn in the app.
   return `https://www.google.com/maps/dir/?api=1&destination=${coords}&dir_action=navigate`
+}
+
+/**
+ * Phones: Google Maps in the browser won't fill in "your location" on its own, so
+ * ask for it here and pass it as the start point. Falls back to the plain link if
+ * location is refused or slow. Desktop keeps the new-tab link.
+ */
+function directionsFromHere(e: React.MouseEvent, coords: string) {
+  if (!navigator.geolocation || !window.matchMedia('(pointer: coarse)').matches) return
+  e.preventDefault()
+  const go = (origin?: string) => {
+    window.location.href = origin
+      ? `${googleDirections(coords)}&origin=${origin}`
+      : googleDirections(coords)
+  }
+  navigator.geolocation.getCurrentPosition(
+    (p) => go(`${p.coords.latitude},${p.coords.longitude}`),
+    () => go(),
+    { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 },
+  )
 }
 
 
