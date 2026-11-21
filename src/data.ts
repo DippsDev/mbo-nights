@@ -249,7 +249,8 @@ export const nights: Night[] = [
     time: '16:00',
     image: placeholder(' ', 1800, 1200),
     // Muted H.264 loop of crowd clips with crossfades (the .jpg beside it is the poster frame).
-    clips: ['/video/nights/night-01.mp4'],
+    // Browsers cache video for 7 days: give a replacement a new file name (-v3, ...) or visitors keep the old one.
+    clips: ['/video/nights/night-01-v2.mp4'],
     onSale: true,
     teaser:
       'Free entry at the G-West warehouse — MBO Rasta, Chapu, Double O and Scrapie live, FME DJs and Dylan The DJ on the decks, MC Bonzah on the mic.',
