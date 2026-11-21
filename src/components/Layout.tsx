@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useState, type MouseEvent } from 'react'
+import { Suspense, useCallback, useEffect, useLayoutEffect, useState, type MouseEvent } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useCart } from '../cart'
 import { reducedMotion } from '../lib/motion'
@@ -48,9 +48,29 @@ export default function Layout() {
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
   }, [])
 
+  // New page starts at the top. Reset before paint, then again over the next
+  // frames: iOS Safari ignores scrollTo while a flick is still gliding, and a
+  // lazy page that mounts late can leave the view parked at the footer.
+  useLayoutEffect(() => {
+    const top = () => {
+      window.scrollTo(0, 0)
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+    }
+    top()
+    let frame = requestAnimationFrame(() => {
+      top()
+      frame = requestAnimationFrame(top)
+    })
+    const late = [window.setTimeout(top, 120), window.setTimeout(top, 350)]
+    return () => {
+      cancelAnimationFrame(frame)
+      late.forEach(window.clearTimeout)
+    }
+  }, [location.pathname])
+
   useEffect(() => {
     setOpen(false)
-    window.scrollTo(0, 0)
     // Clear any leftover menu scroll-lock (HMR / interrupted close).
     document.body.style.overflow = ''
     document.body.style.position = ''
