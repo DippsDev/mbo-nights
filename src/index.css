@@ -689,22 +689,6 @@ video {
     padding-inline: 1.1rem;
   }
 
-  .tier-ticket-map .map-long {
-    display: none;
-  }
-
-  /* Square icon-only button on phones. */
-  .tier-ticket-buy .tier-ticket-map {
-    width: 2.75rem;
-    height: 2.75rem;
-    padding: 0;
-  }
-
-  .tier-ticket-map svg {
-    width: 20px;
-    height: 20px;
-    color: var(--acid);
-  }
 }
 
 .tickets-board {
@@ -5048,24 +5032,24 @@ fieldset.field legend {
   white-space: nowrap;
 }
 
-.lineup-rotate > span > span {
-  display: inline-block;
-  animation: 0.45s cubic-bezier(0.65, 0, 0.35, 1) both;
+.lineup-rotate > .is-in {
+  animation: lineup-in 0.45s cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 
-.lineup-rotate > .is-in > span {
-  animation-name: lineup-in;
+/* The incoming name waits for the outgoing one to clear. */
+.lineup-rotate > .is-in.is-waiting {
+  animation-delay: 0.38s;
 }
 
-.lineup-rotate > .is-out > span {
-  animation-name: lineup-out;
+.lineup-rotate > .is-out {
+  animation: lineup-out 0.4s cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 
 @keyframes lineup-in {
   from {
     opacity: 0;
     filter: blur(8px);
-    transform: translateY(60%);
+    transform: translateY(40%);
   }
 }
 
@@ -5073,7 +5057,7 @@ fieldset.field legend {
   to {
     opacity: 0;
     filter: blur(8px);
-    transform: translateY(-60%);
+    transform: translateY(-40%);
   }
 }
 
@@ -5082,8 +5066,8 @@ fieldset.field legend {
     font-size: clamp(2rem, 9vw, 3rem);
   }
 
-  /* Per-letter blur stutters on iPhone; fade and slide only. */
-  .lineup-rotate > span > span {
+  /* Blur stutters on iPhone; fade and slide only. */
+  .lineup-rotate > span {
     filter: none !important;
   }
 }
@@ -5121,4 +5105,28 @@ fieldset.field legend {
 
 .tier-countdown.is-live {
   color: var(--acid);
+}
+
+/* Icon-only map button whenever the ticket itself is narrow (phones, iPad's side column). */
+.tier-ticket {
+  container-type: inline-size;
+}
+
+@container (max-width: 480px) {
+  .tier-ticket-map .map-long {
+    display: none;
+  }
+
+  .tier-ticket-buy .tier-ticket-map {
+    width: 2.75rem;
+    min-width: 0;
+    height: 2.75rem;
+    padding: 0;
+  }
+
+  .tier-ticket-map svg {
+    width: 20px;
+    height: 20px;
+    color: var(--acid);
+  }
 }

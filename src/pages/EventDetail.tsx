@@ -265,34 +265,45 @@ export default function EventDetail() {
 }
 
 /**
- * Shows one lineup name at a time. Every few seconds the current name slides up
- * and out letter by letter while the next slides up into its place.
+ * Shows one lineup name at a time: the current name fades up and out, then the
+ * next fades up in. The outgoing name is removed once its fade ends, so even if
+ * a browser skips the animation (seen on iOS Safari) two names never stack.
  */
 function RotatingName({ names }: { names: string[] }) {
   const [i, setI] = useState(0)
+  const [prev, setPrev] = useState<number | null>(null)
   useEffect(() => {
-    const t = window.setInterval(() => setI((n) => (n + 1) % names.length), 2600)
-    return () => window.clearInterval(t)
+    let clear = 0
+    const t = window.setInterval(() => {
+      setI((n) => {
+        setPrev(n)
+        return (n + 1) % names.length
+      })
+      window.clearTimeout(clear)
+      clear = window.setTimeout(() => setPrev(null), OUT_MS)
+    }, 2600)
+    return () => {
+      window.clearInterval(t)
+      window.clearTimeout(clear)
+    }
   }, [names.length])
-  const prev = (i - 1 + names.length) % names.length
-  const word = (name: string, cls: string, key: string) => (
-    <span className={cls} key={key}>
-      {[...name].map((ch, n) => (
-        // Incoming letters wait for the outgoing name to clear, so the two never overlap.
-        <span key={n} style={{ animationDelay: `${(cls === 'is-in' ? 380 : 0) + n * 20}ms` }}>
-          {ch === ' ' ? ' ' : ch}
-        </span>
-      ))}
-    </span>
-  )
   return (
     <p className="lineup lineup-rotate" aria-hidden>
-      {/* Keys change each tick so both animations restart; the outgoing word is skipped on first render. */}
-      {i > 0 || names.length === 1 ? word(names[prev], 'is-out', `out-${i}`) : null}
-      {word(names[i], 'is-in', `in-${i}`)}
+      {/* Keys change each tick so the animations restart. */}
+      {prev !== null && (
+        <span className="is-out" key={`out-${i}`}>
+          {names[prev]}
+        </span>
+      )}
+      <span className={prev !== null ? 'is-in is-waiting' : 'is-in'} key={`in-${i}`}>
+        {names[i]}
+      </span>
     </p>
   )
 }
+
+/** Matches the lineup-out animation length in index.css. */
+const OUT_MS = 400
 
 /**
  * Directions from the visitor's current spot; opens the Google Maps app when installed.
