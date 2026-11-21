@@ -224,7 +224,6 @@ export default function EventDetail() {
                         href={googleDirections(venue.coords)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => openAppleMaps(e, venue.coords!)}
                       >
                         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.4">
                           <path d="M8 14.5s4.6-4.3 4.6-8a4.6 4.6 0 0 0-9.2 0c0 3.7 4.6 8 4.6 8Z" />
@@ -279,7 +278,8 @@ function RotatingName({ names }: { names: string[] }) {
   const word = (name: string, cls: string, key: string) => (
     <span className={cls} key={key}>
       {[...name].map((ch, n) => (
-        <span key={n} style={{ animationDelay: `${n * 25}ms` }}>
+        // Incoming letters wait for the outgoing name to clear, so the two never overlap.
+        <span key={n} style={{ animationDelay: `${(cls === 'is-in' ? 380 : 0) + n * 20}ms` }}>
           {ch === ' ' ? ' ' : ch}
         </span>
       ))}
@@ -294,22 +294,15 @@ function RotatingName({ names }: { names: string[] }) {
   )
 }
 
-/** Directions from the visitor's current spot; opens the Google Maps app when installed. */
+/**
+ * Directions from the visitor's current spot; opens the Google Maps app when installed.
+ * Used on iPhone too: Apple Maps can't route in Botswana ("Directions Not Available").
+ */
 function googleDirections(coords: string) {
   // No origin = the visitor's current location; dir_action=navigate starts turn-by-turn in the app.
   return `https://www.google.com/maps/dir/?api=1&destination=${coords}&dir_action=navigate`
 }
 
-/** iPhone/iPad visitors get Apple Maps directions instead. Checked on click so prerendered HTML stays the same. */
-function openAppleMaps(e: React.MouseEvent, coords: string) {
-  const ios =
-    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-  if (!ios) return
-  e.preventDefault()
-  // No saddr = from the current location; dirflg=d asks for driving directions.
-  window.location.href = `https://maps.apple.com/?daddr=${coords}&dirflg=d`
-}
 
 /** Days / hours / minutes / seconds to doors. Renders nothing until mounted (prerender-safe) or once doors open. */
 function Countdown({ at }: { at: number }) {

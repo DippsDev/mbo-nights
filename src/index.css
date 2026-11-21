@@ -607,6 +607,7 @@ video {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
+  white-space: nowrap;
 }
 
 .tier-ticket-buy {
@@ -671,6 +672,12 @@ video {
 
   .tier-ticket-body {
     padding: 0.9rem 0.9rem;
+  }
+
+  /* Keeps "No ticket needed" on one line on narrow phones. */
+  .tier-ticket-left {
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
   }
 
   .tier-ticket-buy {
@@ -5043,7 +5050,7 @@ fieldset.field legend {
 
 .lineup-rotate > span > span {
   display: inline-block;
-  animation: 0.8s cubic-bezier(0.65, 0, 0.35, 1) both;
+  animation: 0.45s cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 
 .lineup-rotate > .is-in > span {
@@ -5073,6 +5080,11 @@ fieldset.field legend {
 @media (max-width: 720px) {
   .lineup-rotate {
     font-size: clamp(2rem, 9vw, 3rem);
+  }
+
+  /* Per-letter blur stutters on iPhone; fade and slide only. */
+  .lineup-rotate > span > span {
+    filter: none !important;
   }
 }
 
