@@ -10,3 +10,12 @@ export function stubDate(date: string) {
       : ''
   return { day, month, year, weekday }
 }
+
+/** '28 Nov 2026' + '16:00' as a timestamp in Gaborone time (UTC+2, no daylight saving). NaN if unparseable. */
+export function startsAt(date: string, time: string) {
+  const { day, month, year } = stubDate(date)
+  const m = MONTHS.indexOf(month.slice(0, 3).toLowerCase())
+  const [h = 0, min = 0] = time.split(':').map(Number)
+  if (m < 0) return NaN
+  return Date.UTC(Number(year), m, Number(day), h - 2, min)
+}

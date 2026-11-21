@@ -1,4 +1,4 @@
-export type VenueType = 'club' | 'restaurant'
+export type VenueType = 'club' | 'restaurant' | 'warehouse'
 
 export type Artist = {
   id: string
@@ -15,6 +15,8 @@ export type Venue = {
   city: string
   /** Street address for search results, e.g. 'Plot 123, Western Commercial Road'. */
   address?: string
+  /** Map pin as 'lat,lng', for the event page's Find location button. */
+  coords?: string
   image: string
   blurb: string
 }
@@ -167,6 +169,13 @@ export const artists: Artist[] = [
     bio: 'MBO Rasta brings the night in live — roots energy for Gaborone rooms that stay open late.',
     image: '/img/artists/mbo-rasta.jpg',
   },
+  // FEED THE STREETS lineup. Bios and photos still to come.
+  { id: 'artist-02', name: 'FME DJs', role: 'DJ', bio: '', image: placeholder(' ', 1200, 1500) },
+  { id: 'artist-03', name: 'Chapu', role: 'Artist', bio: '', image: placeholder(' ', 1200, 1500) },
+  { id: 'artist-04', name: 'Double O', role: 'Artist', bio: '', image: placeholder(' ', 1200, 1500) },
+  { id: 'artist-05', name: 'Dylan The DJ', role: 'DJ', bio: '', image: placeholder(' ', 1200, 1500) },
+  { id: 'artist-06', name: 'Scrapie', role: 'Artist', bio: '', image: placeholder(' ', 1200, 1500) },
+  { id: 'artist-07', name: 'MC Bonzah', role: 'MC', bio: '', image: placeholder(' ', 1200, 1500) },
 ]
 
 export const venues: Venue[] = [
@@ -206,6 +215,15 @@ export const venues: Venue[] = [
     blurb:
       'Rooftop dining atop iTowers — city views, fine plates, and seated nights with a soundtrack.',
   },
+  {
+    id: 'venue-05',
+    name: 'G-West Industrial Warehouse',
+    type: 'warehouse',
+    city: 'Gaborone',
+    coords: '-24.6834316,25.8893204',
+    image: placeholder('G-WEST WAREHOUSE', 1600, 1000),
+    blurb: 'A warehouse floor in G-West Industrial, opened up for the street.',
+  },
 ]
 
 export type TeamMember = {
@@ -224,22 +242,19 @@ export const team: TeamMember[] = [
 export const nights: Night[] = [
   {
     id: 'night-01',
-    title: 'Ponds Live',
-    artistIds: ['artist-01'],
-    venueId: 'venue-02',
-    date: '19 Sep 2026',
-    time: '20:00',
+    title: 'FEED THE STREETS',
+    artistIds: ['artist-02', 'artist-01', 'artist-03', 'artist-04', 'artist-05', 'artist-06', 'artist-07'],
+    venueId: 'venue-05',
+    date: '28 Nov 2026',
+    time: '16:00',
     image: placeholder(' ', 1800, 1200),
     // Muted H.264 loop cut from IMG_8964.MOV (the .jpg beside it is the poster frame).
     clips: ['/video/nights/night-01.mp4'],
     onSale: true,
-    // Paused: shows as "Coming soon" like the slots below. Delete to put it back on sale.
-    comingSoon: true,
     teaser:
-      'MBO Rasta opens at The Ponds — supper first, then the floor takes over.',
+      'Free entry at the G-West warehouse — MBO Rasta, Chapu, Double O and Scrapie live, FME DJs and Dylan The DJ on the decks, MC Bonzah on the mic.',
     tiers: [
-      { id: 'general', name: 'General', price: 150, remaining: 80 },
-      { id: 'vip', name: 'VIP', price: 280, remaining: 20 },
+      { id: 'general', name: 'General', price: 0, remaining: 80 },
     ],
   },
   // Placeholder slots until the CEO sends the event list. See `comingSoon` on Night.

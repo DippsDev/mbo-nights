@@ -39,6 +39,8 @@ function EventTicket({ night, stock }: { night: Night; stock: Stock | null }) {
     }
   })
   const from = Math.min(...tiers.map((t) => t.price))
+  // Free entry when every tier in data.ts is P0 — nothing to buy.
+  const free = night.tiers.length > 0 && night.tiers.every((t) => t.price === 0)
   const allGone = tiers.length > 0 && tiers.every((t) => t.left === 0)
   // A slot with no details yet: no date, lineup, venue or prices, and no event page.
   const soon = Boolean(night.comingSoon)
@@ -75,10 +77,10 @@ function EventTicket({ night, stock }: { night: Night; stock: Stock | null }) {
             </span>
           ) : (
             <Link className="btn" to={href}>
-              Get tickets
+              {free ? 'See the lineup' : 'Get tickets'}
             </Link>
           )}
-          {!soon && Number.isFinite(from) && <span className="event-ticket-price">From P{from}</span>}
+          {!soon && Number.isFinite(from) && <span className="event-ticket-price">{free ? 'Free entry' : `From P${from}`}</span>}
         </div>
       </div>
 
@@ -111,7 +113,7 @@ function EventTicket({ night, stock }: { night: Night; stock: Stock | null }) {
               tiers.map((t) => (
                 <li key={t.id} className={t.left === 0 ? 'is-out' : undefined}>
                   <span className="face-tier-name">{t.name}</span>
-                  <span className="face-tier-price">P{t.price}</span>
+                  <span className="face-tier-price">{free ? 'Free' : `P${t.price}`}</span>
                 </li>
               ))
             )}

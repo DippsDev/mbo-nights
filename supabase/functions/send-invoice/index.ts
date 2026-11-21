@@ -13,6 +13,7 @@
 //   INVOICE_ADDRESS     optional, one line, e.g. "Plot 123, Main Mall, Gaborone, Botswana"
 //   INVOICE_REG_NO      optional, company registration number
 //   INVOICE_VAT_NO      optional, VAT number (only shown if set)
+//   ALLOWED_ORIGIN      optional, browser origin allowed by CORS (default https://www.morebandsontheway.com)
 //   SITE_URL            optional, for the ticket link (default https://morebandsontheway.com)
 // SUPABASE_URL and SUPABASE_ANON_KEY are provided automatically.
 
@@ -41,7 +42,9 @@ type Order = {
 }
 
 const cors = {
-  'Access-Control-Allow-Origin': '*',
+  // Only the live site may call this from a browser. Set ALLOWED_ORIGIN to test from localhost.
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN')?.trim() || 'https://www.morebandsontheway.com',
+  Vary: 'Origin',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }

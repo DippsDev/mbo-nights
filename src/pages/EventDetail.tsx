@@ -9,7 +9,7 @@ import {
   merchForNight,
   SHOP_OPEN,
 } from '../data'
-import { stubDate } from '../lib/date'
+import { startsAt, stubDate } from '../lib/date'
 import { forceMuted, NO_INLINE_VIDEO, useMutedVideoRef } from '../lib/media'
 import { MAX_PER_TIER, stockKey, useStock } from '../lib/tickets'
 
@@ -156,13 +156,23 @@ export default function EventDetail() {
           <p className="kicker">
             {venue?.type} · {venue?.name}
           </p>
-          <ul className="lineup">
-            {lineup.map((artist) => (
-              <li key={artist.id}>
-                {artist.name}
-              </li>
-            ))}
-          </ul>
+          {lineup.length > 1 ? (
+            <>
+              {/* Full list for screen readers and crawlers; sighted visitors get one name at a time. */}
+              <ul className="sr-only">
+                {lineup.map((artist) => (
+                  <li key={artist.id}>{artist.name}</li>
+                ))}
+              </ul>
+              <RotatingName names={lineup.map((a) => a.name)} />
+            </>
+          ) : (
+            <ul className="lineup">
+              {lineup.map((artist) => (
+                <li key={artist.id}>{artist.name}</li>
+              ))}
+            </ul>
+          )}
           <p className="serif">{night.teaser}</p>
           <p>
             {night.date} · {night.time} ·{' '}
@@ -178,6 +188,8 @@ export default function EventDetail() {
               const soon = !night.onSale
               const loading = !live && !soon
               const locked = soon || gone
+              // Free entry: no ticket to buy, so skip stock and the Add button.
+              const free = tier.price === 0
               return (
                 <article className={`tier-ticket${locked ? ' is-locked' : ''}`} key={tier.id}>
                   <div className="tier-ticket-stub" aria-hidden>
@@ -189,7 +201,9 @@ export default function EventDetail() {
                   <div className="tier-ticket-body">
                     <h2 className="tier-ticket-name">{live?.name ?? tier.name}</h2>
                     <p className="tier-ticket-left">
-                      {soon
+                      {free
+                        ? 'No ticket needed'
+                        : soon
                         ? 'On sale soon'
                         : loading
                           ? stockError
@@ -199,16 +213,34 @@ export default function EventDetail() {
                             ? 'Sold out'
                             : `${left} left`}
                     </p>
+                    <Countdown at={startsAt(night.date, night.time)} />
                   </div>
                   <div className="tier-ticket-buy">
-                    <span className="tier-ticket-price">P{live?.price ?? tier.price}</span>
-                    <button
+                    {!free && <span className="tier-ticket-price">P{live?.price ?? tier.price}</span>}
+                    {free && venue?.coords && (
+                      <a
+                        className="btn ghost tier-ticket-map"
+                        aria-label={`Find location: ${venue.name}`}
+                        href={googleDirections(venue.coords)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => openAppleMaps(e, venue.coords!)}
+                      >
+                        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.4">
+                          <path d="M8 14.5s4.6-4.3 4.6-8a4.6 4.6 0 0 0-9.2 0c0 3.7 4.6 8 4.6 8Z" />
+                          <circle cx="8" cy="6.4" r="1.6" />
+                        </svg>
+                        {/* Hidden on phones, where the pin alone is the button. */}
+                        <span className="map-long">Find location</span>
+                      </a>
+                    )}
+                    {!free && <button
                       className="btn"
                       disabled={locked || loading}
                       onClick={() => buy(tier.id)}
                     >
                       {soon ? 'Soon' : gone ? 'Sold out' : 'Add'}
-                    </button>
+                    </button>}
                   </div>
                 </article>
               )
@@ -230,5 +262,80 @@ export default function EventDetail() {
       </div>
 
     </main>
+  )
+}
+
+/**
+ * Shows one lineup name at a time. Every few seconds the current name slides up
+ * and out letter by letter while the next slides up into its place.
+ */
+function RotatingName({ names }: { names: string[] }) {
+  const [i, setI] = useState(0)
+  useEffect(() => {
+    const t = window.setInterval(() => setI((n) => (n + 1) % names.length), 2600)
+    return () => window.clearInterval(t)
+  }, [names.length])
+  const prev = (i - 1 + names.length) % names.length
+  const word = (name: string, cls: string, key: string) => (
+    <span className={cls} key={key}>
+      {[...name].map((ch, n) => (
+        <span key={n} style={{ animationDelay: `${n * 25}ms` }}>
+          {ch === ' ' ? ' ' : ch}
+        </span>
+      ))}
+    </span>
+  )
+  return (
+    <p className="lineup lineup-rotate" aria-hidden>
+      {/* Keys change each tick so both animations restart; the outgoing word is skipped on first render. */}
+      {i > 0 || names.length === 1 ? word(names[prev], 'is-out', `out-${i}`) : null}
+      {word(names[i], 'is-in', `in-${i}`)}
+    </p>
+  )
+}
+
+/** Directions from the visitor's current spot; opens the Google Maps app when installed. */
+function googleDirections(coords: string) {
+  // No origin = the visitor's current location; dir_action=navigate starts turn-by-turn in the app.
+  return `https://www.google.com/maps/dir/?api=1&destination=${coords}&dir_action=navigate`
+}
+
+/** iPhone/iPad visitors get Apple Maps directions instead. Checked on click so prerendered HTML stays the same. */
+function openAppleMaps(e: React.MouseEvent, coords: string) {
+  const ios =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  if (!ios) return
+  e.preventDefault()
+  // No saddr = from the current location; dirflg=d asks for driving directions.
+  window.location.href = `https://maps.apple.com/?daddr=${coords}&dirflg=d`
+}
+
+/** Days / hours / minutes / seconds to doors. Renders nothing until mounted (prerender-safe) or once doors open. */
+function Countdown({ at }: { at: number }) {
+  const [now, setNow] = useState<number | null>(null)
+  useEffect(() => {
+    setNow(Date.now())
+    const t = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(t)
+  }, [])
+  if (now === null || !Number.isFinite(at)) return null
+  const left = Math.floor((at - now) / 1000)
+  if (left <= 0) return <p className="tier-countdown is-live">Doors open</p>
+  const parts: [number, string][] = [
+    [Math.floor(left / 86400), 'd'],
+    [Math.floor((left % 86400) / 3600), 'h'],
+    [Math.floor((left % 3600) / 60), 'm'],
+    [left % 60, 's'],
+  ]
+  return (
+    <p className="tier-countdown" role="timer" aria-label={`Doors in ${parts.map(([n, u]) => n + u).join(' ')}`}>
+      {parts.map(([n, u]) => (
+        <span key={u}>
+          <b>{String(n).padStart(2, '0')}</b>
+          {u}
+        </span>
+      ))}
+    </p>
   )
 }

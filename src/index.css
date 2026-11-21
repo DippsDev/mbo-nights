@@ -631,6 +631,19 @@ video {
   min-width: 6.5rem;
 }
 
+/* Free-entry ticket: quiet outlined map link instead of a loud buy button. */
+.tier-ticket-buy .tier-ticket-map {
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.tier-ticket-buy .tier-ticket-map:hover,
+.tier-ticket-buy .tier-ticket-map:focus-visible {
+  border-color: var(--acid);
+  color: var(--acid);
+}
+
 .tier-ticket.is-locked .tier-ticket-time {
   border-color: var(--line);
   color: var(--muted);
@@ -667,6 +680,23 @@ video {
   .tier-ticket-buy .btn {
     min-width: 0;
     padding-inline: 1.1rem;
+  }
+
+  .tier-ticket-map .map-long {
+    display: none;
+  }
+
+  /* Square icon-only button on phones. */
+  .tier-ticket-buy .tier-ticket-map {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+  }
+
+  .tier-ticket-map svg {
+    width: 20px;
+    height: 20px;
+    color: var(--acid);
   }
 }
 
@@ -3818,6 +3848,19 @@ fieldset.field legend {
   object-position: 50% 12%;
 }
 
+/* Artist photos are portraits: use a portrait frame so they aren't cropped to a strip. */
+.artist-card img {
+  height: auto;
+  max-height: none;
+  aspect-ratio: 4 / 5;
+}
+
+@media (min-width: 900px) {
+  .card-grid.artists:not(.solo) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 /* Shop: merch as boxes. Coming-soon slots share the homepage tickets' hatched look. */
 .shop-section {
   padding-top: 0;
@@ -4979,5 +5022,91 @@ fieldset.field legend {
 }
 
 .order-help a {
+  color: var(--acid);
+}
+
+/* Event lineup: one name at a time, each sliding up from below. */
+.lineup-rotate {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 8vw, 5.5rem);
+  /* Room for descenders (y, p) — overflow:hidden clips them at a tighter line-height. */
+  line-height: 1.15;
+  display: grid;
+}
+
+/* Outgoing and incoming names share one cell so they cross over in place. */
+.lineup-rotate > span {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+}
+
+.lineup-rotate > span > span {
+  display: inline-block;
+  animation: 0.8s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.lineup-rotate > .is-in > span {
+  animation-name: lineup-in;
+}
+
+.lineup-rotate > .is-out > span {
+  animation-name: lineup-out;
+}
+
+@keyframes lineup-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(60%);
+  }
+}
+
+@keyframes lineup-out {
+  to {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-60%);
+  }
+}
+
+@media (max-width: 720px) {
+  .lineup-rotate {
+    font-size: clamp(2rem, 9vw, 3rem);
+  }
+}
+
+
+
+/* Ticket countdown to doors: four acid digit blocks. */
+.tier-countdown {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0.25rem 0 0;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tier-countdown span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.1rem;
+  padding: 0.15rem 0.25rem;
+  border: 1px solid var(--line);
+}
+
+.tier-countdown b {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--acid);
+  font-variant-numeric: tabular-nums;
+}
+
+.tier-countdown.is-live {
   color: var(--acid);
 }

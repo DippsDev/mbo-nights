@@ -85,6 +85,7 @@ export default function About() {
             Gaborone’s most recognised venues, including The Ponds, House of Habanos, Ayoba and Deja
             Vu. These partnerships have built the brand a strong reputation for high-energy events,
             driving venue attendance and creating memorable experiences for patrons.
+            
           </p>
           <p>
             With a focus on quality entertainment, strategic marketing and strong partnerships, MBO
