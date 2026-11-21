@@ -1,19 +1,9 @@
-import { useEffect, useRef } from 'react'
 import { BRAND_KICKER, artists, nightsForArtist } from '../data'
-import { softScrollReveal } from '../lib/motion'
 
 // Only acts with a real photo get a card; placeholders (data: URIs) stay off this page.
 const pictured = artists.filter((a) => !a.image.startsWith('data:'))
 
 export default function Artists() {
-  const section = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const el = section.current
-    if (!el) return
-    return softScrollReveal(el.querySelectorAll('.card-grid > *'), el)
-  }, [])
-
   return (
     <main className="page">
       <header className="page-hero">
@@ -21,7 +11,7 @@ export default function Artists() {
         <h1 className="display lg">Artists</h1>
         <p className="serif">The acts playing MBO nights across Gaborone.</p>
       </header>
-      <section className="section" style={{ paddingTop: 0 }} ref={section}>
+      <section className="section" style={{ paddingTop: 0 }}>
         <div className={`card-grid artists${pictured.length === 1 ? ' solo' : ''}`}>
           {pictured.map((artist, i) => {
             const next = nightsForArtist(artist.id)[0]

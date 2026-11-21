@@ -5,6 +5,7 @@ import { TICKETS_ENABLED } from './lib/flags'
 import { SoundProvider } from './sound'
 import Layout from './components/Layout'
 import Home from './pages/Home'
+import { artists, team } from './data'
 // Home ships in the main bundle; everything else loads on first visit.
 const About = lazy(() => import('./pages/About'))
 const Artists = lazy(() => import('./pages/Artists'))
@@ -39,6 +40,13 @@ if (typeof window !== 'undefined') {
       () => import('./pages/Bag'),
       () => import('./pages/ComingSoon'),
     ]) void load().catch(() => undefined)
+    // Same for the Artists and About photos, so those pages open with them already cached.
+    for (const src of [...artists, ...team].map((x) => x.image)) {
+      if (src.startsWith('data:')) continue
+      const img = new Image()
+      img.decoding = 'async'
+      img.src = src
+    }
   }
   const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback
   window.addEventListener('load', () => (idle ? idle(warm) : window.setTimeout(warm, 1500)), { once: true })
