@@ -248,7 +248,7 @@ export const nights: Night[] = [
     date: '28 Nov 2026',
     time: '16:00',
     image: placeholder(' ', 1800, 1200),
-    // Muted H.264 loop cut from IMG_8964.MOV (the .jpg beside it is the poster frame).
+    // Muted H.264 loop of crowd clips with crossfades (the .jpg beside it is the poster frame).
     clips: ['/video/nights/night-01.mp4'],
     onSale: true,
     teaser:
