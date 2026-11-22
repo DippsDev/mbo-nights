@@ -9,6 +9,7 @@ import {
   merchForNight,
   SHOP_OPEN,
 } from '../data'
+import MenuDeck from '../components/MenuDeck'
 import { startsAt, stubDate } from '../lib/date'
 import { forceMuted, NO_INLINE_VIDEO, useMutedVideoRef } from '../lib/media'
 import { MAX_PER_TIER, stockKey, useStock } from '../lib/tickets'
@@ -20,6 +21,7 @@ export default function EventDetail() {
   const { stock, error: stockError } = useStock()
   const [ready, setReady] = useState(false)
   const [videoRef, attachVideo] = useMutedVideoRef()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   // Falls back to the night's image if the clip or its poster file isn't in public/ yet.
   const [clipFailed, setClipFailed] = useState(false)
@@ -90,6 +92,7 @@ export default function EventDetail() {
   const lineup = artistsFor(night)
   const merch = merchForNight(night.id)
   const when = stubDate(night.date)
+  const hasMenu = Boolean(night.menu && night.menu.length > 0)
 
   const buy = (tierId: string) => {
     const tier = night.tiers.find((t) => t.id === tierId)
@@ -234,6 +237,20 @@ export default function EventDetail() {
                         <span className="map-long">Find location</span>
                       </a>
                     )}
+                    {hasMenu && (
+                      <button
+                        className="btn ghost tier-ticket-map"
+                        aria-label="Food and drinks menu"
+                        aria-haspopup="dialog"
+                        onClick={() => setMenuOpen(true)}
+                      >
+                        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.4">
+                          <path d="M4 1.5v5a1.5 1.5 0 0 0 3 0v-5M5.5 1.5v13" />
+                          <path d="M11.5 14.5v-13c-1.7.8-2.5 2.6-2.5 5v2.5h2.5" />
+                        </svg>
+                        <span className="map-long">Menu</span>
+                      </button>
+                    )}
                     {!free && <button
                       className="btn"
                       disabled={locked || loading}
@@ -261,6 +278,13 @@ export default function EventDetail() {
         </div>
       </div>
 
+      {hasMenu && menuOpen && (
+        <MenuDeck
+          onClose={() => setMenuOpen(false)}
+          title={night.title}
+          sections={night.menu!}
+        />
+      )}
     </main>
   )
 }

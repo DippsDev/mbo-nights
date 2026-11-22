@@ -50,6 +50,28 @@ export type Night = {
   comingSoon?: boolean
   teaser: string
   tiers: TicketTier[]
+  /** Food and drinks sold on the night. The event page hides the menu when this is empty. */
+  menu?: MenuSection[]
+}
+
+export type MenuItem = {
+  name: string
+  /** Pula. Leave out for items without a set price yet. */
+  price?: number
+  /** Short line under the name, e.g. 'with chakalaka'. */
+  note?: string
+  soldOut?: boolean
+}
+
+export type MenuSection = {
+  title: string
+  /** Short name for the menu's category pills, e.g. 'Six-packs'. */
+  tab: string
+  /** Shown on the ticket stub as FOOD or DRINKS. */
+  kind: 'food' | 'drinks'
+  /** Fine print under the items, e.g. what a special includes. */
+  note?: string
+  items: MenuItem[]
 }
 
 export type Product = {
@@ -256,6 +278,98 @@ export const nights: Night[] = [
       'Free entry at the G-West warehouse — MBO Rasta, Chapu, Double O and Scrapie live, FME DJs and Dylan The DJ on the decks, MC Bonzah on the mic.',
     tiers: [
       { id: 'general', name: 'General', price: 0, remaining: 80 },
+    ],
+    // From the FEED THE STREETS "Munchies Sitdown" and "Drinks Menu" posters.
+    menu: [
+      {
+        title: 'Munchies',
+        tab: 'Food',
+        kind: 'food',
+        items: [
+          { name: 'Student hotdog', price: 25 },
+          { name: 'Seasoned fries', price: 25 },
+          { name: 'Hotdog + chips', price: 40 },
+          { name: 'BBQ wings', price: 45, note: '3 wing pieces' },
+          { name: 'BBQ burger', price: 50 },
+          { name: 'BBQ / peri-peri quarter chicken', price: 50 },
+          { name: 'Wings + chips', price: 60, note: '3 wing pieces' },
+          { name: 'Two hotdogs + chips', price: 60 },
+          { name: 'Burger + chips', price: 65 },
+          { name: 'Quarter chicken + chips', price: 65 },
+          { name: 'Burger, 2 wing pieces + chips', price: 95 },
+        ],
+      },
+      {
+        title: 'Double + mixer + 2 beers/ciders',
+        tab: 'Doubles',
+        kind: 'drinks',
+        note: 'Includes a 50ml double, 250ml Schweppes mixer and two beers/ciders of your choice from the six-pack brands.',
+        items: [
+          { name: 'Smirnoff 1818', price: 150 },
+          { name: "Gordon's", price: 150 },
+          { name: "Jack Daniel's", price: 160 },
+          { name: 'Tequila', price: 160 },
+          { name: 'Jägermeister', price: 160 },
+        ],
+      },
+      {
+        title: 'Bottle packages',
+        tab: 'Bottles',
+        kind: 'drinks',
+        note: 'Special bottle requests: +267 72 930 462',
+        items: [
+          { name: 'Hennessy VS', price: 1100, note: '+ two 1L Schweppes mixers' },
+          { name: 'Jameson', price: 1000, note: '+ two 1L Schweppes mixers' },
+          { name: 'Tequila Gold', price: 900, note: '+ 2L orange juice' },
+        ],
+      },
+      {
+        title: 'Beer & cider six-packs',
+        tab: 'Six-packs',
+        kind: 'drinks',
+        items: [
+          { name: 'Corona', price: 200 },
+          { name: 'Brutal Fruit', price: 200 },
+          { name: 'Hunters Dry', price: 200 },
+          { name: 'Flying Fish', price: 200 },
+          { name: 'Heineken', price: 200 },
+          { name: 'Black Label', price: 200 },
+          { name: 'Savanna', price: 220 },
+          { name: 'Belgravia', price: 220 },
+        ],
+      },
+      {
+        title: 'Cocktails, mocktails & shandies',
+        tab: 'Cocktails',
+        kind: 'drinks',
+        note: 'Bitters are optional in the shandies. Ask without bitters for an alcohol-free version.',
+        items: [
+          { name: 'Margarita', price: 75 },
+          { name: 'Long Island', price: 120 },
+          { name: 'Passion fruit & lemonade', price: 30 },
+          { name: 'Kola tonic & lemonade', price: 30 },
+          { name: 'Shirley Temple', price: 30 },
+          { name: 'Malawi shandy', price: 35 },
+          { name: 'Rock shandy', price: 35 },
+        ],
+      },
+      {
+        title: 'Water, soft drinks & juices',
+        tab: 'Soft drinks',
+        kind: 'drinks',
+        note: 'Red Bull and canned juice are sold separately from the double specials.',
+        items: [
+          { name: 'Still water 500ml', price: 15 },
+          { name: 'Coke 300ml', price: 30 },
+          { name: 'Sprite 300ml', price: 30 },
+          { name: 'Fanta Orange 300ml', price: 30 },
+          { name: 'Stoney 300ml', price: 30 },
+          { name: 'Appletiser', price: 35 },
+          { name: 'Grapetiser', price: 35 },
+          { name: 'Liqui-Fruit canned juice', price: 35 },
+          { name: 'Red Bull', price: 40 },
+        ],
+      },
     ],
   },
   // Placeholder slots until the CEO sends the event list. See `comingSoon` on Night.

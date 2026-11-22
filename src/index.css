@@ -5130,3 +5130,473 @@ fieldset.field legend {
     color: var(--acid);
   }
 }
+
+/* ── Event food & drinks: a swipeable deck of tear-off menu tickets ── */
+.menu-deck {
+  --deck-w: min(24rem, calc(100vw - 2.4rem));
+  /* Phones: tabs sit above the deck as a 3 x 2 grid; the deck gets what height is left. */
+  --deck-h: min(30rem, calc(100svh - 15rem));
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: max(1.2rem, env(safe-area-inset-top)) 1.2rem max(1.2rem, env(safe-area-inset-bottom));
+  background: rgba(7, 7, 7, 0.96);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  animation: menu-deck-in 0.25s ease both;
+}
+
+@keyframes menu-deck-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.menu-deck-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: var(--deck-w);
+}
+
+.menu-deck-head .kicker {
+  margin: 0;
+}
+
+.menu-deck-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+/* Wider screens: tabs in a column to the left of the deck. */
+@media (min-width: 760px) {
+  .menu-deck {
+    --tabs-w: 12rem;
+    --deck-h: min(30rem, calc(100svh - 9rem));
+  }
+
+  .menu-deck-main {
+    flex-direction: row;
+    gap: 2rem;
+  }
+
+  .menu-deck-head {
+    width: calc(var(--tabs-w) + 2rem + var(--deck-w));
+  }
+}
+
+.menu-deck-close {
+  padding: 0.6rem 0.9rem;
+}
+
+.menu-deck-close:focus-visible {
+  outline: 2px solid var(--acid);
+  outline-offset: 2px;
+}
+
+/* Phones: keep the header to one line. */
+@media (max-width: 479px) {
+  .menu-deck-event {
+    display: none;
+  }
+}
+
+/* Stack: every card sits on the same spot; the last one in the DOM is on top. */
+.stack {
+  position: relative;
+  perspective: 700px;
+}
+
+.stack-drag {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  touch-action: none;
+}
+
+.stack-card {
+  width: 100%;
+  height: 100%;
+}
+
+/* Cards behind the top one show only the blank ticket shape: their text peeks
+   out at an angle and can't be read. It fades in when the card comes to the top. */
+.stack-card .menu-ticket-stub > *,
+.stack-card .menu-ticket-body {
+  transition: opacity 0.2s ease;
+}
+
+.stack-card[aria-hidden='true'] .menu-ticket-stub > *,
+.stack-card[aria-hidden='true'] .menu-ticket-body {
+  opacity: 0;
+}
+
+/* Same stub, dashed perforation and side notches as .tier-ticket, stood upright. */
+.menu-ticket {
+  --stub: 4.2rem;
+  --notch: 0.75rem;
+  --perf: rgba(243, 238, 230, 0.22);
+  display: grid;
+  grid-template-columns: var(--stub) minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  background: var(--bg-2);
+  color: var(--cream);
+  box-shadow: 0 1.2rem 2.4rem rgba(0, 0, 0, 0.45);
+  user-select: none;
+  -webkit-mask:
+    radial-gradient(circle at var(--stub) 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at var(--stub) 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at 100% 50%, transparent calc(var(--notch) * 1.3), #000 calc(var(--notch) * 1.3 + 0.5px));
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle at var(--stub) 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at var(--stub) 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at 100% 50%, transparent calc(var(--notch) * 1.3), #000 calc(var(--notch) * 1.3 + 0.5px));
+  mask-composite: intersect;
+}
+
+.menu-ticket-stub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.2rem 0.4rem;
+  border-right: 2px dashed var(--perf);
+  text-transform: uppercase;
+}
+
+.menu-ticket-num {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 2.2rem;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+
+.menu-ticket-of {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.menu-ticket-side {
+  margin-top: auto;
+  padding: 0.5rem 0.3rem;
+  border: 1px solid var(--acid);
+  color: var(--acid);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.menu-ticket-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-width: 0;
+  padding: 1.2rem 1.8rem 1.2rem 1.1rem;
+  overflow: hidden;
+}
+
+.menu-ticket-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 6.5vw, 1.9rem);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  text-wrap: balance;
+  color: var(--copper);
+}
+
+.menu-ticket-body ul {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.menu-ticket-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.menu-ticket-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.menu-ticket-name small {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.menu-ticket-dots {
+  flex: 1;
+  min-width: 0.8rem;
+  border-bottom: 1px dotted var(--perf);
+  transform: translateY(-0.25em);
+}
+
+.menu-ticket-price {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.menu-ticket-item.is-sold-out .menu-ticket-name {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.menu-ticket-item.is-sold-out .menu-ticket-price {
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--danger);
+}
+
+.menu-ticket-note {
+  margin: auto 0 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.7rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* Reduced motion: no deck, just the tickets in a scrolling column. */
+.menu-deck-list {
+  display: grid;
+  gap: 1rem;
+  width: var(--deck-w);
+  max-height: 70svh;
+  overflow-y: auto;
+}
+
+.menu-deck-list .menu-ticket {
+  height: auto;
+  min-height: 14rem;
+  box-shadow: none;
+}
+
+/* Short screens: tighten the tickets so the 11-item Food list still fits. */
+@media (max-height: 700px) {
+  .menu-deck {
+    gap: 0.7rem;
+  }
+
+  .menu-ticket-body {
+    gap: 0.6rem;
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+  }
+
+  .menu-ticket-body ul {
+    gap: 0.25rem;
+  }
+
+  .menu-ticket-item {
+    font-size: 0.8rem;
+  }
+}
+
+/* ── Menu category tabs: a perforated ticket strip, one cell per row ── */
+.cat-tabs {
+  --perf: rgba(243, 238, 230, 0.22);
+  --notch: 0.55rem;
+  /* Above the deck, so a tilted card never paints over the tabs. */
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  width: var(--tabs-w, var(--deck-w, 100%));
+  background: var(--bg-2);
+  /* Notches top and bottom, like the ends of a ticket stood upright. */
+  -webkit-mask:
+    radial-gradient(circle at 50% 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at 50% 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(circle at 50% 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+    radial-gradient(circle at 50% 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
+  mask-composite: intersect;
+}
+
+.cat-tabs ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Dashed perforations between cells. */
+.cat-tabs li:not(:last-child) {
+  border-bottom: 2px dashed var(--perf);
+}
+
+/* Phones: a 3 x 2 grid keeps all six tabs in two short rows, leaving the
+   height to the deck. Number above label, centred in each cell. */
+@media (max-width: 759px) {
+  .cat-tabs {
+    -webkit-mask:
+      radial-gradient(circle at 0 50%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+      radial-gradient(circle at 100% 50%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
+    -webkit-mask-composite: source-in;
+    mask:
+      radial-gradient(circle at 0 50%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
+      radial-gradient(circle at 100% 50%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
+    mask-composite: intersect;
+  }
+
+  .cat-tabs ul {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .cat-tabs li:not(:last-child) {
+    border-bottom: 0;
+  }
+
+  .cat-tabs li:not(:nth-child(3n)) {
+    border-right: 2px dashed var(--perf);
+  }
+
+  .cat-tabs li:nth-child(-n + 3) {
+    border-bottom: 2px dashed var(--perf);
+  }
+
+  .cat-tabs ul button {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    padding: 0.55rem 0.8rem 0.5rem;
+  }
+}
+
+.cat-tabs button {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--cream);
+  font: inherit;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.cat-tabs button:focus-visible {
+  outline: 2px solid var(--acid);
+  outline-offset: -4px;
+}
+
+.cat-tabs-block {
+  position: absolute;
+  inset: 4px;
+  z-index: 0;
+  background: var(--acid);
+}
+
+.cat-tabs-num,
+.cat-tabs-label {
+  position: relative;
+  z-index: 1;
+}
+
+.cat-tabs-num {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.cat-tabs-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cat-tabs button.is-active,
+.cat-tabs button.is-active .cat-tabs-num {
+  color: #111;
+}
+
+@media (any-hover: hover) {
+  .cat-tabs button:not(.is-active):hover .cat-tabs-num {
+    color: var(--acid);
+  }
+}
+
+/* "Swipe to see the menu" pill, straddling the ticket's bottom edge so it
+   never covers a menu item. */
+.menu-deck-stack {
+  position: relative;
+}
+
+.menu-deck-swipe {
+  position: absolute;
+  left: 50%;
+  bottom: -1.1rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--acid);
+  border-radius: 999px;
+  background: rgba(7, 7, 7, 0.92);
+  color: var(--cream);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 0.6rem 1.6rem rgba(0, 0, 0, 0.5);
+}
+
+/* The arrow nudges right, like a finger swiping. */
+.menu-deck-swipe-icon {
+  color: var(--acid);
+  animation: menu-deck-swipe 1.2s ease-in-out infinite;
+}
+
+@keyframes menu-deck-swipe {
+  0%,
+  100% {
+    transform: translateX(-3px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
