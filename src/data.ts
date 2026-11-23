@@ -201,9 +201,9 @@ export const artists: Artist[] = [
   { id: 'artist-05', name: 'Dylan The DJ', role: 'DJ', bio: '', image: placeholder(' ', 1200, 1500) },
   { id: 'artist-06', name: 'Scrapie', role: 'Artist', bio: '', image: placeholder(' ', 1200, 1500) },
   { id: 'artist-07', name: 'MC Bonzah', role: 'MC', bio: '', image: placeholder(' ', 1200, 1500) },
-  // TODO: real names and roles to come. Photos are cut-outs flattened onto the card colour.
-  { id: 'artist-08', name: 'Artist 08', role: 'Artist', bio: '', image: '/img/artists/artist-08.jpg', imagePosition: '50% 0%' },
-  { id: 'artist-09', name: 'Artist 09', role: 'Artist', bio: '', image: '/img/artists/artist-09.jpg', imagePosition: '50% 0%' },
+  // TODO: real roles to come. Photos are cut-outs flattened onto the card colour.
+  { id: 'artist-08', name: 'CHAPU', role: 'Artist', bio: '', image: '/img/artists/artist-08.jpg', imagePosition: '50% 0%' },
+  { id: 'artist-09', name: 'DOUBLE 0', role: 'Artist', bio: '', image: '/img/artists/artist-09.jpg', imagePosition: '50% 0%' },
 ]
 
 export const venues: Venue[] = [
