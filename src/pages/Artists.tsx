@@ -22,6 +22,7 @@ export default function Artists() {
                 <img
                   src={artist.image}
                   alt={artist.name}
+                  style={artist.imagePosition ? { objectPosition: artist.imagePosition } : undefined}
                   loading={eager ? 'eager' : 'lazy'}
                   fetchPriority={eager ? 'high' : 'auto'}
                   decoding="async"

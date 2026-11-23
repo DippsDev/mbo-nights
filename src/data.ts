@@ -6,6 +6,8 @@ export type Artist = {
   role: string
   bio: string
   image: string
+  /** CSS object-position for the card crop, e.g. '50% 0%' to keep a head in frame. Default: centre. */
+  imagePosition?: string
 }
 
 export type Venue = {
@@ -189,7 +191,8 @@ export const artists: Artist[] = [
     name: 'MBO Rasta',
     role: 'Artist',
     bio: 'MBO Rasta brings the night in live — roots energy for Gaborone rooms that stay open late.',
-    image: '/img/artists/mbo-rasta.jpg',
+    image: '/img/artists/mbo-rasta-v3.jpg',
+    imagePosition: '50% 0%',
   },
   // FEED THE STREETS lineup. Bios and photos still to come.
   { id: 'artist-02', name: 'FME DJs', role: 'DJ', bio: '', image: placeholder(' ', 1200, 1500) },
@@ -198,6 +201,9 @@ export const artists: Artist[] = [
   { id: 'artist-05', name: 'Dylan The DJ', role: 'DJ', bio: '', image: placeholder(' ', 1200, 1500) },
   { id: 'artist-06', name: 'Scrapie', role: 'Artist', bio: '', image: placeholder(' ', 1200, 1500) },
   { id: 'artist-07', name: 'MC Bonzah', role: 'MC', bio: '', image: placeholder(' ', 1200, 1500) },
+  // TODO: real names and roles to come. Photos are cut-outs flattened onto the card colour.
+  { id: 'artist-08', name: 'Artist 08', role: 'Artist', bio: '', image: '/img/artists/artist-08.jpg', imagePosition: '50% 0%' },
+  { id: 'artist-09', name: 'Artist 09', role: 'Artist', bio: '', image: '/img/artists/artist-09.jpg', imagePosition: '50% 0%' },
 ]
 
 export const venues: Venue[] = [
