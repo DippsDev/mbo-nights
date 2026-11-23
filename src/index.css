@@ -1293,12 +1293,6 @@ video {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .foot-col a.is-spotlit {
-    animation: none;
-  }
-}
-
 .order-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1511,21 +1505,6 @@ video {
   }
   100% {
     transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bag-slip {
-    animation: slipFade 0.2s ease both;
-  }
-
-  .bag-slip.is-leaving {
-    animation: slipFadeOut 0.2s ease both;
-  }
-
-  .bag-link.is-bumped svg,
-  .bag-link.is-bumped span {
-    animation: none;
   }
 }
 
@@ -4330,13 +4309,6 @@ fieldset.field legend {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .scan-view,
-  .scan-qr {
-    animation-duration: 0.01ms !important;
-  }
-}
-
 ::view-transition-group(*) {
   animation-duration: 0.55s;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
@@ -4361,12 +4333,6 @@ fieldset.field legend {
 @keyframes pass-fade {
   to {
     opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pass-deck-slide {
-    transition: none;
   }
 }
 
@@ -4923,14 +4889,6 @@ fieldset.field legend {
   to {
     opacity: 0;
     transform: translateY(20px) scale(0.97);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .orders-popup,
-  .orders-popup-panel,
-  .orders-popup .order-group {
-    animation-duration: 0.01ms !important;
   }
 }
 

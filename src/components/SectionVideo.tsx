@@ -5,7 +5,7 @@ import { reducedMotion } from '../lib/motion'
 /**
  * Muted background loop for a home section. Loads nothing until the section nears
  * the viewport, then loops continuously, and falls back to `image` if the
- * file is missing or the visitor prefers reduced motion.
+ * file is missing.
  */
 export default function SectionVideo({
   src,

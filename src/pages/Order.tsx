@@ -229,12 +229,9 @@ export default function Order() {
     if (!pointAtFooterLink) return;
     const link = document.getElementById("find-my-tickets");
     if (!link) return;
-    const reduce = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
     const start = window.setTimeout(() => {
       link.scrollIntoView({
-        behavior: reduce ? "auto" : "smooth",
+        behavior: "smooth",
         block: "center",
       });
       link.classList.add("is-spotlit");

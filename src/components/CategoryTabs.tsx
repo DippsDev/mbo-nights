@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from 'motion/react'
+import { motion } from 'motion/react'
+import { reducedMotion } from '../lib/motion'
 
 /*
  * Menu categories as a strip of tear-off ticket cells, joined by dashed
@@ -14,7 +15,7 @@ type Props = {
 }
 
 export default function CategoryTabs({ items, active, onSelect, label }: Props) {
-  const reduce = useReducedMotion()
+  const reduce = reducedMotion()
 
   return (
     <nav className="cat-tabs" aria-label={label}>

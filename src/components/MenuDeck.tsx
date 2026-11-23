@@ -1,4 +1,5 @@
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
+import { reducedMotion } from '../lib/motion'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { MenuSection } from '../data'
@@ -21,11 +22,11 @@ const pula = (n: number) => `P${n.toLocaleString('en-US')}`
 /**
  * Food & drinks as a deck of tear-off tickets, one per menu section, in the same
  * ticket style as the event's tiers. Pick a category from the pill bar, or swipe,
- * tap or use the arrow keys to move through the deck. With reduced motion on, the tickets show as a plain scrolling list instead.
+ * tap or use the arrow keys to move through the deck.
  * Mount only while open: unmounting resets the deck to its first ticket.
  */
 export default function MenuDeck({ onClose, title, sections }: Props) {
-  const reduce = useReducedMotion()
+  const reduce = reducedMotion()
   const stack = useRef<StackHandle>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
   const [top, setTop] = useState(0)

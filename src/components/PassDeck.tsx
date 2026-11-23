@@ -4,7 +4,7 @@ import TicketPass from './TicketPass'
 import ScanView from './ScanView'
 import type { Ticket } from '../lib/tickets'
 
-const reduceMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+import { reducedMotion as reduceMotion } from '../lib/motion'
 
 /** Run a DOM-changing update as an animated view transition where the browser supports it. */
 function animate(update: () => void) {
