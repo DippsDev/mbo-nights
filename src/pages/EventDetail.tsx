@@ -240,7 +240,7 @@ export default function EventDetail() {
                     {hasMenu && (
                       <button
                         className="btn ghost tier-ticket-map"
-                        aria-label="Food and drinks menu"
+                        aria-label="Drinks menu"
                         aria-haspopup="dialog"
                         onClick={() => setMenuOpen(true)}
                       >

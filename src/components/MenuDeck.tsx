@@ -78,14 +78,14 @@ export default function MenuDeck({ onClose, title, sections }: Props) {
       className="menu-deck"
       role="dialog"
       aria-modal="true"
-      aria-label={`${title} food and drinks menu`}
+      aria-label={`${title} drinks menu`}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
     >
       <div className="menu-deck-head">
         <p className="kicker">
-          Food &amp; drinks<span className="menu-deck-event"> · {title}</span>
+          Drinks<span className="menu-deck-event"> · {title}</span>
         </p>
         <button ref={closeRef} className="btn ghost menu-deck-close" onClick={onClose}>
           Close
