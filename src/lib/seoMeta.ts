@@ -24,7 +24,7 @@ import { LEGAL, getLegal } from '../legal'
 
 // www is the live host (non-www 301s to it), so canonicals must use it too.
 export const SITE_URL = 'https://www.morebandsontheway.com'
-export const DEFAULT_IMAGE = `${SITE_URL}/IMG_1990-scaled.jpeg`
+export const DEFAULT_IMAGE = `${SITE_URL}/og-mbo.png`
 const DEFAULT_TITLE = `${BRAND} — ${BRAND_FULL}`
 
 export type Meta = { title: string; description: string; noindex?: boolean; jsonLd?: object }

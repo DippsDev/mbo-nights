@@ -31,6 +31,7 @@ const PLAYLIST = [
   '/audio/DippsDevBed3.mp3',
   '/audio/DippsDevBed4.mp3',
   '/audio/DippsDevBed5.mp3',
+  '/audio/DippsDevBed6.mp3',
   '/audio/MfanaDipps.mp3',
   '/audio/SongOfTheYear2026.mp3',
   ]),
