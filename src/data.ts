@@ -195,13 +195,13 @@ export const artists: Artist[] = [
     imagePosition: '50% 0%',
   },
   // FEED THE STREETS lineup. Bios and photos still to come.
-  { id: 'artist-02', name: 'FME DJs', role: 'DJ', bio: '', image: placeholder(' ', 1200, 1500) },
   { id: 'artist-03', name: 'Chapu', role: 'Artist', bio: '', image: placeholder(' ', 1200, 1500) },
   { id: 'artist-04', name: 'Double O', role: 'Artist', bio: '', image: placeholder(' ', 1200, 1500) },
   { id: 'artist-05', name: 'Dylan The DJ', role: 'DJ', bio: '', image: placeholder(' ', 1200, 1500) },
   { id: 'artist-06', name: 'Scrapie', role: 'Artist', bio: '', image: placeholder(' ', 1200, 1500) },
   { id: 'artist-07', name: 'MC Bonzah', role: 'MC', bio: '', image: placeholder(' ', 1200, 1500) },
   { id: 'artist-10', name: 'Groove Icons', role: 'DJ', bio: '', image: placeholder(' ', 1200, 1500) },
+  { id: 'artist-11', name: 'Whistle God', role: 'Host', bio: '', image: placeholder(' ', 1200, 1500) },
   // TODO: real roles to come. Photos are cut-outs flattened onto the card colour.
   { id: 'artist-08', name: 'CHAPU', role: 'Artist', bio: '', image: '/img/artists/artist-08.jpg', imagePosition: '50% 0%' },
   { id: 'artist-09', name: 'DOUBLE 0', role: 'Artist', bio: '', image: '/img/artists/artist-09.jpg', imagePosition: '50% 0%' },
@@ -274,7 +274,7 @@ export const nights: Night[] = [
   {
     id: 'night-01',
     title: 'FEED THE STREETS',
-    artistIds: ['artist-02', 'artist-01', 'artist-03', 'artist-04', 'artist-05', 'artist-06', 'artist-07', 'artist-10'],
+    artistIds: ['artist-11', 'artist-01', 'artist-03', 'artist-04', 'artist-06', 'artist-10', 'artist-05', 'artist-07'],
     venueId: 'venue-05',
     date: '28 Nov 2026',
     time: '16:00',
@@ -284,7 +284,7 @@ export const nights: Night[] = [
     clips: ['/video/nights/night-01-v2.mp4'],
     onSale: true,
     teaser:
-      'Free entry at Red Room, Setlhoa Retail Park —MBO Rasta, Chapu, Double O and Scrapie live, FME DJs, Groove Icons and Dylan The DJ on the decks, MC Bonzah on the mic.',
+      'Free entry at Red Room, Setlhoa Retail Park. Hosted by Whistle God, with performances by MBO Rasta, Chapu, Double O, Scrapie, Groove Icons and Dylan The DJ, and MC Bonzah on the mic.',
     tiers: [
       { id: 'general', name: 'General', price: 0, remaining: 80 },
     ],

@@ -5383,22 +5383,12 @@ fieldset.field legend {
 /* ── Menu category tabs: a perforated ticket strip, one cell per row ── */
 .cat-tabs {
   --perf: rgba(243, 238, 230, 0.22);
-  --notch: 0.55rem;
   /* Above the deck, so a tilted card never paints over the tabs. */
   position: relative;
   z-index: 2;
   flex-shrink: 0;
   width: var(--tabs-w, var(--deck-w, 100%));
   background: var(--bg-2);
-  /* Notches top and bottom, like the ends of a ticket stood upright. */
-  -webkit-mask:
-    radial-gradient(circle at 50% 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
-    radial-gradient(circle at 50% 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
-  -webkit-mask-composite: source-in;
-  mask:
-    radial-gradient(circle at 50% 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
-    radial-gradient(circle at 50% 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
-  mask-composite: intersect;
 }
 
 .cat-tabs ul {
@@ -5416,30 +5406,21 @@ fieldset.field legend {
 /* Phones: a 3 x 2 grid keeps all six tabs in two short rows, leaving the
    height to the deck. Number above label, centred in each cell. */
 @media (max-width: 759px) {
-  .cat-tabs {
-    -webkit-mask:
-      radial-gradient(circle at 0 50%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
-      radial-gradient(circle at 100% 50%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
-    -webkit-mask-composite: source-in;
-    mask:
-      radial-gradient(circle at 0 50%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)),
-      radial-gradient(circle at 100% 50%, transparent var(--notch), #000 calc(var(--notch) + 0.5px));
-    mask-composite: intersect;
-  }
-
   .cat-tabs ul {
-    grid-template-columns: repeat(3, 1fr);
+    /* Up to 3 per row; fewer tabs stretch to fill the row instead of leaving empty cells. */
+    grid-template-columns: repeat(auto-fit, minmax(30%, 1fr));
   }
 
   .cat-tabs li:not(:last-child) {
     border-bottom: 0;
   }
 
-  .cat-tabs li:not(:nth-child(3n)) {
+  .cat-tabs li:not(:nth-child(3n)):not(:last-child) {
     border-right: 2px dashed var(--perf);
   }
 
-  .cat-tabs li:nth-child(-n + 3) {
+  /* Bottom perforation only when a second row exists. */
+  .cat-tabs li:nth-child(-n + 3):nth-last-child(n + 4) {
     border-bottom: 2px dashed var(--perf);
   }
 
