@@ -250,8 +250,7 @@ export const venues: Venue[] = [
     type: 'club',
     city: 'Gaborone',
     address: 'Setlhoa Retail Park',
-    // shortcut: place search text, not lat,lng (share link had no pin); swap in real coords when known.
-    coords: 'Red+Room,+Setlhoa+Retail+Park,+Gaborone',
+    coords: '-24.599888,25.939213',
     image: placeholder('RED ROOM', 1600, 1000),
     blurb: 'Red Room at Setlhoa Retail Park, turned red for the night.',
   },
