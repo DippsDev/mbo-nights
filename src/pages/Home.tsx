@@ -11,10 +11,11 @@ import { softScrollReveal } from '../lib/motion'
 import { useSound } from '../sound'
 import { forceMuted, NO_INLINE_VIDEO, useMutedVideoRef } from '../lib/media'
 
-const HERO_CLIP_DESKTOP = '/video/DippsDevHero.mp4'
-const HERO_CLIP_MOBILE = '/video/DippsDevMobile.mp4'
-const HERO_POSTER_DESKTOP = '/video/DippsDevHero.jpg'
-const HERO_POSTER_MOBILE = '/video/DippsDevMobile.jpg'
+// 0:50–1:09 of "Hero MATATA.mp4", cut to its own file so native loop is seamless.
+const HERO_CLIP_DESKTOP = '/video/HeroMatataLoop.mp4'
+const HERO_CLIP_MOBILE = '/video/MBOMobileLoop.mp4'
+const HERO_POSTER_DESKTOP = '/video/HeroMatata.jpg'
+const HERO_POSTER_MOBILE = '/video/MBOMobile.jpg'
 const HERO_MOBILE_MQ = '(max-width: 799px)'
 
 function heroForViewport() {

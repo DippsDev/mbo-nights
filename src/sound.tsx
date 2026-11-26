@@ -24,33 +24,23 @@ export const SOUND_BED_ID = 'mbo-sound-bed'
  * file), so we never seek. Seeking was what broke iPad: Safari would sometimes
  * land the jump before the data was ready and report the track as `ended`.
  */
-/** DippsDevBed always opens (index.html starts it); the rest are shuffled once per page load. */
+/** Plays in this order. The first track must match the <audio> src in index.html. */
 const PLAYLIST = [
+  '/audio/MfanaTouSwaggerDipps.mp3',
   '/audio/DippsDevBed.mp3',
-  ...shuffle([
-  '/audio/DippsDevBed3.mp3',
   '/audio/DippsDevBed4.mp3',
   '/audio/DippsDevBed5.mp3',
   '/audio/DippsDevBed6.mp3',
   '/audio/MfanaDipps.mp3',
   '/audio/SongOfTheYear2026.mp3',
-  ]),
 ]
-
-function shuffle<T>(list: T[]) {
-  for (let i = list.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[list[i], list[j]] = [list[j], list[i]]
-  }
-  return list
-}
 const FILE_VOL = 0.55
 /** Long, soft rise so the bed arrives instead of slamming in. (iOS ignores volume.) */
-const FADE_IN = 7.5
+const FADE_IN = 12
 /** Each track eases out over its last few seconds… */
 const TRACK_FADE_OUT = 4
 /** …and the next one eases in. */
-const TRACK_FADE_IN = 3
+const TRACK_FADE_IN = 5
 
 /**
  * On-screen sound log for debugging on devices without a console (iPad).
