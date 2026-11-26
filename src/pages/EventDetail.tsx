@@ -346,6 +346,10 @@ function googleDirections(coords: string) {
  */
 function directionsFromHere(e: React.MouseEvent, coords: string) {
   if (!navigator.geolocation || !window.matchMedia('(pointer: coarse)').matches) return
+  // iOS only hands Google Maps links to the app on a real tap, not a delayed redirect; the app finds the location itself.
+  const iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  // A new tab on iOS shows up blank instead of handing off to Maps, so open in this tab.
+  if (iOS) return e.currentTarget.removeAttribute('target')
   e.preventDefault()
   const go = (origin?: string) => {
     window.location.href = origin
