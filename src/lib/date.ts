@@ -19,3 +19,11 @@ export function startsAt(date: string, time: string) {
   if (m < 0) return NaN
   return Date.UTC(Number(year), m, Number(day), h - 2, min)
 }
+
+/** Closing timestamp; an end time earlier than the start rolls to the next day. NaN without an end time. */
+export function endsAt(date: string, time: string, end?: string) {
+  if (!end) return NaN
+  const start = startsAt(date, time)
+  const close = startsAt(date, end)
+  return close <= start ? close + 86_400_000 : close
+}

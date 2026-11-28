@@ -37,6 +37,8 @@ export type Night = {
   venueId: string
   date: string
   time: string
+  /** Closing time, 'HH:MM'. Earlier than `time` means the next morning. The ticket shows "Ended" after it. */
+  endsAt?: string
   image: string
   /** Artist music-video cuts and MBO event footage. Drop files in public/video then add paths. */
   clips: string[]
@@ -277,6 +279,7 @@ export const nights: Night[] = [
     venueId: 'venue-05',
     date: '28 Nov 2026',
     time: '16:00',
+    endsAt: '03:00',
     image: placeholder(' ', 1800, 1200),
     // Muted H.264 loop of crowd clips with crossfades (the .jpg beside it is the poster frame).
     // Browsers cache video for 7 days: give a replacement a new file name (-v3, ...) or visitors keep the old one.

@@ -10,7 +10,7 @@ import {
   SHOP_OPEN,
 } from '../data'
 import MenuDeck from '../components/MenuDeck'
-import { startsAt, stubDate } from '../lib/date'
+import { endsAt, startsAt, stubDate } from '../lib/date'
 import { forceMuted, NO_INLINE_VIDEO, useMutedVideoRef } from '../lib/media'
 import { MAX_PER_TIER, stockKey, useStock } from '../lib/tickets'
 
@@ -216,7 +216,7 @@ export default function EventDetail() {
                             ? 'Sold out'
                             : `${left} left`}
                     </p>
-                    <Countdown at={startsAt(night.date, night.time)} />
+                    <Countdown at={startsAt(night.date, night.time)} end={endsAt(night.date, night.time, night.endsAt)} />
                   </div>
                   <div className="tier-ticket-buy">
                     {!free && <span className="tier-ticket-price">P{live?.price ?? tier.price}</span>}
@@ -364,8 +364,8 @@ function directionsFromHere(e: React.MouseEvent, coords: string) {
 }
 
 
-/** Days / hours / minutes / seconds to doors. Renders nothing until mounted (prerender-safe) or once doors open. */
-function Countdown({ at }: { at: number }) {
+/** Days / hours / minutes / seconds to doors, then "Doors open", then "Ended" after `end`. Renders nothing until mounted (prerender-safe). */
+function Countdown({ at, end }: { at: number; end: number }) {
   const [now, setNow] = useState<number | null>(null)
   useEffect(() => {
     setNow(Date.now())
@@ -373,6 +373,7 @@ function Countdown({ at }: { at: number }) {
     return () => window.clearInterval(t)
   }, [])
   if (now === null || !Number.isFinite(at)) return null
+  if (now >= end) return <p className="tier-countdown">Ended</p>
   const left = Math.floor((at - now) / 1000)
   if (left <= 0) return <p className="tier-countdown is-live">Doors open</p>
   const parts: [number, string][] = [
