@@ -68,6 +68,8 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/events" element={<Navigate to="/" replace />} />
             <Route path="/events/:id" element={live(<EventDetail />)} />
+            {/* Photos and videos from a finished night. Swap in the ViewTheNight page once it is designed. */}
+            <Route path="/events/:id/night" element={<ComingSoon label="View the night" />} />
             <Route path="/artists" element={<Artists />} />
             <Route path="/artists/:id" element={<Navigate to="/artists" replace />} />
             <Route path="/tickets" element={<MyTickets />} />

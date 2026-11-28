@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { artistsFor, canBuy, getVenue, nights, type Night } from '../data'
-import { stubDate } from '../lib/date'
+import { endsAt, stubDate } from '../lib/date'
 import { stockKey, useStock, type Stock } from '../lib/tickets'
 
 // Coming-soon cards all look alike — no real title, teaser or price leaks early.
@@ -45,6 +45,8 @@ function EventTicket({ night, stock }: { night: Night; stock: Stock | null }) {
   // A slot with no details yet: no date, lineup, venue or prices, and no event page.
   const soon = Boolean(night.comingSoon)
   const buyable = canBuy(night) && !allGone
+  // After closing time the button leads to the night's photos and videos instead.
+  const ended = Date.now() >= endsAt(night.date, night.time, night.endsAt)
   const status = soon ? 'Coming soon' : night.soldOut || allGone ? 'Sold out' : 'On sale soon'
   // Placeholder art is an inline SVG; real posters are files.
   const hasArt = !night.image.startsWith('data:')
@@ -71,7 +73,11 @@ function EventTicket({ night, stock }: { night: Night; stock: Stock | null }) {
           {!soon && venue?.name ? ` · ${venue.name}` : ''}
         </p>
         <div className="event-ticket-actions">
-          {!buyable ? (
+          {ended ? (
+            <Link className="btn" to={`${href}/night`}>
+              View the night
+            </Link>
+          ) : !buyable ? (
             <span className="btn" aria-disabled>
               {status}
             </span>
