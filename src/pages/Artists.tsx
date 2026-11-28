@@ -1,4 +1,4 @@
-import { BRAND_KICKER, artists, nightsForArtist } from '../data'
+import { BRAND_KICKER, artists } from '../data'
 
 // Only acts with a real photo get a card; placeholders (data: URIs) stay off this page.
 const pictured = artists.filter((a) => !a.image.startsWith('data:'))
@@ -14,7 +14,6 @@ export default function Artists() {
       <section className="section" style={{ paddingTop: 0 }}>
         <div className={`card-grid artists${pictured.length === 1 ? ' solo' : ''}`}>
           {pictured.map((artist, i) => {
-            const next = nightsForArtist(artist.id)[0]
             // The first row is on screen straight away; only later cards wait.
             const eager = i < 3
             return (
@@ -28,7 +27,7 @@ export default function Artists() {
                   decoding="async"
                 />
                 <div className="card-meta">
-                  <span className="tag">{next ? `Next · ${next.date}` : artist.role}</span>
+                  <span className="tag">{artist.role}</span>
                   <h2 className="display md">{artist.name}</h2>
                 </div>
               </div>
